@@ -34,7 +34,7 @@ export default function Home() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`http://localhost:3002/api/users`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users`);
         const data = await response.json();
         setUsers(data);
       } catch (error) {
