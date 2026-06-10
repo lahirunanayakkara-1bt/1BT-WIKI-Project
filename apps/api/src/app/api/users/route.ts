@@ -1,3 +1,10 @@
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type': 'application/json'
+};
+
 export async function GET(request: Request) {
   // For example, fetch data from your DB here
   const users = [
@@ -6,7 +13,7 @@ export async function GET(request: Request) {
   ];
   return new Response(JSON.stringify(users), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' }
+    headers: corsHeaders
   });
 }
  
@@ -20,6 +27,13 @@ export async function POST(request: Request) {
  
   return new Response(JSON.stringify(newUser), {
     status: 201,
-    headers: { 'Content-Type': 'application/json' }
+    headers: corsHeaders
+  });
+}
+
+export async function OPTIONS(request: Request) {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders
   });
 }

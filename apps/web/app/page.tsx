@@ -1,14 +1,23 @@
+"use client"
+
 import Image, { type ImageProps } from "next/image";
 import { Button } from "@repo/ui/button";
 import styles from "./page.module.css";
+import { useEffect, useState } from "react";
 
 type Props = Omit<ImageProps, "src"> & {
   srcLight: string;
   srcDark: string;
 };
 
+interface User {
+  id: number;
+  name: string;
+}
+
 const ThemeImage = (props: Props) => {
   const { srcLight, srcDark, ...rest } = props;
+
 
   return (
     <>
@@ -19,6 +28,24 @@ const ThemeImage = (props: Props) => {
 };
 
 export default function Home() {
+
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(`http://localhost:3002/api/users`);
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -32,10 +59,9 @@ export default function Home() {
           priority
         />
         <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
+          {users.map((user) => (
+            <li key={user.id}>{user.name}</li>
+          ))}
         </ol>
 
         <div className={styles.ctas}>
