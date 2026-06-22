@@ -41,7 +41,7 @@ export default function Home() {
         </Button>
       </main>
       <footer>
-        <div>Footer content</div>
+        <div>Footer content test</div>
       </footer>
     </div>
   );
