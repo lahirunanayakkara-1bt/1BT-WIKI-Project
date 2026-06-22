@@ -37,7 +37,7 @@ export default function Home() {
           ))}
         </ol>
         <Button appName="web">
-          Open alert test
+          Open alert
         </Button>
       </main>
       <footer>
