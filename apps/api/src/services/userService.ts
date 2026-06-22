@@ -1,4 +1,4 @@
-import UserRepository from '../repositories/userRepository';
+import UserRepository from '../repositories/userRepository.js';
 
 const getAll = async () => {
   return UserRepository.getAll();

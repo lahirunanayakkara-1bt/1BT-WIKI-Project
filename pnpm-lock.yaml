@@ -21,7 +21,7 @@ importers:
   apps/api:
     dependencies:
       cors:
-        specifier: ^2.8.6
+        specifier: ^2.8.5
         version: 2.8.6
       dotenv:
         specifier: ^16.0.3
