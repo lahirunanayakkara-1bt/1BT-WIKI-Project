@@ -1,14 +1,14 @@
-name: Web CI
+name: API CI
 
 on:
   pull_request:
     branches:
       - main
     paths:
-      - 'apps/web/**'
+      - 'apps/api/**'
 
 jobs:
-  web-ci:
+  api-ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,11 +27,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint Web
-        run: pnpm --filter web lint
+      - name: Lint API
+        run: pnpm --filter api lint
 
-      - name: Run Web Tests
-        run: pnpm --filter web test
+      - name: Run API Tests
+        run: pnpm --filter api test
 
-      - name: Build Web
-        run: pnpm --filter web build
+      - name: Build API
+        run: pnpm --filter api build
