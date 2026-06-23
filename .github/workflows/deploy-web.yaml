@@ -43,9 +43,8 @@ jobs:
       - name: Run Cypress E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PORT: 5000
         run: |
-          pnpm --filter api dev &
+          PORT=5000 pnpm --filter api dev &
           pnpm --filter web start &
           pnpm --filter web exec wait-on \
             http://localhost:3000 \
