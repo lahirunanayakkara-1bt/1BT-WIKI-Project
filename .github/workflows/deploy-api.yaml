@@ -4,6 +4,12 @@ on:
   pull_request:
     branches:
       - main
+      - dev
+
+    push:
+      branches:
+        - dev
+
     paths:
       - 'apps/api/**'
 
