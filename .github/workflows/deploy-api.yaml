@@ -6,11 +6,11 @@ on:
       - main
       - dev
 
-    push:
+  push:
       branches:
         - dev
 
-    paths:
+  paths:
       - 'apps/api/**'
 
 jobs:

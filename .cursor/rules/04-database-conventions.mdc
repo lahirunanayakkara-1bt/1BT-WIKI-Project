@@ -1,0 +1,184 @@
+---
+description: Database conventions for Neon PostgreSQL — schema, migrations, queries, and connection pooling
+globs: ["src/db/**/*.ts", "src/repositories/**/*.ts", "src/db/migrations/**/*.sql"]
+alwaysApply: false
+---
+
+# Database Conventions — Neon PostgreSQL
+
+## Connection
+- Use `@neondatabase/serverless` with connection pooling
+- Pool configured in `src/config/db.ts` — import `pool` from there; never create new connections elsewhere
+
+```typescript
+// src/config/db.ts
+import { Pool } from '@neondatabase/serverless';
+
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+});
+```
+
+## SQL Rules (security-critical)
+- **Always** use parameterized queries — `$1`, `$2`, etc.
+- **Never** use string interpolation in SQL — this causes SQL injection
+- **Never** use ORMs for this project (no Prisma, Drizzle, TypeORM) — raw SQL only
+
+```typescript
+// ✅ Safe — parameterized
+const result = await pool.query(
+  'SELECT * FROM articles WHERE id = $1 AND status = $2',
+  [articleId, 'Published']
+);
+
+// ❌ DANGEROUS — SQL injection risk — never do this
+const result = await pool.query(
+  `SELECT * FROM articles WHERE id = '${articleId}'`
+);
+```
+
+## Schema Naming
+| Element | Convention | Example |
+|---------|------------|---------|
+| Tables | `snake_case` plural | `articles`, `tech_talks`, `quiz_attempts` |
+| Columns | `snake_case` | `created_at`, `author_id`, `read_status` |
+| Primary keys | `id UUID DEFAULT gen_random_uuid()` | always UUID |
+| Foreign keys | `[table_singular]_id` | `article_id`, `user_id` |
+| Timestamps | `created_at`, `updated_at`, `deleted_at` | always present |
+| Indexes | `idx_[table]_[column]` | `idx_articles_author_id` |
+
+## Core Schema (reference — do not alter without migration)
+
+```sql
+-- Users (managed by Clerk; mirrored here for relations)
+CREATE TABLE users (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clerk_id    VARCHAR(255) UNIQUE NOT NULL,
+  email       VARCHAR(255) UNIQUE NOT NULL,
+  name        VARCHAR(255),
+  avatar_url  TEXT,
+  role        VARCHAR(20) DEFAULT 'User' CHECK (role IN ('Admin', 'Reviewer', 'User')),
+  is_active   BOOLEAN DEFAULT TRUE,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Articles
+CREATE TABLE articles (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id   UUID NOT NULL REFERENCES users(id),
+  title       VARCHAR(500) NOT NULL,
+  body        JSONB NOT NULL,             -- TipTap JSON
+  tags        TEXT[] DEFAULT '{}',
+  status      VARCHAR(20) DEFAULT 'Draft'
+              CHECK (status IN ('Draft', 'Pending', 'Published', 'Rejected')),
+  view_count  INTEGER DEFAULT 0,
+  reviewer_feedback TEXT,
+  deleted_at  TIMESTAMPTZ,               -- soft delete
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Comments
+CREATE TABLE comments (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  article_id  UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  author_id   UUID NOT NULL REFERENCES users(id),
+  body        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Likes (unique constraint prevents duplicates)
+CREATE TABLE likes (
+  user_id     UUID NOT NULL REFERENCES users(id),
+  article_id  UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (user_id, article_id)
+);
+
+-- Notifications
+CREATE TABLE notifications (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id),
+  type        VARCHAR(50) NOT NULL,       -- 'article_approved', 'article_rejected', 'new_comment', etc.
+  message     TEXT NOT NULL,
+  read_status BOOLEAN DEFAULT FALSE,
+  reference_id UUID,                      -- article_id or comment_id the notification relates to
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tech Talks
+CREATE TABLE tech_talks (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title         VARCHAR(500) NOT NULL,
+  description   TEXT,
+  presenters    TEXT[],
+  tags          TEXT[] DEFAULT '{}',
+  event_date    TIMESTAMPTZ,
+  slides_url    TEXT,
+  youtube_url   TEXT,
+  status        VARCHAR(20) DEFAULT 'Draft'
+                CHECK (status IN ('Draft', 'Published')),
+  created_by    UUID REFERENCES users(id),
+  deleted_at    TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Quiz Attempts
+CREATE TABLE quiz_attempts (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id),
+  article_id    UUID NOT NULL REFERENCES articles(id),
+  questions     JSONB NOT NULL,           -- generated questions
+  answers       JSONB NOT NULL,           -- user's submitted answers
+  score         INTEGER,
+  total         INTEGER,
+  score_percent DECIMAL(5,2),
+  submitted_at  TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+## Migration Rules
+- One file per migration, never edit existing migrations
+- File naming: `YYYYMMDDHHMMSS_description.sql`
+- Always include a rollback comment at the top
+- Run migrations in order; track with a `schema_migrations` table
+
+```sql
+-- File: 20260601120000_create_articles.sql
+-- Rollback: DROP TABLE IF EXISTS articles;
+
+CREATE TABLE articles (
+  ...
+);
+
+CREATE INDEX idx_articles_author_id ON articles(author_id);
+CREATE INDEX idx_articles_status ON articles(status);
+```
+
+## Soft Delete Pattern
+- Tables with `deleted_at` use soft delete — never hard delete from `articles` and `tech_talks`
+- All queries on soft-delete tables must include `AND deleted_at IS NULL`
+- Admin hard-delete: `UPDATE articles SET deleted_at = NOW() WHERE id = $1`
+
+## Aggregation Queries (avoid N+1 — use JOINs)
+```sql
+-- ✅ Single query with aggregation (for article listings)
+SELECT 
+  a.*,
+  u.name AS author_name,
+  u.avatar_url AS author_avatar,
+  COUNT(DISTINCT l.user_id) AS like_count,
+  COUNT(DISTINCT c.id) AS comment_count
+FROM articles a
+JOIN users u ON u.id = a.author_id
+LEFT JOIN likes l ON l.article_id = a.id
+LEFT JOIN comments c ON c.article_id = a.id
+WHERE a.status = 'Published' AND a.deleted_at IS NULL
+GROUP BY a.id, u.name, u.avatar_url
+ORDER BY a.created_at DESC;
+```

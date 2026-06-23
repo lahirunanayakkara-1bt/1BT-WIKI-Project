@@ -8,6 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/api/v1/health', (_req, res) => {
+  res.status(200).json({ success: true, data: { status: 'ok' } });
+});
+
 app.use('/api/users', userRouter);
 
 userRouter.get('/getAll', UserController.getAll);
