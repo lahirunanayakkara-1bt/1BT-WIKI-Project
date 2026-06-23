@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import userRouter from './routes/userRoutes.js';
+import UserController from './controllers/userController.js';
 
 const app = express();
 
@@ -9,6 +10,6 @@ app.use(express.json());
 
 app.use('/api/users', userRouter);
 
-app.get('/', (_req, res) => res.json({ status: 'ok' }));
+userRouter.get('/getAll', UserController.getAll);
 
 export default app;
