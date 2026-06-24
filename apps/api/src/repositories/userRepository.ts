@@ -1,4 +1,4 @@
-import pool from '../db.js';
+import pool from '../db/index.js';
 
 const getAll = async () => {
   const { rows } = await pool.query('SELECT id, name, email FROM users ORDER BY created_at DESC');
