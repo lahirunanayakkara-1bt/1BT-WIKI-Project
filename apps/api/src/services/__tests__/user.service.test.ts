@@ -1,10 +1,18 @@
 // apps/api/src/services/__tests__/user.service.test.ts
 
-import UserService from '../userService.js';
-import UserRepository from '../../repositories/userRepository.js';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock the entire repository — no real DB calls
-jest.mock('../../repositories/userRepository.js');
+// ESM mock — must be before any imports
+await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+  default: {
+    getAll: jest.fn(),
+    create: jest.fn(),
+  },
+}));
+
+// Import AFTER mock is registered
+const { default: UserService } = await import('../userService.js');
+const { default: UserRepository } = await import('../../repositories/userRepository.js');
 
 const mockedRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 
@@ -68,7 +76,11 @@ describe('UserService', () => {
     it('should use Anonymous when name is not provided', async () => {
       // Arrange
       const input = { email: 'test@1billiontech.com' };
-      const mockCreated = { id: 4, name: 'Anonymous', email: 'test@1billiontech.com' };
+      const mockCreated = {
+        id: 4,
+        name: 'Anonymous',
+        email: 'test@1billiontech.com',
+      };
       mockedRepo.create.mockResolvedValue(mockCreated);
 
       // Act

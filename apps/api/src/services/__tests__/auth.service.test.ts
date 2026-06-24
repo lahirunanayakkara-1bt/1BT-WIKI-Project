@@ -7,9 +7,10 @@
 // They will be replaced by Lahiru with real AuthService tests
 // ─────────────────────────────────────────────────────
 
+import { describe, it, expect } from '@jest/globals';
+
 describe('AuthService — placeholder', () => {
 
-  // Inline helper — will be replaced by real AuthService method
   const isCompanyEmail = (email: string): boolean =>
     email.endsWith('@1billiontech.com');
 
