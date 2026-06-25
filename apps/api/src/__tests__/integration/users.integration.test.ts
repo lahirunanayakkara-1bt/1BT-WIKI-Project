@@ -21,7 +21,7 @@ const { default: app, appReady } = await import('../../app.js');
 const { default: request } = await import('supertest');
 
 // Get reference to the mock query function
-const { default: pool } = await import('../../db.js');
+const { default: pool } = await import('../../db/index.js');
 const mockQuery = pool.query as jest.Mock<any>;
 
 describe('Integration — Users API', () => {
