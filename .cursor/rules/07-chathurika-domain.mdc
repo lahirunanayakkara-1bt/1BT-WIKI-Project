@@ -165,7 +165,7 @@ async rejectArticle(articleId: string, reviewId: string, reviewerId: string, fee
     notification_reference_type: 'review'
     notification_title: 'Your review request has been rejected',
     message: `Your article "${article.title}" was rejected. Feedback: ${feedback}`,
-    referenceId: reviewId,
+    reference_id: reviewId,
   }).catch(err => logger.error('Notification failed', { err }));
 
   return rejected;
