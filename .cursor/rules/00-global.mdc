@@ -1,0 +1,112 @@
+---
+description: Global coding standards for 1BT WIKI — applies to all files, all team members
+alwaysApply: true
+---
+
+# 1BT WIKI — Global Project Rules
+
+## Project Identity
+- Project: **1BT WIKI** (Internal Knowledge Base Platform)
+- Team: Lahiru · Chathurika · Malindu
+- Sprint: 2 Weeks · 4 MVP Releases · June 2026
+
+## Tech Stack (never deviate)
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js + TypeScript + Tailwind CSS |
+| Auth UI | **Neon Auth** (built on Stack Auth — `@stackframe/stack`) |
+| Rich Text | TipTap editor |
+| Backend | Node.js + Express + TypeScript |
+| Database | Neon PostgreSQL |
+| Auth User Sync | `neon_auth.users_sync` table (auto-managed by Neon Auth) |
+| Deployment | Vercel |
+| Testing | Cypress (E2E) + Jest (unit/integration) |
+| Code Quality | SonarQube |
+| AI | GEMINI API |
+
+## TypeScript Standards
+- Always use `strict: true` — zero tolerance for TypeScript errors
+- **Never use `any`** — use `unknown` and narrow, or define proper interfaces
+- All function parameters and return types must be explicitly typed
+- Use `interface` for object shapes, `type` for unions/intersections/aliases
+- Export types from a dedicated `types/` file per domain
+
+```typescript
+// ✅ Correct
+interface ArticleResponse {
+  id: string;
+  title: string;
+  status: ArticleStatus;
+  authorId: string;
+  createdAt: Date;
+}
+
+// ❌ Wrong — never do this
+const getArticle = (id: any): any => { ... }
+```
+
+## File & Folder Naming
+| Artifact | Convention | Example |
+|----------|------------|---------|
+| Files | `kebab-case` | `article-service.ts` |
+| React components | `PascalCase.tsx` | `ArticleCard.tsx` |
+| Hooks | `use[Name].ts` | `useArticleList.ts` |
+| Test files | `[file].test.ts` | `article-service.test.ts` |
+| Cypress tests | `[feature].cy.ts` | `article-lifecycle.cy.ts` |
+| DB migrations | `[timestamp]_[desc].sql` | `20260601_create_articles.sql` |
+
+## Async / Error Handling
+- Always use `async/await` — never callbacks or raw `.then()` chains
+- All async functions must be wrapped in try/catch or use centralized error middleware
+- Never swallow errors silently — always log or rethrow
+
+```typescript
+// ✅ Correct
+async function fetchArticle(id: string): Promise<Article> {
+  try {
+    return await articleRepository.findById(id);
+  } catch (error) {
+    logger.error('Failed to fetch article', { id, error });
+    throw new AppError('Article not found', 404);
+  }
+}
+```
+
+## Environment Variables
+- All secrets and config must come from `process.env`
+- Never hardcode URLs, API keys, database strings, or domain names
+- Use a `src/config/env.ts` file to validate and export all env vars with Zod
+
+## Code Comments
+- Comment **why**, not **what** — the code shows what; the comment explains intent
+- Use JSDoc for all exported functions, classes, and interfaces
+- Remove dead code — do not comment out code; use Git instead
+
+## Branch Protection (do not generate code that bypasses these)
+- `main` → production (Vercel auto-deploys; requires PR + SonarQube pass)
+- `dev` → integration (all features merge here first)
+- `feature/[member]-[task-id]-[slug]` → individual work
+  - e.g. `feature/lahiru-A-01-google-oauth`
+  - e.g. `feature/chathurika-RV-01-review-queue`
+  - e.g. `feature/malindu-KB-01-article-crud`
+
+## Commit Message Format
+```
+[TASK-ID]-[OWNER] type(scope): short description
+
+Examples:
+[A-01]-[LN] feat(auth): add Google OAuth domain restriction
+[KB-03]-[CS] fix(articles): prevent draft edit after submission
+[RV-02]-[MG] feat(review): send approval notification to author
+```
+Types: `feat` | `fix` | `refactor` | `test` | `docs` | `chore`
+
+## Conflict Prevention — Team Boundaries
+Each member owns their domain. **Never create or modify files outside your domain without a PR discussion.**
+
+| Domain | Owner | Paths |
+|--------|-------|-------|
+| Auth · Session · RBAC · Comments · Likes · Quiz AI | **Lahiru** | `**/auth/**`, `**/comments/**`, `**/likes/**`, `**/quiz/**`, `src/lib/neon-auth*`, `src/middleware/auth*` |
+| User Mgmt · Review · Notifications · Tech Talks | **Chathurika** | `**/users/**`, `**/reviewer/**`, `**/notifications/**`, `**/tech-talks/**` |
+| Articles CRUD · Admin Dashboard · Homepage Feed | **Malindu** | `**/articles/**`, `**/admin/**`, `**/homepage/**` |
+| Shared / Infrastructure | **All (via PR)** | `src/config/**`, `src/middleware/**`, `src/types/**`, `src/db/**` |

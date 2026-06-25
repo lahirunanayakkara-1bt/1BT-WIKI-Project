@@ -1,0 +1,197 @@
+---
+description: Backend architecture rules — Controller / Service / Repository layered pattern for Express.js
+globs: ["apps/api/src/**/*.ts"]
+alwaysApply: false
+---
+# Backend Architecture — Controller / Service / Repository
+
+## Layer Responsibilities (strict separation — never cross layers)
+
+```
+HTTP Request
+    ↓
+[ Controller ]   → validates HTTP input, calls service, sends HTTP response
+    ↓
+[  Service   ]   → business logic, orchestrates repositories, throws domain errors
+    ↓
+[ Repository ]   → database queries only, returns raw entities
+    ↓
+[ Neon PostgreSQL ]
+```
+
+### Controller Rules
+- **Only** handle: parse request → validate → call service → format response
+- Never write SQL or business logic in a controller
+- Always return the standard response envelope (see below)
+- File: `src/controllers/[resource]Controller.ts`
+
+```typescript
+// ✅ Correct controller
+export const getArticle = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const article = await articleService.getPublishedById(id);
+  res.json(successResponse(article));
+};
+
+// ❌ Wrong — business logic in controller
+export const getArticle = async (req: Request, res: Response): Promise<void> => {
+  const article = await db.query('SELECT * FROM articles WHERE id = $1', [req.params.id]);
+  if (article.status !== 'Published') throw new Error('Not found');
+  res.json(article);
+};
+```
+
+### Service Rules
+- Contains **all** business logic and state transitions
+- Calls only repositories (never `db` directly)
+- Throws typed `AppError` instances — never `new Error()`
+- File: `src/services/[resource]Service.ts`
+
+```typescript
+// ✅ Correct service
+export class ArticleService {
+  async getPublishedById(id: string): Promise<Article> {
+    const article = await articleRepository.findById(id);
+    if (!article) throw new AppError('Article not found', 404);
+    if (article.status !== 'Published') throw new AppError('Article not available', 403);
+    return article;
+  }
+}
+```
+
+### Repository Rules
+- **Only** database queries — no business logic, no HTTP concepts
+- Always use parameterized queries (never string interpolation — prevents SQL injection)
+- Return plain entity objects or `null` — never throw HTTP errors
+- File: `src/repositories/[resource]Repository.ts`
+
+```typescript
+// ✅ Correct repository
+export class ArticleRepository {
+  async findById(id: string): Promise<Article | null> {
+    const result = await pool.query(
+      'SELECT * FROM articles WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
+    return result.rows[0] ?? null;
+  }
+}
+```
+
+## Standard API Response Envelope
+Every API response must use this shape — no exceptions:
+
+```typescript
+// src/types/api.types.ts
+interface ApiResponse<T = undefined> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+// Success helper
+const successResponse = <T>(data: T, message?: string): ApiResponse<T> => ({
+  success: true,
+  data,
+  message,
+});
+
+// Error helper
+const errorResponse = (error: string): ApiResponse => ({
+  success: false,
+  error,
+});
+```
+
+## Custom Error Class
+```typescript
+// src/errors/AppError.ts
+export class AppError extends Error {
+  constructor(
+    public message: string,
+    public statusCode: number = 500,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'AppError';
+  }
+}
+```
+
+## Global Error Middleware (place last in Express chain)
+```typescript
+// src/middleware/errorHandler.ts
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json(errorResponse(err.message));
+    return;
+  }
+  logger.error('Unhandled error', { err, path: req.path });
+  res.status(500).json(errorResponse('Internal server error'));
+};
+```
+
+## Route File Pattern
+```typescript
+// src/routes/articles.routes.ts
+import { Router } from 'express';
+import { authenticate } from '../middleware/auth.middleware';
+import { requireRole } from '../middleware/rbac.middleware';
+import * as articleController from '../controllers/articleController';
+
+const router = Router();
+
+router.get('/', articleController.listPublished);
+router.get('/mine', authenticate, articleController.listOwn);
+router.get('/:id', articleController.getById);
+router.post('/', authenticate, articleController.create);
+router.patch('/:id', authenticate, articleController.update);
+router.delete('/:id', authenticate, articleController.remove);
+
+export default router;
+```
+
+## File Structure (backend)
+```
+src/
+  controllers/
+    articleController.ts
+    authController.ts
+    ...
+  services/
+    articleService.ts
+    authService.ts
+    ...
+  repositories/
+    articleRepository.ts
+    userRepository.ts
+    ...
+  routes/
+    articles.routes.ts
+    auth.routes.ts
+    index.ts          ← mounts all routers at /api/v1/...
+  middleware/
+    auth.middleware.ts
+    rbac.middleware.ts
+    errorHandler.ts
+    validate.middleware.ts
+  types/
+    api.types.ts
+    article.types.ts
+    user.types.ts
+    ...
+  errors/
+    AppError.ts
+  config/
+    env.ts
+  db/
+    migrations/
+    seeds/
+    index.ts
+```
