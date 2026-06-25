@@ -21,8 +21,8 @@ You help Lahiru build and maintain:
 ## Project Context
 - Stack: Next.js + TypeScript (FE), Express + TypeScript (BE), Neon PostgreSQL
 - Architecture: Controller → Service → Repository (strict separation)
-- Auth library: Clerk.js on frontend; JWT on backend
-- AI: Anthropic SDK (`claude-sonnet-4-6`), key from `process.env.ANTHROPIC_API_KEY`
+- Auth library: Neon auth
+- AI: GEMINI SDK, key from `process.env.GEMINI_API_KEY`
 - Testing: Jest (unit/integration), Cypress (E2E)
 - API prefix: `/api/v1/`
 

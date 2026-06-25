@@ -33,12 +33,13 @@ You help Chathurika build and maintain:
 2. Users cannot deactivate their own account
 3. Review actions (approve/reject): Reviewer or Admin only; reject requires feedback ≥ 10 chars
 4. Editing a Published TechTalk auto-resets status to Draft
-5. Notification types are fixed: `article_pending`, `article_approved`, `article_rejected`, `new_comment`
+5. Notification types are fixed: `success`, `failure`, `info`
    - New comment notification is TRIGGERED by Lahiru's CommentService calling your `notificationService.send()`
    - You own the `NotificationService.send()` implementation
-6. Never touch auth middleware or JWT (Lahiru's domain)
-7. Never touch articles CRUD or admin dashboard stats (Malindu's domain)
-8. Article status transitions are Malindu's responsibility — your ReviewService only sets Published/Rejected via `articleRepository.updateStatus()`
+6. Notification reference types are fixed: `article`, `review`, `techtalk`, `like`, `comment`
+7. Never touch auth middleware or JWT (Lahiru's domain)
+8. Never touch articles CRUD or admin dashboard stats (Malindu's domain)
+9. Article status transitions are Malindu's responsibility — your ReviewService only sets Published/Rejected via `articleRepository.updateStatus()`
 
 ## Code Generation Rules
 - TypeScript strict — no `any`

@@ -1,9 +1,8 @@
 ---
 description: Backend architecture rules — Controller / Service / Repository layered pattern for Express.js
-globs: ["src/backend/**/*.ts", "src/server/**/*.ts", "backend/**/*.ts"]
+globs: ["apps/api/src/**/*.ts"]
 alwaysApply: false
 ---
-
 # Backend Architecture — Controller / Service / Repository
 
 ## Layer Responsibilities (strict separation — never cross layers)
@@ -24,7 +23,7 @@ HTTP Request
 - **Only** handle: parse request → validate → call service → format response
 - Never write SQL or business logic in a controller
 - Always return the standard response envelope (see below)
-- File: `src/controllers/[resource].controller.ts`
+- File: `src/controllers/[resource]Controller.ts`
 
 ```typescript
 // ✅ Correct controller
@@ -46,7 +45,7 @@ export const getArticle = async (req: Request, res: Response): Promise<void> => 
 - Contains **all** business logic and state transitions
 - Calls only repositories (never `db` directly)
 - Throws typed `AppError` instances — never `new Error()`
-- File: `src/services/[resource].service.ts`
+- File: `src/services/[resource]Service.ts`
 
 ```typescript
 // ✅ Correct service
@@ -64,7 +63,7 @@ export class ArticleService {
 - **Only** database queries — no business logic, no HTTP concepts
 - Always use parameterized queries (never string interpolation — prevents SQL injection)
 - Return plain entity objects or `null` — never throw HTTP errors
-- File: `src/repositories/[resource].repository.ts`
+- File: `src/repositories/[resource]Repository.ts`
 
 ```typescript
 // ✅ Correct repository
@@ -144,7 +143,7 @@ export const errorHandler = (
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/rbac.middleware';
-import * as articleController from '../controllers/article.controller';
+import * as articleController from '../controllers/articleController';
 
 const router = Router();
 
@@ -162,16 +161,16 @@ export default router;
 ```
 src/
   controllers/
-    article.controller.ts
-    auth.controller.ts
+    articleController.ts
+    authController.ts
     ...
   services/
-    article.service.ts
-    auth.service.ts
+    articleService.ts
+    authService.ts
     ...
   repositories/
-    article.repository.ts
-    user.repository.ts
+    articleRepository.ts
+    userRepository.ts
     ...
   routes/
     articles.routes.ts
@@ -191,8 +190,8 @@ src/
     AppError.ts
   config/
     env.ts
-    db.ts
   db/
     migrations/
     seeds/
+    index.ts
 ```
