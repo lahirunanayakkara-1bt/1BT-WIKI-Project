@@ -1,19 +1,28 @@
+// apps/api/src/db.ts
+
 import { Pool } from 'pg';
 import 'dotenv/config';
 
-if (!process.env.DATABASE_URL) {
+// In test environment, skip real DB connection
+// jest.mock() will replace this module entirely in tests
+const isTest = process.env.NODE_ENV === 'test';
+
+if (!process.env.DATABASE_URL && !isTest) {
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,                    // max concurrent connections
-  idleTimeoutMillis: 30000,   // close idle connections after 30s
-  connectionTimeoutMillis: 5000,
-  ssl: { rejectUnauthorized: false }, // required for Neon
-});
+export const pool = new Pool(
+  isTest
+    ? {} // dummy config — will be replaced by jest.mock()
+    : {
+        connectionString: process.env.DATABASE_URL,
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+        ssl: { rejectUnauthorized: false },
+      }
+);
 
-// Verify connection on startup
 pool.on('connect', () => {
   console.log('✅ Connected to Neon PostgreSQL');
 });
