@@ -5,12 +5,12 @@ import { jest, describe, it, expect, beforeAll } from '@jest/globals';
 // ESM requires unstable_mockModule — jest.mock() doesn't hoist in ESM
 await jest.unstable_mockModule('../../db.js', () => ({
   default: {
-    query: jest.fn().mockResolvedValue({ rows: [] }),
+    query: jest.fn<any>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
     end: jest.fn(),
   },
   pool: {
-    query: jest.fn().mockResolvedValue({ rows: [] }),
+    query: jest.fn<any>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
     end: jest.fn(),
   },
@@ -22,7 +22,7 @@ const { default: request } = await import('supertest');
 
 // Get reference to the mock query function
 const { default: pool } = await import('../../db.js');
-const mockQuery = pool.query as jest.Mock;
+const mockQuery = pool.query as jest.Mock<any>;
 
 describe('Integration — Users API', () => {
 
