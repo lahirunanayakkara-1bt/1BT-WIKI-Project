@@ -1,6 +1,6 @@
 ---
 description: Frontend conventions for Next.js + TypeScript + Tailwind CSS + Clerk.js — 1BT WIKI
-globs: ["src/app/**/*.tsx", "src/components/**/*.tsx", "src/hooks/**/*.ts", "frontend/**/*.tsx"]
+globs: ["apps/web/app/**/*.tsx", "apps/web/components/**/*.tsx", "apps/web/hooks/**/*.ts"]
 alwaysApply: false
 ---
 
@@ -102,40 +102,9 @@ export const articleApi = {
   Submit for Review
 </button>
 ```
+## Neon Auth Integration
 
-## Clerk.js Auth Integration
-- Use `useUser()` and `useAuth()` from `@clerk/nextjs` — never store user data in local state
-- Access user role from `user.publicMetadata.role`
-- Protect pages with Clerk middleware; protect UI elements with role checks
-
-```typescript
-// Role-based rendering
-import { useUser } from '@clerk/nextjs';
-
-const { user } = useUser();
-const role = user?.publicMetadata?.role as UserRole;
-
-// Show/hide based on role
-{role === 'Admin' && <AdminControls />}
-{role === 'Reviewer' && <ReviewActions />}
-```
-
-## Protected Route Wrappers
-```typescript
-// src/components/guards/RequireRole.tsx
-interface RequireRoleProps {
-  role: UserRole | UserRole[];
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}
-
-export const RequireRole: React.FC<RequireRoleProps> = ({ role, children, fallback }) => {
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as UserRole;
-  const allowed = Array.isArray(role) ? role.includes(userRole) : userRole === role;
-  return allowed ? <>{children}</> : <>{fallback ?? null}</>;
-};
-```
+## --- add---
 
 ## App Router File Structure
 ```

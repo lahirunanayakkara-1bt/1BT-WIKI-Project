@@ -42,7 +42,7 @@ Generate:
 ```
 Write a Jest unit test for the following 1BT WIKI service method.
 
-Service file: `src/services/[name].service.ts`
+Service file: `src/services/[name]Service.ts`
 Method to test: `[methodName]`
 
 Method signature:
@@ -55,7 +55,7 @@ Dependencies to mock:
 [List repositories or external services this method calls]
 
 Generate:
-1. Test file: `src/services/__tests__/[name].service.test.ts`
+1. Test file: `src/services/__tests__/[name]Service.test.ts`
 2. Use Jest + `jest.mock()` for all dependencies
 3. Follow AAA pattern: Arrange / Act / Assert
 4. One `describe` block per method

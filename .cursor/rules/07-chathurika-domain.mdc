@@ -49,7 +49,6 @@ src/lib/api/tech-talks.api.ts
 
 ### Business Rules
 - Only **Admin** role can change user roles or activate/deactivate accounts
-- Role changes must be logged (add a `role_change_logs` table entry)
 - A user cannot deactivate their own account
 - Deactivated users are denied at login (checked in AuthService — Lahiru's domain)
 - Role options: `'Admin'` | `'Reviewer'` | `'User'`
@@ -66,14 +65,6 @@ async changeRole(targetUserId: string, newRole: UserRole, requestingUserId: stri
   if (!target) throw new AppError('User not found', 404);
 
   const updated = await userRepository.updateRole(targetUserId, newRole);
-
-  // Log the change
-  await userRepository.logRoleChange({
-    targetUserId,
-    changedBy: requestingUserId,
-    previousRole: target.role,
-    newRole,
-  });
 
   return updated;
 }
@@ -92,8 +83,9 @@ async toggleStatus(targetUserId: string, isActive: boolean, requestingUserId: st
 
 ### Business Rules
 - Users can view and update only their own profile (enforced by `req.user.userId`)
+- Identity data (name, email) lives in `neon_auth.users`
 - Updatable fields: `name`, `avatar_url`, `contact_details`
-- Email is read-only (managed by Google/Clerk — never update email)
+- Email is read-only (managed by Google — never update email)
 
 ```typescript
 // src/services/profile.service.ts
@@ -127,7 +119,7 @@ async updateProfile(userId: string, updates: ProfileUpdateInput): Promise<UserPr
 
 ```typescript
 // src/services/reviewer.service.ts
-async approveArticle(articleId: string, reviewerId: string): Promise<Article> {
+async approveArticle(articleId: string, reviewId: string, reviewerId: string): Promise<Article> {
   const article = await articleRepository.findById(articleId);
   if (!article) throw new AppError('Article not found', 404);
   if (article.status !== 'Pending') {
@@ -136,18 +128,22 @@ async approveArticle(articleId: string, reviewerId: string): Promise<Article> {
 
   const approved = await articleRepository.updateStatus(articleId, 'Published');
 
+  // update review status to approved
+
   // Trigger approval notification (non-blocking)
   notificationService.send({
-    userId: article.authorId,
-    type: 'article_approved',
+    recipient_id: article.authorId,
+    type: 'success',
+    notification_reference_type: 'article'
+    notification_title: 'Your review request has been approved',
     message: `Your article "${article.title}" has been approved and published!`,
-    referenceId: articleId,
+    reference_id: articleId,
   }).catch(err => logger.error('Notification failed', { err }));
 
   return approved;
 }
 
-async rejectArticle(articleId: string, reviewerId: string, feedback: string): Promise<Article> {
+async rejectArticle(articleId: string, reviewId: string, reviewerId: string, feedback: string): Promise<Article> {
   if (!feedback || feedback.trim().length < 10) {
     throw new AppError('Rejection feedback must be at least 10 characters', 400);
   }
@@ -160,12 +156,16 @@ async rejectArticle(articleId: string, reviewerId: string, feedback: string): Pr
 
   const rejected = await articleRepository.rejectWithFeedback(articleId, feedback);
 
+  // update review status to rejected
+
   // Trigger rejection notification (non-blocking)
   notificationService.send({
-    userId: article.authorId,
-    type: 'article_rejected',
+    recipient_id: article.authorId,
+    type: 'failure',
+    notification_reference_type: 'review'
+    notification_title: 'Your review request has been rejected',
     message: `Your article "${article.title}" was rejected. Feedback: ${feedback}`,
-    referenceId: articleId,
+    referenceId: reviewId,
   }).catch(err => logger.error('Notification failed', { err }));
 
   return rejected;
@@ -176,7 +176,7 @@ async rejectArticle(articleId: string, reviewerId: string, feedback: string): Pr
 
 ## Notifications
 
-### Notification Types (exhaustive list — do not add new types without updating this list)
+### Notification Types (exhaustive list — do not add new types without    updating this list)  -- should be updated
 | Type | Trigger | Target |
 |------|---------|--------|
 | `article_pending` | Author submits article | All Reviewers |
@@ -195,6 +195,8 @@ export class NotificationService {
     await notificationRepository.create({
       userId: payload.userId,
       type: payload.type,
+      title: payload.title,
+      referenceType: payload.referenceType,
       message: payload.message,
       referenceId: payload.referenceId,
       readStatus: false,

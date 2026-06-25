@@ -11,10 +11,10 @@ alwaysApply: false
 
 ## Owned Paths
 ```
-src/controllers/article.controller.ts
-src/services/article.service.ts
-src/repositories/article.repository.ts
-src/routes/articles.routes.ts
+src/controllers/articleController.ts
+src/services/articleService.ts
+src/repositories/articleRepository.ts
+src/routes/articlesRoutes.ts
 src/controllers/admin-dashboard.controller.ts
 src/services/admin-dashboard.service.ts
 src/repositories/admin-dashboard.repository.ts
