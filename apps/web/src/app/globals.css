@@ -1,0 +1,19 @@
+/* Google Fonts — Inter: weights used across the shell */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* Universal box-sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Base body — Inter font, brand background */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #F5F5F5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
