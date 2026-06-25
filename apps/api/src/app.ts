@@ -1,3 +1,5 @@
+// apps/api/src/app.ts
+
 import express from 'express';
 import cors from 'cors';
 
@@ -6,24 +8,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Health check — always available even if DB is down
 app.get('/api/v1/health', (_req, res) => {
   res.status(200).json({ success: true, data: { status: 'ok' } });
 });
 
 // Mount user routes lazily so the health endpoint remains available
 // even if the database isn't configured (e.g. CI without secrets).
-(async () => {
+export const appReady: Promise<void> = (async () => {
   try {
-    const userRouterModule = await import('./routes/userRoutes.js');
-    const userControllerModule = await import('./controllers/userController.js');
-    const userRouter = userRouterModule.default;
-    const UserController = userControllerModule.default;
-
+    const { default: userRouter } = await import('./routes/userRoutes.js');
     app.use('/api/users', userRouter);
-    userRouter.get('/getAll', UserController.getAll);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     // eslint-disable-next-line no-console
-    console.warn('User routes not mounted:', err?.message ?? err);
+    console.warn('User routes not mounted:', message);
   }
 })();
 
