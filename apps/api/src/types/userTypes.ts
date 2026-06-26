@@ -1,0 +1,78 @@
+/**
+ * User domain types for 1BT WIKI.
+ * Matches the exact neon_auth.user table schema.
+ */
+
+// ---------------------------------------------------------------------------
+// Domain enums / unions
+// ---------------------------------------------------------------------------
+
+export type UserRole = 'Admin' | 'Reviewer' | 'User';
+
+// ---------------------------------------------------------------------------
+// Entity interfaces — mirrors neon_auth.user columns exactly
+// ---------------------------------------------------------------------------
+
+/** Full user row as stored in neon_auth.user */
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: string | null;
+  banned: boolean | null;
+  banReason: string | null;
+  banExpires: Date | null;
+}
+
+// ---------------------------------------------------------------------------
+// Input / payload interfaces
+// ---------------------------------------------------------------------------
+
+/**
+ * Body expected by POST /api/v1/admin/users.
+ * Only the fields an admin can set when onboarding a new user.
+ */
+export interface CreateUserInput {
+  /** Display name */
+  name: string;
+  /** Unique login email */
+  email: string;
+  /**
+   * Role to assign. Defaults to 'User' in the service layer.
+   * Accepted values: 'Admin' | 'Reviewer' | 'User'
+   */
+  role?: UserRole;
+  /** Optional profile picture URL */
+  image?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Standard API response envelope (re-usable across controllers)
+// ---------------------------------------------------------------------------
+
+export interface ApiResponse<T = undefined> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+/** Build a successful response envelope. */
+export const successResponse = <T>(
+  data: T,
+  message?: string
+): ApiResponse<T> => ({
+  success: true,
+  data,
+  message,
+});
+
+/** Build an error response envelope. */
+export const errorResponse = (error: string): ApiResponse => ({
+  success: false,
+  error,
+});
