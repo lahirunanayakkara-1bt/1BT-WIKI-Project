@@ -11,24 +11,24 @@ alwaysApply: false
 
 ## Owned Paths
 ```
-src/controllers/auth.controller.ts
-src/controllers/comment.controller.ts
-src/controllers/like.controller.ts
-src/controllers/quiz.controller.ts
-src/services/auth.service.ts
-src/services/comment.service.ts
-src/services/like.service.ts
-src/services/quiz.service.ts
-src/repositories/auth.repository.ts
-src/repositories/comment.repository.ts
-src/repositories/like.repository.ts
-src/repositories/quiz.repository.ts
+src/controllers/authController.ts
+src/controllers/commentController.ts
+src/controllers/likeController.ts
+src/controllers/quizController.ts
+src/services/authService.ts
+src/services/commentService.ts
+src/services/likeService.ts
+src/services/quizService.ts
+src/repositories/authRepository.ts
+src/repositories/commentRepository.ts
+src/repositories/likeRepository.ts
+src/repositories/quizRepository.ts
 src/middleware/auth.middleware.ts
 src/middleware/rbac.middleware.ts
-src/routes/auth.routes.ts
-src/routes/comments.routes.ts  (sub-router mounted under articles)
-src/routes/likes.routes.ts     (sub-router mounted under articles)
-src/routes/quiz.routes.ts
+src/routes/authRoutes.ts
+src/routes/commentsRoutes.ts  (sub-router mounted under articles)
+src/routes/likesRoutes.ts     (sub-router mounted under articles)
+src/routes/quizRoutes.ts
 src/app/(dashboard)/articles/[id]/quiz/    (Next.js pages)
 src/components/quiz/
 src/components/articles/CommentSection.tsx
@@ -42,11 +42,11 @@ src/lib/api/comments.api.ts
 
 ---
 
-## Authentication — Google OAuth 2.0
+## Authentication — Neon Auth + Google OAuth 2.0
 
 ### Domain Restriction (critical security rule)
-- Only allow Google accounts matching `@[COMPANY_DOMAIN]` (from `process.env.ALLOWED_EMAIL_DOMAIN`)
-- Reject all other Google accounts at the OAuth callback — return 403, do not create a session
+
+Neon Auth is the single source of truth for all authentication. **Do not implement custom OAuth flows, JWT signing, or session management** — Neon Auth handles all of this.
 
 ```typescript
 // src/services/auth.service.ts
