@@ -3,6 +3,21 @@
 
 @import "tailwindcss";
 
+/* Brand design tokens — registered as CSS variables so Tailwind utilities are generated */
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+  --color-brand-red:            #CC0000;
+  --color-brand-red-hover:      #A80000;
+  --color-brand-dark:           #1A1A1A;
+  --color-brand-bg:             #F5F5F5;
+  --color-brand-surface:        #FFFFFF;
+  --color-brand-border:         #E5E7EB;
+  --color-brand-text-primary:   #1A1A1A;
+  --color-brand-text-secondary: #6B7280;
+  --color-brand-hover:          #F0F0F0;
+}
+
 /* Universal box-sizing reset */
 *,
 *::before,
@@ -12,8 +27,8 @@
 
 /* Base body — Inter font, brand background */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #F5F5F5;
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

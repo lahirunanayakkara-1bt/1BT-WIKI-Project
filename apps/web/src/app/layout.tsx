@@ -1,6 +1,6 @@
 // Root layout — replaced from Next.js scaffold.
-// Imports globals.css from app/ (which has Tailwind directives + Inter font).
-// Shell layout (Sidebar + Navbar) is in app/(dashboard)/layout.tsx.
+// Imports globals.css from src/app/ (which has Tailwind directives + Inter font).
+// Shell layout (Sidebar + Navbar) is in src/app/(dashboard)/layout.tsx.
 import type { Metadata } from 'next';
 import './globals.css';
 

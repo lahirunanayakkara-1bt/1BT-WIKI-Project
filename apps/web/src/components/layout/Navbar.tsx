@@ -8,6 +8,8 @@ interface NavbarProps {
   notificationCount?: number;
   userInitials?: string;
   userName?: string;
+  isSidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 gsap.registerPlugin(useGSAP);
@@ -16,6 +18,8 @@ export function Navbar({
   notificationCount = 3,
   userInitials = 'ML',
   userName = 'Malindu',
+  isSidebarOpen = true,
+  onToggleSidebar,
 }: NavbarProps): React.JSX.Element {
   const containerRef = useRef<HTMLElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
@@ -38,6 +42,22 @@ export function Navbar({
     }
   }, { scope: containerRef, dependencies: [notificationCount] });
 
+  // [GSAP] Burger menu icon lines morphing animation
+  useGSAP(() => {
+    const lines = gsap.utils.toArray('.burger-line') as HTMLElement[];
+    if (lines.length === 3) {
+      if (isSidebarOpen) {
+        gsap.to(lines[0], { y: 5, rotation: 45, duration: 0.3, ease: 'power2.out' });
+        gsap.to(lines[1], { opacity: 0, scaleX: 0, duration: 0.2 });
+        gsap.to(lines[2], { y: -5, rotation: -45, duration: 0.3, ease: 'power2.out' });
+      } else {
+        gsap.to(lines[0], { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
+        gsap.to(lines[1], { opacity: 1, scaleX: 1, duration: 0.3 });
+        gsap.to(lines[2], { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
+      }
+    }
+  }, { scope: containerRef, dependencies: [isSidebarOpen] });
+
   return (
     <header
       ref={containerRef}
@@ -45,7 +65,25 @@ export function Navbar({
                  flex items-center gap-4 px-6"
       data-testid="navbar"
     >
-      <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '24px' }} data-testid="logo">
+      {onToggleSidebar && (
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="flex flex-col justify-center items-center w-9 h-9 rounded-lg hover:bg-[#F0F0F0] cursor-pointer transition-colors"
+          data-testid="burger-button"
+          aria-label="Toggle Sidebar"
+        >
+          <span className="burger-line w-5 h-0.5 bg-[#1A1A1A] my-0.5 origin-center block"></span>
+          <span className="burger-line w-5 h-0.5 bg-[#1A1A1A] my-0.5 origin-center block"></span>
+          <span className="burger-line w-5 h-0.5 bg-[#1A1A1A] my-0.5 origin-center block"></span>
+        </button>
+      )}
+
+      <div
+        className="flex items-center gap-1.5 flex-shrink-0"
+        style={{ marginLeft: onToggleSidebar ? '8px' : '24px' }}
+        data-testid="logo"
+      >
         <div className="h-10 w-10 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-black leading-none">1BT</span>
         </div>
