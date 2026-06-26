@@ -29,7 +29,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-brand-bg)] px-4 py-8">
+    <main className="min-h-screen flex items-center justify-center bg-[var(--color-brand-bg)] px-4 py-8">
       <div className="w-full max-w-6xl overflow-hidden rounded-[32px] bg-[var(--color-brand-surface)] shadow-[0_20px_70px_rgba(0,0,0,0.08)]">
         <div className="grid min-h-[560px] grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="relative hidden lg:flex items-center justify-center bg-[var(--color-brand-dark)]">
@@ -102,6 +102,6 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
