@@ -45,15 +45,16 @@ export function Navbar({
   // [GSAP] Burger menu icon lines morphing animation
   useGSAP(() => {
     const lines = gsap.utils.toArray('.burger-line') as HTMLElement[];
-    if (lines.length === 3) {
+    const [line1, line2, line3] = lines;
+    if (line1 && line2 && line3) {
       if (isSidebarOpen) {
-        gsap.to(lines[0], { y: 5, rotation: 45, duration: 0.3, ease: 'power2.out' });
-        gsap.to(lines[1], { opacity: 0, scaleX: 0, duration: 0.2 });
-        gsap.to(lines[2], { y: -5, rotation: -45, duration: 0.3, ease: 'power2.out' });
+        gsap.to(line1, { y: 5, rotation: 45, duration: 0.3, ease: 'power2.out' });
+        gsap.to(line2, { opacity: 0, scaleX: 0, duration: 0.2 });
+        gsap.to(line3, { y: -5, rotation: -45, duration: 0.3, ease: 'power2.out' });
       } else {
-        gsap.to(lines[0], { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
-        gsap.to(lines[1], { opacity: 1, scaleX: 1, duration: 0.3 });
-        gsap.to(lines[2], { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
+        gsap.to(line1, { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
+        gsap.to(line2, { opacity: 1, scaleX: 1, duration: 0.3 });
+        gsap.to(line3, { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
       }
     }
   }, { scope: containerRef, dependencies: [isSidebarOpen] });
