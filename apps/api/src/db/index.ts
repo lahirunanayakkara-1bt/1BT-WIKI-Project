@@ -7,15 +7,15 @@ import 'dotenv/config';
 // jest.mock() will replace this module entirely in tests
 const isTest = process.env.NODE_ENV === 'test';
 
-if (!process.env.DATABASE_URL && !isTest) {
-  throw new Error('DATABASE_URL environment variable is not set');
+if (!process.env.VERCEL_DATABASE_URL && !isTest) {
+  throw new Error('VERCEL_DATABASE_URL environment variable is not set');
 }
 
 export const pool = new Pool(
   isTest
     ? {} // dummy config — will be replaced by jest.mock()
     : {
-        connectionString: process.env.DATABASE_URL,
+        connectionString: process.env.VERCEL_DATABASE_URL,
         max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 5000,

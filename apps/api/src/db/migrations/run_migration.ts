@@ -19,7 +19,7 @@ if (!file) {
 
 async function run(): Promise<void> {
   const client = new Client({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.VERCEL_DATABASE_URL,
     ssl: { rejectUnauthorized: false },
   });
 
