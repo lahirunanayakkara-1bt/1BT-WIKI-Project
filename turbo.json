@@ -4,7 +4,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "VERCEL_NEON_AUTH_BASE_URL", "VERCEL_NEON_AUTH_COOKIE_SECRET"],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
     "lint": {
