@@ -88,7 +88,7 @@ export function Navbar({
         <div className="h-10 w-10 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-black leading-none">1BT</span>
         </div>
-        <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">-WIKI</span>
+        <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">WIKI</span>
       </div>
 
       <div className="flex-1 px-4">

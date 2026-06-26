@@ -107,10 +107,6 @@ export function Sidebar(): React.JSX.Element {
       duration: 0.2,
       ease: 'power2.out'
     });
-    gsap.from('.sidebar-active', {
-      backgroundColor: 'rgba(255,255,255,0)',
-      duration: 0.2,
-    });
   }, { scope: sidebarRef, dependencies: [pathname] });
 
   return (

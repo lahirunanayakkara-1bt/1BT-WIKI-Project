@@ -7,15 +7,15 @@
 @theme {
   --font-sans: 'Inter', sans-serif;
 
-  --color-brand-red:            #CC0000;
-  --color-brand-red-hover:      #A80000;
-  --color-brand-dark:           #1A1A1A;
-  --color-brand-bg:             #F5F5F5;
-  --color-brand-surface:        #FFFFFF;
-  --color-brand-border:         #E5E7EB;
-  --color-brand-text-primary:   #1A1A1A;
+  --color-brand-red: #CC0000;
+  --color-brand-red-hover: #A80000;
+  --color-brand-dark: #1A1A1A;
+  --color-brand-bg: #F5F5F5;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-border: #E5E7EB;
+  --color-brand-text-primary: #1A1A1A;
   --color-brand-text-secondary: #6B7280;
-  --color-brand-hover:          #F0F0F0;
+  --color-brand-hover: #F0F0F0;
 }
 
 /* Universal box-sizing reset */
