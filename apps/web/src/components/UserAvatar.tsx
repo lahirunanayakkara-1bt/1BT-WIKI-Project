@@ -1,5 +1,4 @@
-// import { auth } from "@/lib/auth/server";
-
+'use client';
 import { authClient } from "@/lib/auth/client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -42,35 +41,35 @@ export const UserAvatar = ({ format }: UserAvatarProps) => {
         if (format === 'collapsed') {
             return (
                 <div className="h-8 w-8 rounded-full bg-gray-300">
-                    {/* <img
+                    <img
                         src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="cover rounded-full"
-                    /> */}
-                    <Image 
+                    />
+                    {/* <Image 
                         src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="cover rounded-full"
                         width={32}
                         height={32}
-                    />
+                    /> */}
                 </div>
             );
         } else if (format === 'expanded') {
             return (
                 <div className="flex items-center gap-2">
-                    {/* <img
+                    <img
                         src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="h-8 w-8 rounded-full"
-                    /> */}
-                    <Image 
+                    />
+                    {/* <Image 
                         src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="h-8 w-8 rounded-full"
                         width={32}
                         height={32}
-                    />
+                    /> */}
                     <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-400">{user.name}</span>
                         <span className="text-xs font-medium text-gray-500">{user.role}</span>
