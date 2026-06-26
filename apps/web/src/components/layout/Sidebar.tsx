@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { signOutAction } from '@/actions/signoutAction';
 import { authClient } from '@/lib/auth/client';
 
 interface NavItem {
