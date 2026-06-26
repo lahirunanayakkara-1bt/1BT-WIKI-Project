@@ -75,10 +75,10 @@ Always ask which task ID you're working on before generating code.
 
 | Task | File |
 |------|------|
-| Article CRUD service | `src/services/article.service.ts` |
-| Article repository | `src/repositories/article.repository.ts` |
-| Admin dashboard stats | `src/services/admin-dashboard.service.ts` |
-| Homepage feed | `src/services/homepage.service.ts` |
+| Article CRUD service | `src/services/articleService.ts` |
+| Article repository | `src/repositories/articleRepository.ts` |
+| Admin dashboard stats | `src/services/adminDashboardService.ts` |
+| Homepage feed | `src/services/homepageService.ts` |
 | Global layout | `src/app/(dashboard)/layout.tsx` |
 | Homepage | `src/app/page.tsx` |
 | Articles listing | `src/app/(dashboard)/articles/page.tsx` |

@@ -173,18 +173,18 @@ src/
     userRepository.ts
     ...
   routes/
-    articles.routes.ts
-    auth.routes.ts
+    articlesRoutes.ts
+    authRoutes.ts
     index.ts          ← mounts all routers at /api/v1/...
   middleware/
-    auth.middleware.ts
-    rbac.middleware.ts
+    authMiddleware.ts
+    rbacMiddleware.ts
     errorHandler.ts
-    validate.middleware.ts
+    validateMiddleware.ts
   types/
-    api.types.ts
-    article.types.ts
-    user.types.ts
+    apiTypes.ts
+    articleTypes.ts
+    userTypes.ts
     ...
   errors/
     AppError.ts

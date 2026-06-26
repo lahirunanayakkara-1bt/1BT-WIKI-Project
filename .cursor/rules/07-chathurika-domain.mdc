@@ -1,6 +1,6 @@
 ---
 description: Domain rules for Chathurika — User/Profile Management, Review Workflow, Notifications, Tech Talk Management
-globs: ["**/users/**", "**/reviewer/**", "**/notifications/**", "**/tech-talks/**", "**/admin/users/**"]
+globs: ["**/users/**", "**/reviewer/**", "**/notifications/**", "**/techTalks/**", "**/admin/users/**"]
 alwaysApply: false
 ---
 
@@ -11,36 +11,36 @@ alwaysApply: false
 
 ## Owned Paths
 ```
-src/controllers/user.controller.ts
-src/controllers/profile.controller.ts
-src/controllers/reviewer.controller.ts
-src/controllers/notification.controller.ts
-src/controllers/tech-talk.controller.ts
-src/services/user.service.ts
-src/services/profile.service.ts
-src/services/reviewer.service.ts
-src/services/notification.service.ts
-src/services/tech-talk.service.ts
-src/repositories/user.repository.ts
-src/repositories/notification.repository.ts
-src/repositories/tech-talk.repository.ts
-src/routes/users.routes.ts
-src/routes/reviewer.routes.ts
-src/routes/notifications.routes.ts
-src/routes/tech-talks.routes.ts
+src/controllers/userController.ts
+src/controllers/profileController.ts
+src/controllers/reviewerController.ts
+src/controllers/notificationController.ts
+src/controllers/techTalkController.ts
+src/services/userService.ts
+src/services/profileService.ts
+src/services/reviewerService.ts
+src/services/notificationService.ts
+src/services/techTalkService.ts
+src/repositories/userRepository.ts
+src/repositories/notificationRepository.ts
+src/repositories/techTalkRepository.ts
+src/routes/usersRoutes.ts
+src/routes/reviewerRoutes.ts
+src/routes/notificationsRoutes.ts
+src/routes/techTalksRoutes.ts
 src/app/(dashboard)/profile/page.tsx
 src/app/(dashboard)/reviewer/
 src/app/(dashboard)/notifications/
-src/app/(dashboard)/tech-talks/
+src/app/(dashboard)/techTalks/
 src/app/(dashboard)/admin/users/page.tsx
 src/components/reviewer/
 src/components/notifications/
-src/components/tech-talks/
+src/components/techTalks/
 src/components/profile/
 src/hooks/useNotifications.ts
 src/hooks/useTechTalks.ts
 src/lib/api/notifications.api.ts
-src/lib/api/tech-talks.api.ts
+src/lib/api/techTalks.api.ts
 ```
 
 ---
@@ -54,7 +54,7 @@ src/lib/api/tech-talks.api.ts
 - Role options: `'Admin'` | `'Reviewer'` | `'User'`
 
 ```typescript
-// src/services/user.service.ts
+// src/services/userService.ts
 async changeRole(targetUserId: string, newRole: UserRole, requestingUserId: string): Promise<User> {
   const requester = await userRepository.findById(requestingUserId);
   if (requester?.role !== 'Admin') {
@@ -88,7 +88,7 @@ async toggleStatus(targetUserId: string, isActive: boolean, requestingUserId: st
 - Email is read-only (managed by Google — never update email)
 
 ```typescript
-// src/services/profile.service.ts
+// src/services/profileService.ts
 async updateProfile(userId: string, updates: ProfileUpdateInput): Promise<UserProfile> {
   // Never allow email update through this endpoint
   const { email, role, isActive, ...safeUpdates } = updates as any;
@@ -118,7 +118,7 @@ async updateProfile(userId: string, updates: ProfileUpdateInput): Promise<UserPr
 - On submit (Pending): send notification to all users with Reviewer role
 
 ```typescript
-// src/services/reviewer.service.ts
+// src/services/reviewerService.ts
 async approveArticle(articleId: string, reviewId: string, reviewerId: string): Promise<Article> {
   const article = await articleRepository.findById(articleId);
   if (!article) throw new AppError('Article not found', 404);
@@ -176,12 +176,12 @@ async rejectArticle(articleId: string, reviewId: string, reviewerId: string, fee
 
 ## Notifications
 
-### Notification Types (exhaustive list — do not add new types without    updating this list)  -- should be updated
+### Notification Types (exhaustive list — do not add new types without    updating this list) 
 | Type | Trigger | Target |
 |------|---------|--------|
-| `article_pending` | Author submits article | All Reviewers |
-| `article_approved` | Reviewer approves | Article author |
-| `article_rejected` | Reviewer rejects | Article author |
+| `pending` | Author submits article | All Reviewers |
+| `approved` | Reviewer approves | Article author |
+| `rejected` | Reviewer rejects | Article author |
 | `new_comment` | User comments on article | Article author |
 
 > Note: `new_comment` notification is triggered by CommentService (Lahiru's domain).
@@ -189,7 +189,7 @@ async rejectArticle(articleId: string, reviewId: string, reviewerId: string, fee
 > The `NotificationService.send()` method is **Chathurika's** to implement and own.
 
 ```typescript
-// src/services/notification.service.ts
+// src/services/notificationService.ts
 export class NotificationService {
   async send(payload: NotificationPayload): Promise<void> {
     await notificationRepository.create({
@@ -243,7 +243,7 @@ export class NotificationService {
 - Supports: title search, date sort, title sort
 
 ```typescript
-// src/services/tech-talk.service.ts
+// src/services/techTalkService.ts
 async update(id: string, updates: TechTalkUpdateInput, adminId: string): Promise<TechTalk> {
   const existing = await techTalkRepository.findById(id);
   if (!existing) throw new AppError('Tech Talk not found', 404);
