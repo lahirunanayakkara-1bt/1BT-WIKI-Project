@@ -17,8 +17,6 @@ gsap.registerPlugin(useGSAP);
 
 export function Navbar({
   notificationCount = 3,
-  userInitials = 'ML',
-  userName = 'Malindu',
   isSidebarOpen = true,
   onToggleSidebar,
 }: NavbarProps): React.JSX.Element {
