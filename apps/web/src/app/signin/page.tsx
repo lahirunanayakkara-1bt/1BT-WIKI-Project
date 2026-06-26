@@ -1,14 +1,14 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { auth } from '../../lib/auth';
 import { useRouter } from 'next/navigation';
+import { signInSocialAction } from '@/actions/signinAction';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useRouter();
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -17,19 +17,7 @@ export default function SignInPage() {
     try {
       // Add your sign-in logic here
       console.log({ email, password });
-      const {data, error} = await auth.signIn.social({
-        provider:"google",
-        callbackURL: "/dashboard",
-        errorCallbackURL: "/signin",
-        requestSignUp: false,
-      })
-      if (data) {
-        if (data.redirect) {
-            navigate.push(data.url!);
-        }
-      } else if (error) {
-        throw new Error(error.message);
-      }
+      
     } catch (error) {
       console.error('Sign-in failed:', error);
     } finally {
@@ -79,15 +67,14 @@ export default function SignInPage() {
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
         </button>
-
-        <button
-          onClick={handleSubmit}
+      </form>
+      <button
+          onClick={signInSocialAction}
           disabled={isLoading}
           className="w-full bg-blue-500 text-white font-medium py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition"
         >
           {isLoading ? 'Signing in...' : 'Sign In with Google'}
         </button>
-      </form>
     </div>
   );
 }

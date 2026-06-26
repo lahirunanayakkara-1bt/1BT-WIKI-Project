@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { signOutAction } from '@/actions/signoutAction';
 
 interface NavItem {
   label: string;
@@ -162,6 +163,7 @@ export function Sidebar(): React.JSX.Element {
           <p className="text-[#6B7280] text-xs truncate">Basic User</p>
         </div>
         <button type="button"
+        onClick={signOutAction}
           className="text-[#6B7280] hover:text-white transition-colors flex-shrink-0"
           data-testid="logout-btn" aria-label="Logout">
           <LogoutIcon />
