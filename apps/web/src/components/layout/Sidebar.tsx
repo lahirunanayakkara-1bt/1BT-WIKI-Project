@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { authClient } from '@/lib/auth/client';
+import { UserAvatar } from '../UserAvatar';
 
 interface NavItem {
   label: string;
@@ -160,13 +161,7 @@ export function Sidebar(): React.JSX.Element {
       </nav>
       <div className="flex-1" />
       <div className="sidebar-item border-t border-white/10 pr-4 py-4 flex items-center gap-3" style={{ paddingLeft: '36px' }}>
-        <div className="w-8 h-8 rounded-full bg-[#CC0000] flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-bold">ML</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-medium truncate">Malindu</p>
-          <p className="text-[#6B7280] text-xs truncate">Basic User</p>
-        </div>
+        <UserAvatar format='expanded' />
         <button type="submit"
           onClick={handleSignOut}
           className="text-[#6B7280] hover:text-white transition-colors flex-shrink-0"

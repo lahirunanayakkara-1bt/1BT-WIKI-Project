@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { UserAvatar } from '../UserAvatar';
 
 interface NavbarProps {
   notificationCount?: number;
@@ -143,12 +144,7 @@ export function Navbar({
           className="flex items-center gap-2 hover:bg-[#F0F0F0] rounded-lg px-2 py-1 transition-colors"
           data-testid="user-avatar"
         >
-          <div className="w-8 h-8 rounded-full bg-[#CC0000] flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">{userInitials}</span>
-          </div>
-          <span className="text-sm font-medium text-[#1A1A1A] hidden md:block">
-            {userName}
-          </span>
+          <UserAvatar format="collapsed" />
           <svg className="h-3 w-3 text-[#6B7280] ml-1" fill="none" stroke="currentColor"
             strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
