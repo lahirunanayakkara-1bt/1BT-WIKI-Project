@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { signOutAction } from '@/actions/signoutAction';
+import { authClient } from '@/lib/auth/client';
 
 interface NavItem {
   label: string;
@@ -114,6 +115,15 @@ export function Sidebar(): React.JSX.Element {
     });
   }, { scope: sidebarRef, dependencies: [pathname] });
 
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+      window.location.href = '/signin'; // Redirect to the sign-in page after sign-out
+    } catch (error) {
+      console.error('Error during sign-out:', error);
+    }
+  }
+
   return (
     <aside ref={sidebarRef} className="fixed left-0 top-0 h-screen min-h-screen w-60 bg-[#1A1A1A] flex flex-col z-20" data-testid="sidebar">
       <div className="pr-4 pt-6 pb-2 sidebar-item" style={{ paddingLeft: '36px' }}>
@@ -162,8 +172,8 @@ export function Sidebar(): React.JSX.Element {
           <p className="text-white text-sm font-medium truncate">Malindu</p>
           <p className="text-[#6B7280] text-xs truncate">Basic User</p>
         </div>
-        <button type="button"
-        onClick={signOutAction}
+        <button type="submit"
+          onClick={handleSignOut}
           className="text-[#6B7280] hover:text-white transition-colors flex-shrink-0"
           data-testid="logout-btn" aria-label="Logout">
           <LogoutIcon />
