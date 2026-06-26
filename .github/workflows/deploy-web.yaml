@@ -35,7 +35,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Cypress Binary
-        run: pnpm exec cypress install
+        run: pnpm --filter web exec cypress install
 
       - name: Lint Web
         run: pnpm --filter web lint
