@@ -66,27 +66,27 @@ function LogoutIcon(): React.JSX.Element {
 }
 
 const mainNavItems: NavItem[] = [
-  { label: 'Home',       href: '/',           icon: <HomeIcon />,       testId: 'nav-home' },
-  { label: 'Articles',   href: '/articles',   icon: <ArticleIcon />,    testId: 'nav-articles' },
-  { label: 'Tech Talks', href: '/tech-talks', icon: <TechTalkIcon />,   testId: 'nav-tech-talks', showLiveBadge: true },
-  { label: 'Forum',      href: '/forum',      icon: <ForumIcon />,      testId: 'nav-forum' },
+  { label: 'Home', href: '/', icon: <HomeIcon />, testId: 'nav-home' },
+  { label: 'Articles', href: '/articles', icon: <ArticleIcon />, testId: 'nav-articles' },
+  { label: 'Tech Talks', href: '/tech-talks', icon: <TechTalkIcon />, testId: 'nav-tech-talks', showLiveBadge: true },
+  { label: 'Forum', href: '/forum', icon: <ForumIcon />, testId: 'nav-forum' },
 ];
 const secondaryNavItems: NavItem[] = [
-  { label: 'My Articles', href: '/profile',  icon: <MyArticlesIcon />, testId: 'nav-my-articles' },
-  { label: 'Settings',    href: '/settings', icon: <SettingsIcon />,   testId: 'nav-settings' },
+  { label: 'My Articles', href: '/profile', icon: <MyArticlesIcon />, testId: 'nav-my-articles' },
+  { label: 'Settings', href: '/settings', icon: <SettingsIcon />, testId: 'nav-settings' },
 ];
 
 export function Sidebar(): React.JSX.Element {
   const pathname = usePathname();
   const sidebarRef = useRef<HTMLElement>(null);
-  
+
   const isActive = (href: string): boolean =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   const itemClasses = (href: string): string =>
     isActive(href)
-      ? 'sidebar-item sidebar-active relative flex items-center gap-3 px-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#CC0000] bg-white/10'
-      : 'sidebar-item relative flex items-center gap-3 px-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#9CA3AF] hover:bg-white/5 hover:text-white';
+      ? 'sidebar-item sidebar-active relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#CC0000] bg-white/10'
+      : 'sidebar-item relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#9CA3AF] hover:bg-white/5 hover:text-white';
 
   useGSAP(() => {
     // [GSAP] Sidebar Menu load Staggered fade-in + slide-right on initial load (stagger: 0.08s)
@@ -115,13 +115,14 @@ export function Sidebar(): React.JSX.Element {
 
   return (
     <aside ref={sidebarRef} className="fixed left-0 top-0 h-screen min-h-screen w-60 bg-[#1A1A1A] flex flex-col z-20" data-testid="sidebar">
-      <div className="px-4 pt-6 pb-2 sidebar-item">
+      <div className="pr-4 pt-6 pb-2 sidebar-item" style={{ paddingLeft: '36px' }}>
         <span className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">Menu</span>
       </div>
-      <nav className="flex flex-col px-2 gap-1">
+      <nav className="flex flex-col px-4 gap-1">
         {mainNavItems.map((item) => (
           <Link key={item.href} href={item.href}
             className={itemClasses(item.href)}
+            style={{ paddingLeft: '20px' }}
             data-testid={item.testId}>
             {isActive(item.href) && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-[#CC0000] active-indicator rounded-r-full" />
@@ -137,10 +138,11 @@ export function Sidebar(): React.JSX.Element {
         ))}
       </nav>
       <div className="border-t border-white/10 my-2 mx-4 sidebar-item" />
-      <nav className="flex flex-col px-2 gap-1">
+      <nav className="flex flex-col px-4 gap-1">
         {secondaryNavItems.map((item) => (
           <Link key={item.href} href={item.href}
             className={itemClasses(item.href)}
+            style={{ paddingLeft: '20px' }}
             data-testid={item.testId}>
             {isActive(item.href) && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-[#CC0000] active-indicator rounded-r-full" />
@@ -151,7 +153,7 @@ export function Sidebar(): React.JSX.Element {
         ))}
       </nav>
       <div className="flex-1" />
-      <div className="sidebar-item border-t border-white/10 px-4 py-4 flex items-center gap-3">
+      <div className="sidebar-item border-t border-white/10 pr-4 py-4 flex items-center gap-3" style={{ paddingLeft: '36px' }}>
         <div className="w-8 h-8 rounded-full bg-[#CC0000] flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-bold">ML</span>
         </div>

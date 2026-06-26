@@ -45,15 +45,15 @@ export function Navbar({
                  flex items-center gap-4 px-6"
       data-testid="navbar"
     >
-      <div className="flex items-center gap-1.5 flex-shrink-0" data-testid="logo">
-        <div className="h-7 px-2 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0">
+      <div className="flex items-center gap-1.5 flex-shrink-0" style={{ marginLeft: '24px' }} data-testid="logo">
+        <div className="h-10 w-10 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-black leading-none">1BT</span>
         </div>
         <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">-WIKI</span>
       </div>
 
-      <div className="flex-1 max-w-xl mx-auto">
-        <div className="relative">
+      <div className="flex-1 px-4">
+        <div className="relative max-w-xl mx-auto">
           <svg
             className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]"
             fill="none"
