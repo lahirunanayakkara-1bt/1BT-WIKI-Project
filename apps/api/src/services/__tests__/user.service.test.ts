@@ -8,7 +8,9 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
     getAll: jest.fn(),
     findByEmail: jest.fn(),
+    findById: jest.fn(),
     createAdminUser: jest.fn(),
+    updateRole: jest.fn(),
   },
 }));
 
@@ -120,6 +122,30 @@ describe('UserService', () => {
       });
 
       expect(mockedRepo.createAdminUser).not.toHaveBeenCalled();
+    });
+
+  });
+
+  describe('updateUserRole', () => {
+
+    it('should update a user role when the role is valid', async () => {
+      const updatedUser = makeUser({ id: '9', role: 'Reviewer' });
+      mockedRepo.findById.mockResolvedValue(makeUser({ id: '9', role: 'User' }));
+      mockedRepo.updateRole.mockResolvedValue(updatedUser);
+
+      const result = await UserService.updateUserRole('9', 'Reviewer');
+
+      expect(mockedRepo.findById).toHaveBeenCalledWith('9');
+      expect(mockedRepo.updateRole).toHaveBeenCalledWith('9', 'Reviewer');
+      expect(result).toEqual(updatedUser);
+    });
+
+    it('should reject an invalid role', async () => {
+      await expect(UserService.updateUserRole('9', 'SuperAdmin' as never)).rejects.toMatchObject({
+        message: 'Role must be one of: Admin, Reviewer, User',
+      });
+
+      expect(mockedRepo.updateRole).not.toHaveBeenCalled();
     });
 
   });
