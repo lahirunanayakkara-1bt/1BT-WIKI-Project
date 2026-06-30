@@ -98,7 +98,7 @@ describe('ArticleService', () => {
 
 ### Scope
 - Test full HTTP request → controller → service → repository → test DB
-- Use a separate test database (configure via `DATABASE_URL_TEST` env var)
+- Use a separate test database (configure via `VERCEL_DATABASE_URL_TEST` env var)
 - Seed test DB before each suite; clean up after
 
 ### Pattern

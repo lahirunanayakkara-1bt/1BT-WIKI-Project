@@ -24,6 +24,18 @@ This Turborepo includes the following packages/apps:
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
+### Authentication and authorization
+
+Authentication and authorization should be handled in separate layers of the application.
+
+- Use the server-side auth helper from `apps/web/src/lib/auth/server.ts` for session creation, validation, and protecting server routes, API handlers, and server actions. This is the place where Neon Auth should verify the user identity and attach the authenticated context to the request.
+- Use the client-side auth helper from `apps/web/src/lib/auth/client.ts` for browser-facing sign-in, sign-out, and UI state. Client components should react to the authenticated state, but they should not be the source of truth for permissions.
+- While middleware can protect all internal routes, role-based access control should still be handled inside individual components and domain logic. Middleware is a coarse gate; components should enforce the specific UI and action permissions that apply to that feature.
+- Authorization should live in the relevant domain/service layer. After authentication resolves the user, each domain should decide whether that user is allowed to read, write, or perform a specific action based on roles, scopes, or business rules.
+- The user's data can be accessed from the active session details. For example, you can check the session in a client component with `const { data, error } = await client.auth.getSession()` and then use `data.session.user.email` when a session exists.
+- Keep auth concerns at the edge and keep authorization close to the feature or domain that owns the data. This makes the flow easier to reason about and keeps permissions aligned with the business logic.
+- For more details, refer to the Neon Auth documentation for the JavaScript SDK: https://neon.com/docs/reference/javascript-sdk#auth-signinwithoauth and the broader authentication flow guide: https://neon.com/docs/auth/authentication-flow.
+
 ### Utilities
 
 This Turborepo has some additional tools already setup for you:

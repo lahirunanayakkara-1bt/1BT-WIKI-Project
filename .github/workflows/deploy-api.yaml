@@ -9,9 +9,8 @@ on:
   push:
       branches:
         - dev
-
-  paths:
-      - 'apps/api/**'
+      paths:
+        - 'apps/api/**'
 
 jobs:
   api-ci:

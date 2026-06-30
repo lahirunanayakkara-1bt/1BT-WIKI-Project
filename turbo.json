@@ -5,7 +5,11 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "env": [
+        "VERCEL_NEON_AUTH_BASE_URL",
+        "VERCEL_NEON_AUTH_COOKIE_SECRET"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
