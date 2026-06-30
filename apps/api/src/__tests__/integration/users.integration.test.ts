@@ -3,7 +3,7 @@
 import { jest, describe, it, expect, beforeAll } from '@jest/globals';
 
 // ESM requires unstable_mockModule — jest.mock() doesn't hoist in ESM
-await jest.unstable_mockModule('../../db.js', () => ({
+await jest.unstable_mockModule('../../db/index.js', () => ({
   default: {
     query: jest.fn<any>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
@@ -30,53 +30,67 @@ describe('Integration — Users API', () => {
     await appReady;
   });
 
-  it('GET /api/users/getAll should return 200', async () => {
-    // Arrange
-    mockQuery.mockResolvedValueOnce({ rows: [] });
+  it('GET /api/v1/users/getAll should return 200 with JSON success envelope', async () => {
+    const mockUsers = [
+      {
+        id: '1',
+        name: 'Malindu',
+        email: 'malindu@1billiontech.com',
+        emailVerified: false,
+        image: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        role: 'User',
+        banned: null,
+        banReason: null,
+        banExpires: null,
+      },
+    ];
 
-    // Act
-    const response = await request(app).get('/api/users/getAll');
+    mockQuery.mockResolvedValueOnce({ rows: mockUsers });
 
-    // Assert
+    const response = await request(app).get('/api/v1/users/getAll');
+
     expect(response.status).toBe(200);
-  });
-
-  it('GET /api/users/getAll should return JSON content type', async () => {
-    // Arrange
-    mockQuery.mockResolvedValueOnce({ rows: [] });
-
-    // Act
-    const response = await request(app).get('/api/users/getAll');
-
-    // Assert
     expect(response.headers['content-type']).toMatch(/json/);
+    expect(response.body).toEqual({ success: true, data: mockUsers });
   });
 
-  it('GET /api/users/getAll should return an array', async () => {
-    // Arrange
+  it('POST /api/v1/admin/users should create a user and return 201', async () => {
+    const mockCreatedUser = {
+      id: '2',
+      name: 'Chathurika',
+      email: 'chathurika@1billiontech.com',
+      emailVerified: false,
+      image: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      role: 'User',
+      banned: null,
+      banReason: null,
+      banExpires: null,
+    };
+
     mockQuery.mockResolvedValueOnce({ rows: [] });
+    mockQuery.mockResolvedValueOnce({ rows: [mockCreatedUser] });
 
-    // Act
-    const response = await request(app).get('/api/users/getAll');
+    const response = await request(app)
+      .post('/api/v1/admin/users')
+      .send({ name: 'Chathurika', email: 'chathurika@1billiontech.com', role: 'User' });
 
-    // Assert
-    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toEqual(mockCreatedUser);
+    expect(response.body.message).toBe('User created successfully');
   });
 
-  it('POST /api/users with empty body should return 201', async () => {
-    // Arrange
-    mockQuery.mockResolvedValueOnce({
-      rows: [{ id: 1, name: 'Anonymous', email: null }],
-    });
-
-    // Act
+  it('POST /api/v1/admin/users without name should return 400', async () => {
     const response = await request(app)
-      .post('/api/users')
-      .send({});
+      .post('/api/v1/admin/users')
+      .send({ email: 'missingname@1billiontech.com' });
 
-    // Assert
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('id');
+    expect(response.status).toBe(400);
+    expect(response.text).toContain('Name is required');
   });
 
 });

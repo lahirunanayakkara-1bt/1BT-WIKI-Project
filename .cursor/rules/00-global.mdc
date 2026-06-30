@@ -18,7 +18,7 @@ alwaysApply: true
 | Rich Text | TipTap editor |
 | Backend | Node.js + Express + TypeScript |
 | Database | Neon PostgreSQL |
-| Auth User Sync | `neon_auth.users_sync` table (auto-managed by Neon Auth) |
+| Auth User Sync | `neon_auth.user` table (auto-managed by Neon Auth) |
 | Deployment | Vercel |
 | Testing | Cypress (E2E) + Jest (unit/integration) |
 | Code Quality | SonarQube |
