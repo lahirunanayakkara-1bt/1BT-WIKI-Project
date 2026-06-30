@@ -34,20 +34,22 @@ export const appReady: Promise<void> = (async () => {
     // eslint-disable-next-line no-console
     console.warn('Routes not mounted:', message);
   }
-})();
 
-// ---------------------------------------------------------------------------
-// Global error handler — must be registered AFTER all routes
-// Handles AppError (domain errors) and unexpected errors uniformly.
-// ---------------------------------------------------------------------------
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void => {
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json(errorResponse(err.message));
-    return;
-  }
-  // eslint-disable-next-line no-console
-  console.error('Unhandled error:', err);
-  res.status(500).json(errorResponse('Internal server error'));
-});
+  // ---------------------------------------------------------------------------
+  // Global error handler — MUST be registered AFTER all routes.
+  // Moved inside appReady so it sits last in the middleware stack regardless
+  // of whether route loading is sync or async.
+  // Handles AppError (domain errors) and unexpected errors uniformly.
+  // ---------------------------------------------------------------------------
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void => {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json(errorResponse(err.message));
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.error('Unhandled error:', err);
+    res.status(500).json(errorResponse('Internal server error'));
+  });
+})();
 
 export default app;

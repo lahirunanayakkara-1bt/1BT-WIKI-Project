@@ -45,6 +45,40 @@ export interface User {
 }
 
 // ---------------------------------------------------------------------------
+// Profile — outward-facing safe shape returned by GET /api/v1/users/me
+// ---------------------------------------------------------------------------
+
+/**
+ * Safe profile object returned to the authenticated user.
+ * Derived from neon_auth.user — no sensitive internal fields exposed.
+ *
+ * Field mappings from DB columns:
+ *   image   → avatarUrl   (domain alias)
+ *   !banned → isActive    (inverted; null banned treated as active)
+ */
+export interface UserProfile {
+  id: string;
+  name: string;
+  /** Read-only — managed by Google / Neon Auth; never editable */
+  email: string;
+  avatarUrl: string | null;
+  role: string | null;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+// ---------------------------------------------------------------------------
+// Auth — shape of req.user populated by Lahiru's authenticate middleware
+// ---------------------------------------------------------------------------
+
+/** Payload attached to req.user by src/middleware/auth.middleware.ts */
+export interface AuthenticatedUser {
+  userId: string;
+  email: string;
+  role: string;
+}
+
+// ---------------------------------------------------------------------------
 // Input / payload interfaces
 // ---------------------------------------------------------------------------
 
