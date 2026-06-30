@@ -11,6 +11,7 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
     findById: jest.fn(),
     createAdminUser: jest.fn(),
     updateRole: jest.fn(),
+    updateBanStatus: jest.fn(),
   },
 }));
 
@@ -146,6 +147,57 @@ describe('UserService', () => {
       });
 
       expect(mockedRepo.updateRole).not.toHaveBeenCalled();
+    });
+
+  });
+
+  describe('updateUserBanStatus', () => {
+
+    it('should deactivate a user when banned is true with reason', async () => {
+      const updatedUser = makeUser({ id: '5', banned: true, banReason: 'policy violation' });
+      mockedRepo.findById.mockResolvedValue(makeUser({ id: '5', banned: false, banReason: null }));
+      mockedRepo.updateBanStatus.mockResolvedValue(updatedUser);
+
+      const result = await UserService.updateUserBanStatus('5', {
+        banned: true,
+        banReason: 'policy violation',
+      });
+
+      expect(mockedRepo.findById).toHaveBeenCalledWith('5');
+      expect(mockedRepo.updateBanStatus).toHaveBeenCalledWith('5', {
+        banned: true,
+        banReason: 'policy violation',
+      });
+      expect(result).toEqual(updatedUser);
+    });
+
+    it('should reactivate a user when banned is false', async () => {
+      const updatedUser = makeUser({ id: '6', banned: false, banReason: null });
+      mockedRepo.findById.mockResolvedValue(makeUser({ id: '6', banned: true, banReason: 'temporary block' }));
+      mockedRepo.updateBanStatus.mockResolvedValue(updatedUser);
+
+      const result = await UserService.updateUserBanStatus('6', {
+        banned: false,
+      });
+
+      expect(mockedRepo.findById).toHaveBeenCalledWith('6');
+      expect(mockedRepo.updateBanStatus).toHaveBeenCalledWith('6', {
+        banned: false,
+        banReason: null,
+      });
+      expect(result).toEqual(updatedUser);
+    });
+
+    it('should reject banning without reason', async () => {
+      mockedRepo.findById.mockResolvedValue(makeUser({ id: '7', banned: false, banReason: null }));
+
+      await expect(UserService.updateUserBanStatus('7', {
+        banned: true,
+      })).rejects.toMatchObject({
+        message: 'Ban reason is required when banning a user',
+      });
+
+      expect(mockedRepo.updateBanStatus).not.toHaveBeenCalled();
     });
 
   });

@@ -172,4 +172,35 @@ const updateRole = async (id: string, role: string): Promise<User> => {
   }
 };
 
-export default { getAll, findByEmail, findById, createAdminUser, updateRole };
+const updateBanStatus = async (
+  id: string,
+  data: { banned: boolean; banReason: string | null }
+): Promise<User> => {
+  try {
+    const { rows } = await pool.query<User>(
+      `UPDATE neon_auth.user
+       SET banned = $2,
+           "banReason" = $3,
+           "updatedAt" = NOW()
+       WHERE id = $1
+       RETURNING
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"`,
+      [id, data.banned, data.banReason]
+    );
+    return rows[0];
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { getAll, findByEmail, findById, createAdminUser, updateRole, updateBanStatus };
