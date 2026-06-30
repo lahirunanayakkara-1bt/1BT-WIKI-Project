@@ -1,5 +1,7 @@
 # User Ban/Deactivation Process
 
+## Overview
+
 The user ban/deactivation process allows administrators to disable and re-enable user accounts without permanently deleting them from the system. This functionality leverages the Neon Auth database schema fields banned and banReason to manage and track the user's account status.
 
 When a user account is deactivated, the banned field is set to TRUE, indicating that the user is no longer permitted to access the system. When the account is reactivated, the banned field is updated to FALSE, restoring the user's access.
