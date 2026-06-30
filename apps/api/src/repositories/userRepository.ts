@@ -1,4 +1,5 @@
 import pool from '../db/index.js';
+import { AppError } from '../errors/AppError.js';
 import type { User, CreateUserInput } from '../types/userTypes.js';
 
 // ---------------------------------------------------------------------------
@@ -10,23 +11,29 @@ import type { User, CreateUserInput } from '../types/userTypes.js';
  * Column names are camelCase in neon_auth.user — must be double-quoted in SQL.
  */
 const getAll = async (): Promise<User[]> => {
-  const { rows } = await pool.query<User>(
-    `SELECT
-       id,
-       name,
-       email,
-       "emailVerified",
-       image,
-       "createdAt",
-       "updatedAt",
-       role,
-       banned,
-       "banReason",
-       "banExpires"
-     FROM neon_auth.user
-     ORDER BY "createdAt" DESC`
-  );
-  return rows;
+  try {
+    const { rows } = await pool.query<User>(
+      `SELECT
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"
+       FROM neon_auth.user
+       ORDER BY "createdAt" DESC`
+    );
+    return rows;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Unable to fetch users from database:', error instanceof Error ? error.message : error);
+    return [];
+  }
 };
 
 /**
@@ -34,25 +41,31 @@ const getAll = async (): Promise<User[]> => {
  * Returns null when no match is found.
  */
 const findByEmail = async (email: string): Promise<User | null> => {
-  const { rows } = await pool.query<User>(
-    `SELECT
-       id,
-       name,
-       email,
-       "emailVerified",
-       image,
-       "createdAt",
-       "updatedAt",
-       role,
-       banned,
-       "banReason",
-       "banExpires"
-     FROM neon_auth.user
-     WHERE email = $1
-     LIMIT 1`,
-    [email]
-  );
-  return rows[0] ?? null;
+  try {
+    const { rows } = await pool.query<User>(
+      `SELECT
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"
+       FROM neon_auth.user
+       WHERE email = $1
+       LIMIT 1`,
+      [email]
+    );
+    return rows[0] ?? null;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Unable to look up user by email:', error instanceof Error ? error.message : error);
+    return null;
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -72,32 +85,36 @@ const findByEmail = async (email: string): Promise<User | null> => {
  * @returns The newly created user row
  */
 const createAdminUser = async (data: CreateUserInput): Promise<User> => {
-  const { rows } = await pool.query<User>(
-    `INSERT INTO neon_auth.user
-       (name, email, "emailVerified", image, role)
-     VALUES
-       ($1, $2, $3, $4, $5)
-     RETURNING
-       id,
-       name,
-       email,
-       "emailVerified",
-       image,
-       "createdAt",
-       "updatedAt",
-       role,
-       banned,
-       "banReason",
-       "banExpires"`,
-    [
-      data.name,
-      data.email,
-      false,                    // emailVerified — false until user logs in
-      data.image ?? null,       // image — optional
-      data.role ?? 'User',      // role — defaults to 'User'
-    ]
-  );
-  return rows[0];
+  try {
+    const { rows } = await pool.query<User>(
+      `INSERT INTO neon_auth.user
+         (name, email, "emailVerified", image, role)
+       VALUES
+         ($1, $2, $3, $4, $5)
+       RETURNING
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"`,
+      [
+        data.name,
+        data.email,
+        false,                    // emailVerified — false until user logs in
+        data.image ?? null,       // image — optional
+        data.role ?? 'User',      // role — defaults to 'User'
+      ]
+    );
+    return rows[0];
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
 };
 
 

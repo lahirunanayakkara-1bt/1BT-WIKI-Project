@@ -1,12 +1,14 @@
 // apps/api/src/services/__tests__/user.service.test.ts
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import type { User, CreateUserInput } from '../../types/userTypes.js';
 
 // ESM mock — must be before any imports
 await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
     getAll: jest.fn(),
-    create: jest.fn(),
+    findByEmail: jest.fn(),
+    createAdminUser: jest.fn(),
   },
 }));
 
@@ -16,79 +18,108 @@ const { default: UserRepository } = await import('../../repositories/userReposit
 
 const mockedRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 
+const makeUser = (overrides: Partial<User> = {}): User => ({
+  id: '1',
+  name: 'Test User',
+  email: 'test@1billiontech.com',
+  emailVerified: false,
+  image: null,
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  role: 'User',
+  banned: null,
+  banReason: null,
+  banExpires: null,
+  ...overrides,
+});
+
 describe('UserService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // ─────────────────────────────────────────
   describe('getAll', () => {
 
     it('should return all users from repository', async () => {
-      // Arrange
-      const mockUsers = [
-        { id: 1, name: 'Malindu', email: 'malindu@1billiontech.com' },
-        { id: 2, name: 'Lahiru', email: 'lahiru@1billiontech.com' },
+      const mockUsers: User[] = [
+        makeUser({ id: '1', name: 'Malindu', email: 'malindu@1billiontech.com' }),
+        makeUser({ id: '2', name: 'Lahiru', email: 'lahiru@1billiontech.com' }),
       ];
+
       mockedRepo.getAll.mockResolvedValue(mockUsers);
 
-      // Act
       const result = await UserService.getAll();
 
-      // Assert
       expect(mockedRepo.getAll).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockUsers);
     });
 
     it('should return empty array when no users exist', async () => {
-      // Arrange
       mockedRepo.getAll.mockResolvedValue([]);
 
-      // Act
       const result = await UserService.getAll();
 
-      // Assert
       expect(result).toEqual([]);
       expect(result).toHaveLength(0);
     });
 
   });
 
-  // ─────────────────────────────────────────
-  describe('create', () => {
+  describe('adminCreateUser', () => {
 
     it('should create and return a new user', async () => {
-      // Arrange
-      const input = { name: 'Chathurika', email: 'chathurika@1billiontech.com' };
-      const mockCreated = { id: 3, ...input };
-      mockedRepo.create.mockResolvedValue(mockCreated);
+      const input: CreateUserInput = {
+        name: 'Chathurika',
+        email: 'chathurika@1billiontech.com',
+        role: 'User',
+      };
+      const mockCreated = makeUser({ id: '3', ...input });
 
-      // Act
-      const result = await UserService.create(input);
+      mockedRepo.findByEmail.mockResolvedValue(null);
+      mockedRepo.createAdminUser.mockResolvedValue(mockCreated);
 
-      // Assert
-      expect(mockedRepo.create).toHaveBeenCalledWith(input);
-      expect(result).toHaveProperty('id');
+      const result = await UserService.adminCreateUser(input);
+
+      expect(mockedRepo.findByEmail).toHaveBeenCalledWith('chathurika@1billiontech.com');
+      expect(mockedRepo.createAdminUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Chathurika',
+          email: 'chathurika@1billiontech.com',
+          role: 'User',
+        })
+      );
       expect(result).toEqual(mockCreated);
     });
 
-    it('should use Anonymous when name is not provided', async () => {
-      // Arrange
-      const input = { email: 'test@1billiontech.com' };
-      const mockCreated = {
-        id: 4,
-        name: 'Anonymous',
-        email: 'test@1billiontech.com',
+    it('should reject invalid email format', async () => {
+      const input: CreateUserInput = {
+        name: 'Invalid Email',
+        email: 'not-an-email',
       };
-      mockedRepo.create.mockResolvedValue(mockCreated);
 
-      // Act
-      const result = await UserService.create(input);
+      await expect(UserService.adminCreateUser(input)).rejects.toMatchObject({
+        message: 'Email format is invalid',
+      });
 
-      // Assert
-      expect(result.name).toBe('Anonymous');
-      expect(result.email).toBe('test@1billiontech.com');
+      expect(mockedRepo.findByEmail).not.toHaveBeenCalled();
+      expect(mockedRepo.createAdminUser).not.toHaveBeenCalled();
+    });
+
+    it('should reject duplicate email with conflict', async () => {
+      const input: CreateUserInput = {
+        name: 'Duplicate',
+        email: 'duplicate@1billiontech.com',
+      };
+      mockedRepo.findByEmail.mockResolvedValue(
+        makeUser({ id: '4', email: 'duplicate@1billiontech.com' })
+      );
+
+      await expect(UserService.adminCreateUser(input)).rejects.toMatchObject({
+        message: 'A user with this email already exists',
+      });
+
+      expect(mockedRepo.createAdminUser).not.toHaveBeenCalled();
     });
 
   });
