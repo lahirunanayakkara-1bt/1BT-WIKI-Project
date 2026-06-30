@@ -104,6 +104,13 @@ export interface UpdateUserRoleInput {
   role: UserRole;
 }
 
+export interface UpdateUserBanInput {
+  /** Set to true to deactivate the account, false to reactivate */
+  banned: boolean;
+  /** Required when banning a user, optional when reactivating */
+  banReason?: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // Standard API response envelope (re-usable across controllers)
 // ---------------------------------------------------------------------------

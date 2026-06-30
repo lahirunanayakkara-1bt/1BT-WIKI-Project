@@ -93,4 +93,97 @@ describe('Integration — Users API', () => {
     expect(response.text).toContain('Name is required');
   });
 
+  it('PATCH /api/v1/admin/users/:userId/ban should deactivate a user', async () => {
+    const mockExistingUser = {
+      id: '3',
+      name: 'Deactivated User',
+      email: 'deactivated@1billiontech.com',
+      emailVerified: false,
+      image: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      role: 'User',
+      banned: false,
+      banReason: null,
+      banExpires: null,
+    };
+    const mockUpdatedUser = {
+      ...mockExistingUser,
+      banned: true,
+      banReason: 'violated terms',
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockQuery.mockResolvedValueOnce({ rows: [mockExistingUser] });
+    mockQuery.mockResolvedValueOnce({ rows: [mockUpdatedUser] });
+
+    const response = await request(app)
+      .patch('/api/v1/admin/users/3/ban')
+      .send({ banned: true, banReason: 'violated terms' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toEqual(mockUpdatedUser);
+    expect(response.body.message).toBe('User deactivated successfully');
+  });
+
+  it('PATCH /api/v1/admin/users/:userId/ban should reactivate a user', async () => {
+    const mockExistingUser = {
+      id: '3',
+      name: 'Deactivated User',
+      email: 'deactivated@1billiontech.com',
+      emailVerified: false,
+      image: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      role: 'User',
+      banned: true,
+      banReason: 'violated terms',
+      banExpires: null,
+    };
+    const mockUpdatedUser = {
+      ...mockExistingUser,
+      banned: false,
+      banReason: null,
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockQuery.mockResolvedValueOnce({ rows: [mockExistingUser] });
+    mockQuery.mockResolvedValueOnce({ rows: [mockUpdatedUser] });
+
+    const response = await request(app)
+      .patch('/api/v1/admin/users/3/ban')
+      .send({ banned: false });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toEqual(mockUpdatedUser);
+    expect(response.body.message).toBe('User reactivated successfully');
+  });
+
+  it('PATCH /api/v1/admin/users/:userId/ban should return 400 when banning without reason', async () => {
+    const mockExistingUser = {
+      id: '3',
+      name: 'Deactivated User',
+      email: 'deactivated@1billiontech.com',
+      emailVerified: false,
+      image: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      role: 'User',
+      banned: false,
+      banReason: null,
+      banExpires: null,
+    };
+
+    mockQuery.mockResolvedValueOnce({ rows: [mockExistingUser] });
+
+    const response = await request(app)
+      .patch('/api/v1/admin/users/3/ban')
+      .send({ banned: true });
+
+    expect(response.status).toBe(400);
+    expect(response.text).toContain('Ban reason is required when banning a user');
+  });
+
 });
