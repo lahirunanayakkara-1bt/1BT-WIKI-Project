@@ -68,6 +68,38 @@ const findByEmail = async (email: string): Promise<User | null> => {
   }
 };
 
+/**
+ * Find a single user by their primary key (id).
+ * Returns null when no match is found.
+ */
+const findById = async (userId: string): Promise<User | null> => {
+  try {
+    const { rows } = await pool.query<User>(
+      `SELECT
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"
+       FROM neon_auth.user
+       WHERE id = $1
+       LIMIT 1`,
+      [userId]
+    );
+    return rows[0] ?? null;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Unable to look up user by id:', error instanceof Error ? error.message : error);
+    return null;
+  }
+};
+
 // ---------------------------------------------------------------------------
 // Write operations
 // ---------------------------------------------------------------------------
@@ -118,32 +150,6 @@ const createAdminUser = async (data: CreateUserInput): Promise<User> => {
 };
 
 
-
-const findById = async (id: string): Promise<User | null> => {
-  try {
-    const { rows } = await pool.query<User>(
-      `SELECT
-         id,
-         name,
-         email,
-         "emailVerified",
-         image,
-         "createdAt",
-         "updatedAt",
-         role,
-         banned,
-         "banReason",
-         "banExpires"
-       FROM neon_auth.user
-       WHERE id = $1
-       LIMIT 1`,
-      [id]
-    );
-    return rows[0] ?? null;
-  } catch (error) {
-    return null;
-  }
-};
 
 const updateRole = async (id: string, role: string): Promise<User> => {
   try {
