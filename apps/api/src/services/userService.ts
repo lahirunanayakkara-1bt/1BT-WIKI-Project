@@ -72,4 +72,17 @@ const adminCreateUser = async (data: CreateUserInput): Promise<User> => {
   });
 };
 
-export default { getAll, adminCreateUser };
+const updateUserRole = async (userId: string, role: UserRole): Promise<User> => {
+  if (!VALID_ROLES.includes(role)) {
+    throw new AppError(`Role must be one of: ${VALID_ROLES.join(', ')}`, 400);
+  }
+
+  const existingUser = await UserRepository.findById(userId);
+  if (!existingUser) {
+    throw new AppError('User not found', 404);
+  }
+
+  return UserRepository.updateRole(userId, role);
+};
+
+export default { getAll, adminCreateUser, updateUserRole };

@@ -50,6 +50,10 @@ export interface CreateUserInput {
   image?: string;
 }
 
+export interface UpdateUserRoleInput {
+  role: UserRole;
+}
+
 // ---------------------------------------------------------------------------
 // Standard API response envelope (re-usable across controllers)
 // ---------------------------------------------------------------------------

@@ -119,4 +119,57 @@ const createAdminUser = async (data: CreateUserInput): Promise<User> => {
 
 
 
-export default { getAll, findByEmail, createAdminUser };
+const findById = async (id: string): Promise<User | null> => {
+  try {
+    const { rows } = await pool.query<User>(
+      `SELECT
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"
+       FROM neon_auth.user
+       WHERE id = $1
+       LIMIT 1`,
+      [id]
+    );
+    return rows[0] ?? null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const updateRole = async (id: string, role: string): Promise<User> => {
+  try {
+    const { rows } = await pool.query<User>(
+      `UPDATE neon_auth.user
+       SET role = $2,
+           "updatedAt" = NOW()
+       WHERE id = $1
+       RETURNING
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"`,
+      [id, role]
+    );
+    return rows[0];
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { getAll, findByEmail, findById, createAdminUser, updateRole };

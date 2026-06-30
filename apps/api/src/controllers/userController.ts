@@ -67,5 +67,20 @@ const adminCreateUser = async (
   }
 };
 
+const updateUserRole = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body as { role: unknown };
 
-export default { getAll, adminCreateUser };
+    const updatedUser = await UserService.updateUserRole(userId, role as UserRole);
+    res.status(200).json(successResponse(updatedUser, 'User role updated successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { getAll, adminCreateUser, updateUserRole };
