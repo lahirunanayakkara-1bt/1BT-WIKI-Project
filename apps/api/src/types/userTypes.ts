@@ -13,6 +13,22 @@ export type UserRole = 'Admin' | 'Reviewer' | 'User';
 // Entity interfaces — mirrors neon_auth.user columns exactly
 // ---------------------------------------------------------------------------
 
+export interface AuthenticatedUser {
+  userId: string;
+  email: string;
+  role: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  role: string | null;
+  isActive: boolean;
+  createdAt: Date;
+}
+
 /** Full user row as stored in neon_auth.user */
 export interface User {
   id: string;

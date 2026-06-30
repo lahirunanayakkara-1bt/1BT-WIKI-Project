@@ -39,7 +39,6 @@ await jest.unstable_mockModule('../../middleware/auth.middleware.js', () => ({
       const role   = req.headers['x-test-user-role']  as string | undefined;
 
       if (userId && email && role) {
-        // @ts-expect-error — augmented by auth.middleware declaration
         req.user = { userId, email, role };
         next();
         return;
@@ -65,7 +64,7 @@ const { default: app, appReady } = await import('../../app.js');
 const { default: request }       = await import('supertest');
 const { default: UserRepository } = await import('../../repositories/userRepository.js');
 
-const mockedFindById = UserRepository.findById as jest.Mock<() => Promise<unknown>>;
+const mockedFindById = UserRepository.findById as jest.Mock<(id: string) => Promise<unknown>>;
 
 // ---------------------------------------------------------------------------
 // Tests
