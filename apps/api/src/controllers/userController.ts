@@ -83,4 +83,28 @@ const updateUserRole = async (
   }
 };
 
-export default { getAll, adminCreateUser, updateUserRole };
+const updateUserBanStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { banned, banReason } = req.body as {
+      banned: unknown;
+      banReason: unknown;
+    };
+
+    const updatedUser = await UserService.updateUserBanStatus(userId, {
+      banned: Boolean(banned),
+      banReason: banReason != null ? String(banReason) : undefined,
+    });
+
+    const message = banned ? 'User deactivated successfully' : 'User reactivated successfully';
+    res.status(200).json(successResponse(updatedUser, message));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { getAll, adminCreateUser, updateUserRole, updateUserBanStatus };
