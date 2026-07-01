@@ -83,6 +83,16 @@ export interface AuthenticatedUser {
 // ---------------------------------------------------------------------------
 
 /**
+ * Body expected by PATCH /api/v1/users/me.
+ * Contains optional fields that a user can update.
+ */
+export interface ProfileUpdateInput {
+  name?: string;
+  avatarUrl?: string | null;
+  contactDetails?: string;
+}
+
+/**
  * Body expected by POST /api/v1/admin/users.
  * Only the fields an admin can set when onboarding a new user.
  */

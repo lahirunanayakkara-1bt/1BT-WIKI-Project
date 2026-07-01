@@ -17,4 +17,7 @@ router.get('/getAll', UserController.getAll);
 // GET /api/v1/users/me — authenticated user's own profile (UP-01)
 router.get('/me', authenticate, ProfileController.getOwnProfile);
 
+// PATCH /api/v1/users/me — update authenticated user's own profile (UP-02)
+router.patch('/me', authenticate, ProfileController.updateOwnProfile);
+
 export default router;

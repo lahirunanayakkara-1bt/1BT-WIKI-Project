@@ -10,6 +10,7 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
     findByEmail:     jest.fn(),
     findById:        jest.fn(),
     createAdminUser: jest.fn(),
+    updateById:      jest.fn(),
   },
 }));
 
@@ -132,6 +133,89 @@ describe('ProfileService.getProfile', () => {
 
     expect(mockedRepo.findById).toHaveBeenCalledTimes(1);
     expect(mockedRepo.findById).toHaveBeenCalledWith('ghost-id');
+  });
+
+});
+
+describe('ProfileService.updateProfile', () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should successfully update name only', async () => {
+    const rawUser = makeUser({ name: 'New Name' });
+    mockedRepo.updateById.mockResolvedValue(rawUser);
+
+    const result = await ProfileService.updateProfile('user-123', { name: 'New Name' });
+
+    expect(mockedRepo.updateById).toHaveBeenCalledTimes(1);
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', { name: 'New Name' });
+    expect(result.name).toBe('New Name');
+  });
+
+  it('should successfully update name and avatarUrl', async () => {
+    const rawUser = makeUser({ name: 'New Name', image: 'https://example.com/new.png' });
+    mockedRepo.updateById.mockResolvedValue(rawUser);
+
+    const result = await ProfileService.updateProfile('user-123', { name: 'New Name', avatarUrl: 'https://example.com/new.png' });
+
+    expect(mockedRepo.updateById).toHaveBeenCalledTimes(1);
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', { name: 'New Name', image: 'https://example.com/new.png' });
+    expect(result.avatarUrl).toBe('https://example.com/new.png');
+  });
+
+  it('should throw AppError 400 for empty name', async () => {
+    await expect(ProfileService.updateProfile('user-123', { name: '   ' })).rejects.toMatchObject({
+      message: 'Name cannot be empty',
+      statusCode: 400,
+    });
+    expect(mockedRepo.updateById).not.toHaveBeenCalled();
+  });
+
+  it('should throw AppError 400 for name exceeding 255 characters', async () => {
+    const longName = 'a'.repeat(256);
+    await expect(ProfileService.updateProfile('user-123', { name: longName })).rejects.toMatchObject({
+      message: 'Name cannot exceed 255 characters',
+      statusCode: 400,
+    });
+    expect(mockedRepo.updateById).not.toHaveBeenCalled();
+  });
+
+  it('should throw AppError 400 for invalid avatarUrl format', async () => {
+    await expect(ProfileService.updateProfile('user-123', { avatarUrl: 'not-a-url' })).rejects.toMatchObject({
+      message: 'Invalid avatarUrl format',
+      statusCode: 400,
+    });
+    expect(mockedRepo.updateById).not.toHaveBeenCalled();
+  });
+
+  it('should strip disallowed fields (role, email, banned, contactDetails) before calling repository', async () => {
+    const rawUser = makeUser({ name: 'Safe Name' });
+    mockedRepo.updateById.mockResolvedValue(rawUser);
+
+    const input = {
+      name: 'Safe Name',
+      role: 'Admin',
+      email: 'hacked@example.com',
+      banned: true,
+      contactDetails: '123 fake street'
+    } as any; // Cast to any to simulate malicious input
+
+    await ProfileService.updateProfile('user-123', input);
+
+    expect(mockedRepo.updateById).toHaveBeenCalledTimes(1);
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', { name: 'Safe Name' });
+  });
+
+  it('should throw AppError 404 when the user does not exist', async () => {
+    mockedRepo.updateById.mockResolvedValue(null);
+
+    await expect(ProfileService.updateProfile('ghost-id', { name: 'New Name' })).rejects.toMatchObject({
+      message: 'User not found',
+      statusCode: 404,
+    });
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('ghost-id', { name: 'New Name' });
   });
 
 });

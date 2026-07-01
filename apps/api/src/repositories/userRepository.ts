@@ -209,4 +209,48 @@ const updateBanStatus = async (
   }
 };
 
-export default { getAll, findByEmail, findById, createAdminUser, updateRole, updateBanStatus };
+const updateById = async (userId: string, updates: { name?: string; image?: string | null }): Promise<User | null> => {
+  const setClauses: string[] = [];
+  const values: any[] = [userId];
+
+  if (updates.name !== undefined) {
+    values.push(updates.name);
+    setClauses.push(`name = $${values.length}`);
+  }
+
+  if (updates.image !== undefined) {
+    values.push(updates.image);
+    setClauses.push(`image = $${values.length}`);
+  }
+
+  if (setClauses.length === 0) {
+    throw new AppError('no valid fields to update', 400);
+  }
+
+  try {
+    const { rows } = await pool.query<User>(
+      `UPDATE neon_auth.user
+       SET ${setClauses.join(', ')},
+           "updatedAt" = NOW()
+       WHERE id = $1
+       RETURNING
+         id,
+         name,
+         email,
+         "emailVerified",
+         image,
+         "createdAt",
+         "updatedAt",
+         role,
+         banned,
+         "banReason",
+         "banExpires"`,
+      values
+    );
+    return rows[0] ?? null;
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { getAll, findByEmail, findById, createAdminUser, updateRole, updateBanStatus, updateById };

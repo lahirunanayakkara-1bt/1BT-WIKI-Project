@@ -33,4 +33,32 @@ const getOwnProfile = async (
   }
 };
 
-export default { getOwnProfile };
+// ---------------------------------------------------------------------------
+// PATCH /api/v1/users/me
+// ---------------------------------------------------------------------------
+
+/**
+ * Update the authenticated user's own profile.
+ *
+ * Requires: `authenticate` middleware upstream (sets req.user).
+ *
+ * Response: 200 { success: true, data: UserProfile }
+ */
+const updateOwnProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const userId = req.user!.userId;
+
+    const profile = await ProfileService.updateProfile(userId, req.body);
+
+    res.status(200).json(successResponse(profile));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { getOwnProfile, updateOwnProfile };
