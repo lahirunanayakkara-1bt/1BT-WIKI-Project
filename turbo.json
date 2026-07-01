@@ -8,7 +8,9 @@
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
       "env": [
         "VERCEL_NEON_AUTH_BASE_URL",
-        "VERCEL_NEON_AUTH_COOKIE_SECRET"
+        "VERCEL_NEON_AUTH_COOKIE_SECRET",
+        "DATABASE_URL",
+        "PORT"
       ]
     },
     "lint": {
