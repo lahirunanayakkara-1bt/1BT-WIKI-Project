@@ -2,7 +2,22 @@
 
 import UserRepository from '../repositories/userRepository.js';
 import { AppError } from '../errors/AppError.js';
-import type { UserProfile } from '../types/userTypes.js';
+import { capitalizeRole } from '../types/userTypes.js';
+import type { UserProfile, ProfileUpdateInput, User } from '../types/userTypes.js';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const mapToUserProfile = (user: User): UserProfile => ({
+  id:        user.id,
+  name:      user.name,
+  email:     user.email,
+  avatarUrl: user.image,
+  role:      capitalizeRole(user.role),
+  isActive:  user.banned !== true,
+  createdAt: user.createdAt,
+});
 
 // ---------------------------------------------------------------------------
 // Read
@@ -29,18 +44,52 @@ const getProfile = async (userId: string): Promise<UserProfile> => {
     throw new AppError('User not found', 404);
   }
 
-  // Map raw DB row → safe outward-facing shape
-  const profile: UserProfile = {
-    id:        user.id,
-    name:      user.name,
-    email:     user.email,          // read-only; managed by Google / Neon Auth
-    avatarUrl: user.image,          // DB column `image` aliased to `avatarUrl`
-    role:      user.role,
-    isActive:  user.banned !== true, // null or false → active; true → inactive
-    createdAt: user.createdAt,
-  };
-
-  return profile;
+  return mapToUserProfile(user);
 };
 
-export default { getProfile };
+// ---------------------------------------------------------------------------
+// Write
+// ---------------------------------------------------------------------------
+
+/**
+ * Update the authenticated user's profile.
+ */
+const updateProfile = async (userId: string, input: ProfileUpdateInput): Promise<UserProfile> => {
+  // Validate name
+  if (input.name !== undefined) {
+    if (typeof input.name !== 'string' || input.name.trim() === '') {
+      throw new AppError('Name cannot be empty', 400);
+    }
+    if (input.name.length > 255) {
+      throw new AppError('Name cannot exceed 255 characters', 400);
+    }
+  }
+
+  // Validate avatarUrl
+  if (input.avatarUrl !== undefined && input.avatarUrl !== null) {
+    try {
+      new URL(input.avatarUrl);
+    } catch {
+      throw new AppError('Invalid avatarUrl format', 400);
+    }
+  }
+
+  // Build safe updates object (ignoring disallowed fields like contactDetails)
+  const updates: { name?: string; image?: string | null } = {};
+  if (input.name !== undefined) {
+    updates.name = input.name.trim();
+  }
+  if (input.avatarUrl !== undefined) {
+    updates.image = input.avatarUrl;
+  }
+
+  const updatedUser = await UserRepository.updateById(userId, updates);
+
+  if (!updatedUser) {
+    throw new AppError('User not found', 404);
+  }
+
+  return mapToUserProfile(updatedUser);
+};
+
+export default { getProfile, updateProfile };

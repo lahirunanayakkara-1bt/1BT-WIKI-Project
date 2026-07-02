@@ -9,6 +9,15 @@
 
 export type UserRole = 'Admin' | 'Reviewer' | 'User';
 
+/**
+ * Normalize a raw DB role string to the app's capitalized UserRole convention.
+ * Falls back to 'User' if the input is null/undefined/empty.
+ */
+export function capitalizeRole(raw: string | null | undefined): UserRole {
+  const safe = raw || 'user';
+  return (safe.charAt(0).toUpperCase() + safe.slice(1)) as UserRole;
+}
+
 // ---------------------------------------------------------------------------
 // Entity interfaces — mirrors neon_auth.user columns exactly
 // ---------------------------------------------------------------------------
@@ -81,6 +90,16 @@ export interface AuthenticatedUser {
 // ---------------------------------------------------------------------------
 // Input / payload interfaces
 // ---------------------------------------------------------------------------
+
+/**
+ * Body expected by PATCH /api/v1/users/me.
+ * Contains optional fields that a user can update.
+ */
+export interface ProfileUpdateInput {
+  name?: string;
+  avatarUrl?: string | null;
+  contactDetails?: string;
+}
 
 /**
  * Body expected by POST /api/v1/admin/users.

@@ -11,10 +11,13 @@ import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-// GET /api/v1/users/getAll — list all users
-router.get('/getAll', UserController.getAll);
+// GET /api/v1/users/getAll — list all users (any authenticated user)
+router.get('/getAll', authenticate, UserController.getAll);
 
 // GET /api/v1/users/me — authenticated user's own profile (UP-01)
 router.get('/me', authenticate, ProfileController.getOwnProfile);
+
+// PATCH /api/v1/users/me — update authenticated user's own profile (UP-02)
+router.patch('/me', authenticate, ProfileController.updateOwnProfile);
 
 export default router;

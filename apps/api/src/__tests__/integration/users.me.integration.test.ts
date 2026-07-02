@@ -56,6 +56,7 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
     findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
     createAdminUser: jest.fn(),
+    updateById:      jest.fn<() => Promise<null>>().mockResolvedValue(null),
   },
 }));
 
@@ -65,6 +66,7 @@ const { default: request }       = await import('supertest');
 const { default: UserRepository } = await import('../../repositories/userRepository.js');
 
 const mockedFindById = UserRepository.findById as jest.Mock<(id: string) => Promise<unknown>>;
+const mockedUpdateById = UserRepository.updateById as jest.Mock<(id: string, updates: any) => Promise<unknown>>;
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -81,6 +83,7 @@ describe('Integration — GET /api/v1/users/me (UP-01)', () => {
     // because that would wipe the authenticate mock implementation and cause
     // subsequent requests to hang (no next() and no response sent).
     mockedFindById.mockReset();
+    mockedUpdateById.mockReset();
   });
 
   // ── Unauthenticated ───────────────────────────────────────────────────────
@@ -170,6 +173,77 @@ describe('Integration — GET /api/v1/users/me (UP-01)', () => {
     expect(response.status).toBe(404);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBe('User not found');
+  });
+
+});
+
+describe('Integration — PATCH /api/v1/users/me (UP-02)', () => {
+
+  // ── Unauthenticated ───────────────────────────────────────────────────────
+
+  it('should return 401 when no authentication headers are provided', async () => {
+    const response = await request(app).patch('/api/v1/users/me').send({ name: 'Test' });
+    expect(response.status).toBe(401);
+  });
+
+  // ── Authenticated — success ───────────────────────────────────────────────
+
+  it('should return 200 and update profile when authenticated', async () => {
+    const mockUser = {
+      id:            'user-abc',
+      name:          'Updated Name',
+      email:         'malindu@1billiontech.com',
+      emailVerified: true,
+      image:         'https://example.com/new.png',
+      createdAt:     new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt:     new Date('2026-01-01T00:00:00.000Z'),
+      role:          'User',
+      banned:        null,
+      banReason:     null,
+      banExpires:    null,
+    };
+
+    mockedUpdateById.mockResolvedValueOnce(mockUser);
+
+    const response = await request(app)
+      .patch('/api/v1/users/me')
+      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-email', 'malindu@1billiontech.com')
+      .set('x-test-user-role',  'User')
+      .send({
+        name: 'Updated Name',
+        avatarUrl: 'https://example.com/new.png',
+        role: 'Admin', // Should be ignored by security stripping
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    
+    const data = response.body.data;
+    expect(data.name).toBe('Updated Name');
+    expect(data.avatarUrl).toBe('https://example.com/new.png');
+    // Ensure role from DB is returned, not the injected Admin
+    expect(data.role).toBe('User');
+
+    expect(mockedUpdateById).toHaveBeenCalledWith('user-abc', {
+      name: 'Updated Name',
+      image: 'https://example.com/new.png'
+    });
+  });
+
+  // ── Authenticated — validation error ──────────────────────────────────────
+
+  it('should return 400 when name is empty', async () => {
+    const response = await request(app)
+      .patch('/api/v1/users/me')
+      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-email', 'malindu@1billiontech.com')
+      .set('x-test-user-role',  'User')
+      .send({ name: '   ' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Name cannot be empty');
   });
 
 });
