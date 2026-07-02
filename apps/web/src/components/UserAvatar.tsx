@@ -1,54 +1,26 @@
 /* eslint-disable @next/next/no-img-element */
 
 'use client';
-import { authClient } from "@/lib/auth/client";
-import { useEffect, useState } from "react";
+import { useUser } from "@/lib/hooks/useUser";
 
 interface UserAvatarProps {
     format: 'collapsed' | 'expanded';
 }
 
-interface User {
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    email: string;
-    emailVerified: boolean;
-    name: string;
-    image?: string | null | undefined;
-    banned: boolean | null | undefined;
-    role?: string | null | undefined;
-    banReason?: string | null | undefined;
-    banExpires?: Date | null | undefined;
-    phoneNumber?: string | null | undefined;
-    phoneNumberVerified?: boolean | null | undefined;
-}
-
-// export const dynamic = 'force-dynamic';
-
 export const UserAvatar = ({ format }: UserAvatarProps) => {
-    const [user, setUser] = useState<User | null>(null);
-    useEffect(() => {
-        const fetchUser = async () => {
-            const { data:session } = await authClient.getSession()
-            if (session?.user) {
-                setUser(session.user);
-            }
-        }
-        fetchUser();
-    }, [])
+    const { user } = useUser();
 
     if (user) {
         if (format === 'collapsed') {
             return (
                 <div className="h-8 w-8 rounded-full bg-gray-300">
                     <img
-                        src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="cover rounded-full"
                     />
                     {/* <Image 
-                        src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="cover rounded-full"
                         width={32}
@@ -60,12 +32,12 @@ export const UserAvatar = ({ format }: UserAvatarProps) => {
             return (
                 <div className="flex items-center gap-2">
                     <img
-                        src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="h-8 w-8 rounded-full"
                     />
                     {/* <Image 
-                        src={user.image || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
                         className="h-8 w-8 rounded-full"
                         width={32}

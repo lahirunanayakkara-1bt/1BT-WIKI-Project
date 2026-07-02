@@ -134,6 +134,34 @@ describe('ProfileService.getProfile', () => {
     expect(mockedRepo.findById).toHaveBeenCalledTimes(1);
     expect(mockedRepo.findById).toHaveBeenCalledWith('ghost-id');
   });
+  // ── Role capitalisation ─────────────────────────────────────────────────
+
+  it('should capitalise a lowercase DB role (e.g. "admin" → "Admin")', async () => {
+    const rawUser = makeUser({ role: 'admin' });
+    mockedRepo.findById.mockResolvedValue(rawUser);
+
+    const result = await ProfileService.getProfile('user-123');
+
+    expect(result.role).toBe('Admin');
+  });
+
+  it('should capitalise a lowercase "user" role from DB', async () => {
+    const rawUser = makeUser({ role: 'user' });
+    mockedRepo.findById.mockResolvedValue(rawUser);
+
+    const result = await ProfileService.getProfile('user-123');
+
+    expect(result.role).toBe('User');
+  });
+
+  it('should default to "User" when DB role is null', async () => {
+    const rawUser = makeUser({ role: null });
+    mockedRepo.findById.mockResolvedValue(rawUser);
+
+    const result = await ProfileService.getProfile('user-123');
+
+    expect(result.role).toBe('User');
+  });
 
 });
 
@@ -216,6 +244,16 @@ describe('ProfileService.updateProfile', () => {
       statusCode: 404,
     });
     expect(mockedRepo.updateById).toHaveBeenCalledWith('ghost-id', { name: 'New Name' });
+  });
+  // ── Role capitalisation ─────────────────────────────────────────────────
+
+  it('should capitalise a lowercase DB role in the update response', async () => {
+    const rawUser = makeUser({ name: 'New Name', role: 'reviewer' });
+    mockedRepo.updateById.mockResolvedValue(rawUser);
+
+    const result = await ProfileService.updateProfile('user-123', { name: 'New Name' });
+
+    expect(result.role).toBe('Reviewer');
   });
 
 });

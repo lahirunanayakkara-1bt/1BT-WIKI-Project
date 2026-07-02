@@ -9,6 +9,15 @@
 
 export type UserRole = 'Admin' | 'Reviewer' | 'User';
 
+/**
+ * Normalize a raw DB role string to the app's capitalized UserRole convention.
+ * Falls back to 'User' if the input is null/undefined/empty.
+ */
+export function capitalizeRole(raw: string | null | undefined): UserRole {
+  const safe = raw || 'user';
+  return (safe.charAt(0).toUpperCase() + safe.slice(1)) as UserRole;
+}
+
 // ---------------------------------------------------------------------------
 // Entity interfaces — mirrors neon_auth.user columns exactly
 // ---------------------------------------------------------------------------

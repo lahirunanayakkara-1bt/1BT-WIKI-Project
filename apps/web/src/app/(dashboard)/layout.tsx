@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { UserProvider } from '@/lib/hooks/useUser';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -136,6 +137,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   return (
+    <UserProvider>
     <div ref={containerRef} className="flex h-screen overflow-hidden bg-[#F5F5F5]">
       {/* Initial App Load Splash Screen */}
       {isAppLoading && (
@@ -164,6 +166,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
         </main>
       </div>
     </div>
+    </UserProvider>
   );
 }
 

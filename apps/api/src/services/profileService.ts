@@ -2,6 +2,7 @@
 
 import UserRepository from '../repositories/userRepository.js';
 import { AppError } from '../errors/AppError.js';
+import { capitalizeRole } from '../types/userTypes.js';
 import type { UserProfile, ProfileUpdateInput, User } from '../types/userTypes.js';
 
 // ---------------------------------------------------------------------------
@@ -13,7 +14,7 @@ const mapToUserProfile = (user: User): UserProfile => ({
   name:      user.name,
   email:     user.email,
   avatarUrl: user.image,
-  role:      user.role,
+  role:      capitalizeRole(user.role),
   isActive:  user.banned !== true,
   createdAt: user.createdAt,
 });

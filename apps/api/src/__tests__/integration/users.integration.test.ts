@@ -1,28 +1,84 @@
 // apps/api/src/__tests__/integration/users.integration.test.ts
 
-import { jest, describe, it, expect, beforeAll } from '@jest/globals';
+import { jest, describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 
 // ESM requires unstable_mockModule — jest.mock() doesn't hoist in ESM
 await jest.unstable_mockModule('../../db/index.js', () => ({
   default: {
-    query: jest.fn<any>().mockResolvedValue({ rows: [] }),
+    query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
     end: jest.fn(),
   },
   pool: {
-    query: jest.fn<any>().mockResolvedValue({ rows: [] }),
+    query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
     end: jest.fn(),
   },
 }));
 
-// Import AFTER mock is registered
-const { default: app, appReady } = await import('../../app.js');
-const { default: request } = await import('supertest');
+// Mock auth middleware — honours X-Test-User-* headers
+await jest.unstable_mockModule('../../middleware/auth.middleware.js', () => ({
+  authenticate: jest.fn(
+    async (
+      req: import('express').Request,
+      res: import('express').Response,
+      next: import('express').NextFunction
+    ) => {
+      const userId = req.headers['x-test-user-id']    as string | undefined;
+      const email  = req.headers['x-test-user-email'] as string | undefined;
+      const role   = req.headers['x-test-user-role']  as string | undefined;
 
-// Get reference to the mock query function
-const { default: pool } = await import('../../db/index.js');
-const mockQuery = pool.query as jest.Mock<any>;
+      if (userId && email && role) {
+        req.user = { userId, email, role };
+        next();
+        return;
+      }
+
+      res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+  ),
+}));
+
+// Mock userRepository — controls all DB calls made by the service layer
+await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+  default: {
+    getAll:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
+    findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
+    createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    updateRole:      jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    updateBanStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    updateById:      jest.fn<() => Promise<null>>().mockResolvedValue(null),
+  },
+}));
+
+// Import AFTER all mocks are registered
+const { default: app, appReady }          = await import('../../app.js');
+const { default: request }                = await import('supertest');
+const { default: UserRepository }         = await import('../../repositories/userRepository.js');
+
+// Typed mock helpers
+const mockGetAll          = UserRepository.getAll          as jest.Mock<() => Promise<unknown[]>>;
+const mockFindByEmail     = UserRepository.findByEmail     as jest.Mock<() => Promise<unknown>>;
+const mockFindById        = UserRepository.findById        as jest.Mock<() => Promise<unknown>>;
+const mockCreateAdminUser = UserRepository.createAdminUser as jest.Mock<() => Promise<unknown>>;
+const mockUpdateBanStatus = UserRepository.updateBanStatus as jest.Mock<() => Promise<unknown>>;
+
+// ── Auth header helpers ───────────────────────────────────────────────────────
+
+const adminHeaders = {
+  'x-test-user-id':    'admin-001',
+  'x-test-user-email': 'admin@1billiontech.com',
+  'x-test-user-role':  'Admin',
+};
+
+const userHeaders = {
+  'x-test-user-id':    'user-001',
+  'x-test-user-email': 'user@1billiontech.com',
+  'x-test-user-role':  'User',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 describe('Integration — Users API', () => {
 
@@ -30,7 +86,26 @@ describe('Integration — Users API', () => {
     await appReady;
   });
 
-  it('GET /api/v1/users/getAll should return 200 with JSON success envelope', async () => {
+  beforeEach(() => {
+    // Reset only the repository mocks; preserve authenticate mock implementation
+    mockGetAll.mockReset();
+    mockFindByEmail.mockReset();
+    mockFindById.mockReset();
+    mockCreateAdminUser.mockReset();
+    mockUpdateBanStatus.mockReset();
+  });
+
+  // ── GET /api/v1/users/getAll — A-05 auth guard ───────────────────────────
+
+  it('GET /api/v1/users/getAll without auth headers → 401', async () => {
+    const response = await request(app).get('/api/v1/users/getAll');
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toMatch(/authentication required/i);
+  });
+
+  it('GET /api/v1/users/getAll with valid auth headers → 200', async () => {
     const mockUsers = [
       {
         id: '1',
@@ -47,14 +122,18 @@ describe('Integration — Users API', () => {
       },
     ];
 
-    mockQuery.mockResolvedValueOnce({ rows: mockUsers });
+    mockGetAll.mockResolvedValueOnce(mockUsers);
 
-    const response = await request(app).get('/api/v1/users/getAll');
+    const response = await request(app)
+      .get('/api/v1/users/getAll')
+      .set(userHeaders);
 
     expect(response.status).toBe(200);
     expect(response.headers['content-type']).toMatch(/json/);
     expect(response.body).toEqual({ success: true, data: mockUsers });
   });
+
+  // ── POST /api/v1/admin/users ──────────────────────────────────────────────
 
   it('POST /api/v1/admin/users should create a user and return 201', async () => {
     const mockCreatedUser = {
@@ -71,11 +150,14 @@ describe('Integration — Users API', () => {
       banExpires: null,
     };
 
-    mockQuery.mockResolvedValueOnce({ rows: [] });
-    mockQuery.mockResolvedValueOnce({ rows: [mockCreatedUser] });
+    // No duplicate email
+    mockFindByEmail.mockResolvedValueOnce(null);
+    // Repo returns the newly created user
+    mockCreateAdminUser.mockResolvedValueOnce(mockCreatedUser);
 
     const response = await request(app)
       .post('/api/v1/admin/users')
+      .set(adminHeaders)
       .send({ name: 'Chathurika', email: 'chathurika@1billiontech.com', role: 'User' });
 
     expect(response.status).toBe(201);
@@ -87,11 +169,14 @@ describe('Integration — Users API', () => {
   it('POST /api/v1/admin/users without name should return 400', async () => {
     const response = await request(app)
       .post('/api/v1/admin/users')
+      .set(adminHeaders)
       .send({ email: 'missingname@1billiontech.com' });
 
     expect(response.status).toBe(400);
     expect(response.text).toContain('Name is required');
   });
+
+  // ── PATCH /api/v1/admin/users/:userId/ban ─────────────────────────────────
 
   it('PATCH /api/v1/admin/users/:userId/ban should deactivate a user', async () => {
     const mockExistingUser = {
@@ -114,11 +199,12 @@ describe('Integration — Users API', () => {
       updatedAt: new Date().toISOString(),
     };
 
-    mockQuery.mockResolvedValueOnce({ rows: [mockExistingUser] });
-    mockQuery.mockResolvedValueOnce({ rows: [mockUpdatedUser] });
+    mockFindById.mockResolvedValueOnce(mockExistingUser);
+    mockUpdateBanStatus.mockResolvedValueOnce(mockUpdatedUser);
 
     const response = await request(app)
       .patch('/api/v1/admin/users/3/ban')
+      .set(adminHeaders)
       .send({ banned: true, banReason: 'violated terms' });
 
     expect(response.status).toBe(200);
@@ -148,11 +234,12 @@ describe('Integration — Users API', () => {
       updatedAt: new Date().toISOString(),
     };
 
-    mockQuery.mockResolvedValueOnce({ rows: [mockExistingUser] });
-    mockQuery.mockResolvedValueOnce({ rows: [mockUpdatedUser] });
+    mockFindById.mockResolvedValueOnce(mockExistingUser);
+    mockUpdateBanStatus.mockResolvedValueOnce(mockUpdatedUser);
 
     const response = await request(app)
       .patch('/api/v1/admin/users/3/ban')
+      .set(adminHeaders)
       .send({ banned: false });
 
     expect(response.status).toBe(200);
@@ -176,10 +263,11 @@ describe('Integration — Users API', () => {
       banExpires: null,
     };
 
-    mockQuery.mockResolvedValueOnce({ rows: [mockExistingUser] });
+    mockFindById.mockResolvedValueOnce(mockExistingUser);
 
     const response = await request(app)
       .patch('/api/v1/admin/users/3/ban')
+      .set(adminHeaders)
       .send({ banned: true });
 
     expect(response.status).toBe(400);
