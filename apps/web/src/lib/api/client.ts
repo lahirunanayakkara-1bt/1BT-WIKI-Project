@@ -170,7 +170,7 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
   let json: ApiResponse<T>;
   try {
     json = await response.json();
-  } catch (err) {
+  } catch {
     throw new Error(`Failed to parse JSON response from ${normalizedPath}`);
   }
 
