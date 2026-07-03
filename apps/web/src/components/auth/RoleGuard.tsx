@@ -31,7 +31,7 @@ export function RoleGuard({ allowedRoles, children, fallback }: RoleGuardProps) 
     return (
       <div className="p-8 flex flex-col justify-center items-center text-center bg-brand-bg min-h-[50vh]">
         <h2 className="text-xl font-bold mb-4 text-brand-text-primary">
-          You don't have permission to view this page
+          You don&apos;t have permission to view this page
         </h2>
         <Link 
           href="/" 
