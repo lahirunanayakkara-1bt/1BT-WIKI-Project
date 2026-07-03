@@ -49,19 +49,27 @@ await jest.unstable_mockModule('../../middleware/auth.middleware.js', () => ({
 // ── 3. Mock userRepository ────────────────────────────────────────────────
 await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
-    getAllUsers:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
     findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
-    createAdminUser: jest.fn(),
     updateRole:      jest.fn(),
     updateBanStatus: jest.fn(),
     updateById:      jest.fn(),
   },
 }));
 
+// ── 4. Mock adminRepository ───────────────────────────────────────────────
+await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
+  default: {
+    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  },
+}));
+
 // ── Import app and supertest AFTER all mocks are registered ───────────────
 const { default: app, appReady } = await import('../../app.js');
 const { default: request }       = await import('supertest');
+const { default: AdminRepository } = await import('../../repositories/adminRepository.js');
 
 // ── Auth header helpers ───────────────────────────────────────────────────
 
@@ -129,7 +137,6 @@ describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/createUsers', 
   it('Admin role with valid payload → 201', async () => {
     // findByEmail returns null (no duplicate), createAdminUser returns the new user
     const { default: UserRepository } = await import('../../repositories/userRepository.js');
-    const { default: AdminRepository } = await import('../../repositories/adminRepository.js');
     (UserRepository.findByEmail as jest.Mock<() => Promise<null>>).mockResolvedValueOnce(null);
     (AdminRepository.createAdminUser as jest.Mock<() => Promise<unknown>>).mockResolvedValueOnce({
       id: 'new-1',
