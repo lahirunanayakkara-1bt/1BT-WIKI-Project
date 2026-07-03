@@ -8,7 +8,7 @@
 //   real DB calls with controllable fakes (ESM hoisting requirement).
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { User } from '../../types/userTypes.js';
+import type { User, CreateUserInput } from '../../types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // ESM mock — must be registered BEFORE any dynamic imports
@@ -17,6 +17,13 @@ import type { User } from '../../types/userTypes.js';
 await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
   default: {
     getAllUsers: jest.fn(),
+    createAdminUser: jest.fn(),
+  },
+}));
+
+await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+  default: {
+    findByEmail: jest.fn(),
   },
 }));
 
@@ -26,8 +33,10 @@ await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
 
 const { default: AdminService }    = await import('../adminService.js');
 const { default: AdminRepository } = await import('../../repositories/adminRepository.js');
+const { default: UserRepository }  = await import('../../repositories/userRepository.js');
 
-const mockedRepo = AdminRepository as jest.Mocked<typeof AdminRepository>;
+const mockedRepo     = AdminRepository as jest.Mocked<typeof AdminRepository>;
+const mockedUserRepo = UserRepository  as jest.Mocked<typeof UserRepository>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -96,6 +105,66 @@ describe('AdminService', () => {
       });
 
       expect(mockedRepo.getAllUsers).toHaveBeenCalledTimes(1);
+    });
+
+  });
+
+  // ── adminCreateUser ────────────────────────────────────────────────────────
+
+  describe('adminCreateUser', () => {
+
+    it('should create and return a new user', async () => {
+      const input: CreateUserInput = {
+        name: 'Chathurika',
+        email: 'chathurika@1billiontech.com',
+        role: 'User',
+      };
+      const mockCreated = makeUser({ id: '3', ...input });
+
+      mockedUserRepo.findByEmail.mockResolvedValue(null);
+      mockedRepo.createAdminUser.mockResolvedValue(mockCreated);
+
+      const result = await AdminService.adminCreateUser(input);
+
+      expect(mockedUserRepo.findByEmail).toHaveBeenCalledWith('chathurika@1billiontech.com');
+      expect(mockedRepo.createAdminUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Chathurika',
+          email: 'chathurika@1billiontech.com',
+          role: 'User',
+        })
+      );
+      expect(result).toEqual(mockCreated);
+    });
+
+    it('should reject invalid email format', async () => {
+      const input: CreateUserInput = {
+        name: 'Invalid Email',
+        email: 'not-an-email',
+      };
+
+      await expect(AdminService.adminCreateUser(input)).rejects.toMatchObject({
+        message: 'Email format is invalid',
+      });
+
+      expect(mockedUserRepo.findByEmail).not.toHaveBeenCalled();
+      expect(mockedRepo.createAdminUser).not.toHaveBeenCalled();
+    });
+
+    it('should reject duplicate email with conflict', async () => {
+      const input: CreateUserInput = {
+        name: 'Duplicate',
+        email: 'duplicate@1billiontech.com',
+      };
+      mockedUserRepo.findByEmail.mockResolvedValue(
+        makeUser({ id: '4', email: 'duplicate@1billiontech.com' })
+      );
+
+      await expect(AdminService.adminCreateUser(input)).rejects.toMatchObject({
+        message: 'A user with this email already exists',
+      });
+
+      expect(mockedRepo.createAdminUser).not.toHaveBeenCalled();
     });
 
   });
