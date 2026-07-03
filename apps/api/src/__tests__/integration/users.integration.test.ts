@@ -54,7 +54,8 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 // Mock adminRepository — controls DB calls made by adminService
 await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
   default: {
-    getAllUsers: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
