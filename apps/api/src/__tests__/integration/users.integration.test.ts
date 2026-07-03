@@ -54,7 +54,8 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 // Mock adminRepository — controls DB calls made by adminService
 await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
   default: {
-    getAllUsers: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
@@ -78,7 +79,7 @@ const { default: AdminRepository }        = await import('../../repositories/adm
 const mockGetAll          = AdminRepository.getAllUsers as jest.Mock<() => Promise<unknown[]>>;
 const mockFindByEmail     = UserRepository.findByEmail     as jest.Mock<() => Promise<unknown>>;
 const mockFindById        = UserRepository.findById        as jest.Mock<() => Promise<unknown>>;
-const mockCreateAdminUser = UserRepository.createAdminUser as jest.Mock<() => Promise<unknown>>;
+const mockCreateAdminUser = AdminRepository.createAdminUser as jest.Mock<() => Promise<unknown>>;
 const mockUpdateBanStatus = UserRepository.updateBanStatus as jest.Mock<() => Promise<unknown>>;
 
 // ── Auth header helpers ───────────────────────────────────────────────────────
@@ -150,9 +151,9 @@ describe('Integration — Users API', () => {
     expect(response.body).toEqual({ success: true, data: mockUsers });
   });
 
-  // ── POST /api/v1/admin/users ──────────────────────────────────────────────
+  // ── POST /api/v1/admin/createUsers ───────────────────────────────────────
 
-  it('POST /api/v1/admin/users should create a user and return 201', async () => {
+  it('POST /api/v1/admin/createUsers should create a user and return 201', async () => {
     const mockCreatedUser = {
       id: '2',
       name: 'Chathurika',
@@ -173,7 +174,7 @@ describe('Integration — Users API', () => {
     mockCreateAdminUser.mockResolvedValueOnce(mockCreatedUser);
 
     const response = await request(app)
-      .post('/api/v1/admin/users')
+      .post('/api/v1/admin/createUsers')
       .set(adminHeaders)
       .send({ name: 'Chathurika', email: 'chathurika@1billiontech.com', role: 'User' });
 
@@ -183,9 +184,9 @@ describe('Integration — Users API', () => {
     expect(response.body.message).toBe('User created successfully');
   });
 
-  it('POST /api/v1/admin/users without name should return 400', async () => {
+  it('POST /api/v1/admin/createUsers without name should return 400', async () => {
     const response = await request(app)
-      .post('/api/v1/admin/users')
+      .post('/api/v1/admin/createUsers')
       .set(adminHeaders)
       .send({ email: 'missingname@1billiontech.com' });
 

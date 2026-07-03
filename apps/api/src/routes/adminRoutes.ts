@@ -20,7 +20,7 @@ const router = Router();
 router.get('/getAllUsers', authenticate, AdminController.getAllUsers);
 
 // POST /api/v1/admin/users — Admin: onboard a new user
-router.post('/users', authenticate, requireRole('Admin'), UserController.adminCreateUser);
+router.post('/createUsers', authenticate, requireRole('Admin'), AdminController.adminCreateUser);
 
 // PATCH /api/v1/admin/users/:userId/role — Admin: update a user's role
 router.patch('/users/:userId/role', authenticate, requireRole('Admin'), UserController.updateUserRole);

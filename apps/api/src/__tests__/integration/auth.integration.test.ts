@@ -3,7 +3,7 @@
 // Integration tests for A-05 — auth + RBAC guards on all API routes.
 // Covers:
 //   • GET  /api/v1/users/getAllUsers         → authenticate only
-//   • POST /api/v1/admin/users           → authenticate + requireRole('Admin')
+//   • POST /api/v1/admin/createUsers      → authenticate + requireRole('Admin')
 //   • PATCH /api/v1/admin/users/:id/role → authenticate + requireRole('Admin')
 //   • PATCH /api/v1/admin/users/:id/ban  → authenticate + requireRole('Admin')
 
@@ -49,19 +49,27 @@ await jest.unstable_mockModule('../../middleware/auth.middleware.js', () => ({
 // ── 3. Mock userRepository ────────────────────────────────────────────────
 await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
-    getAllUsers:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
     findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
-    createAdminUser: jest.fn(),
     updateRole:      jest.fn(),
     updateBanStatus: jest.fn(),
     updateById:      jest.fn(),
   },
 }));
 
+// ── 4. Mock adminRepository ───────────────────────────────────────────────
+await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
+  default: {
+    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  },
+}));
+
 // ── Import app and supertest AFTER all mocks are registered ───────────────
 const { default: app, appReady } = await import('../../app.js');
 const { default: request }       = await import('supertest');
+const { default: AdminRepository } = await import('../../repositories/adminRepository.js');
 
 // ── Auth header helpers ───────────────────────────────────────────────────
 
@@ -103,7 +111,7 @@ describe('Integration — A-05: auth guard on GET /api/v1/admin/getAllUsers', ()
 
 });
 
-describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/users', () => {
+describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/createUsers', () => {
 
   beforeAll(async () => {
     await appReady;
@@ -111,7 +119,7 @@ describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/users', () => 
 
   it('no auth → 401', async () => {
     const res = await request(app)
-      .post('/api/v1/admin/users')
+      .post('/api/v1/admin/createUsers')
       .send({ name: 'Test', email: 'test@example.com' });
     expect(res.status).toBe(401);
     expect(res.body).toMatchObject({ success: false, error: 'Authentication required' });
@@ -119,7 +127,7 @@ describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/users', () => 
 
   it('User role → 403', async () => {
     const res = await request(app)
-      .post('/api/v1/admin/users')
+      .post('/api/v1/admin/createUsers')
       .set(userHeaders)
       .send({ name: 'Test', email: 'test@example.com' });
     expect(res.status).toBe(403);
@@ -130,7 +138,7 @@ describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/users', () => 
     // findByEmail returns null (no duplicate), createAdminUser returns the new user
     const { default: UserRepository } = await import('../../repositories/userRepository.js');
     (UserRepository.findByEmail as jest.Mock<() => Promise<null>>).mockResolvedValueOnce(null);
-    (UserRepository.createAdminUser as jest.Mock<() => Promise<unknown>>).mockResolvedValueOnce({
+    (AdminRepository.createAdminUser as jest.Mock<() => Promise<unknown>>).mockResolvedValueOnce({
       id: 'new-1',
       name: 'New Admin',
       email: 'newadmin@1billiontech.com',
@@ -138,7 +146,7 @@ describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/users', () => 
     });
 
     const res = await request(app)
-      .post('/api/v1/admin/users')
+      .post('/api/v1/admin/createUsers')
       .set(adminHeaders)
       .send({ name: 'New Admin', email: 'newadmin@1billiontech.com', role: 'Admin' });
     expect(res.status).toBe(201);
