@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { authClient } from '@/lib/auth/client';
 import { UserAvatar } from '../UserAvatar';
+import { useUser } from '@/lib/hooks/useUser';
 
 interface NavItem {
   label: string;
@@ -66,6 +67,13 @@ function LogoutIcon(): React.JSX.Element {
     </svg>
   );
 }
+function UsersIcon(): React.JSX.Element {
+  return (
+    <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  );
+}
 
 const mainNavItems: NavItem[] = [
   { label: 'Home', href: '/', icon: <HomeIcon />, testId: 'nav-home' },
@@ -81,6 +89,8 @@ const secondaryNavItems: NavItem[] = [
 export function Sidebar(): React.JSX.Element {
   const pathname = usePathname();
   const sidebarRef = useRef<HTMLElement>(null);
+  const { user } = useUser();
+  const isAdmin = user?.role === 'Admin';
 
   const isActive = (href: string): boolean =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -159,6 +169,28 @@ export function Sidebar(): React.JSX.Element {
           </Link>
         ))}
       </nav>
+      {isAdmin && (
+        <>
+          <div className="border-t border-white/10 my-2 mx-4 sidebar-item" />
+          <div className="pr-4 pb-1 sidebar-item" style={{ paddingLeft: '36px' }}>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#CC0000]/60">Admin</span>
+          </div>
+          <nav className="flex flex-col px-4 gap-1">
+            <Link
+              href="/admin/users"
+              className={itemClasses('/admin/users')}
+              style={{ paddingLeft: '20px' }}
+              data-testid="nav-admin-users"
+            >
+              {isActive('/admin/users') && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-[#CC0000] active-indicator rounded-r-full" />
+              )}
+              <UsersIcon />
+              <span className="relative z-10">User Management</span>
+            </Link>
+          </nav>
+        </>
+      )}
       <div className="flex-1" />
       <div className="sidebar-item border-t border-white/10 pr-4 py-4 flex items-center gap-3" style={{ paddingLeft: '36px' }}>
         <UserAvatar format='expanded' />
