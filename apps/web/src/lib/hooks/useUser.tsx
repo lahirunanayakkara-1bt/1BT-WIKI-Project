@@ -7,13 +7,15 @@ import { apiFetch } from '@/lib/api/client';
 // Types
 // ---------------------------------------------------------------------------
 
+export type UserRole = 'User' | 'Admin' | 'Reviewer';
+
 /** Matches the GET /api/v1/users/me response shape (UserProfile from the backend). */
 export interface UserMeData {
   id: string;
   name: string;
   email: string;
   avatarUrl: string | null;
-  role: string;
+  role: UserRole;
   isActive: boolean;
   createdAt: string;
 }
