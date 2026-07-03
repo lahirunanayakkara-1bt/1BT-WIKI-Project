@@ -10,7 +10,7 @@
 
 import { Router } from 'express';
 import UserController from '../controllers/userController.js';
-import AdminController from '../controllers/adminCOntroller.js';
+import AdminController from '../controllers/adminController.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { requireRole } from '../middleware/rbac.middleware.js';
 

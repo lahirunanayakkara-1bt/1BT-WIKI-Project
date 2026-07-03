@@ -6,7 +6,6 @@ import type { User, CreateUserInput } from '../../types/userTypes.js';
 // ESM mock — must be before any imports
 await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
-    getAll: jest.fn(),
     findByEmail: jest.fn(),
     findById: jest.fn(),
     createAdminUser: jest.fn(),
@@ -40,33 +39,6 @@ describe('UserService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('getAll', () => {
-
-    it('should return all users from repository', async () => {
-      const mockUsers: User[] = [
-        makeUser({ id: '1', name: 'Malindu', email: 'malindu@1billiontech.com' }),
-        makeUser({ id: '2', name: 'Lahiru', email: 'lahiru@1billiontech.com' }),
-      ];
-
-      mockedRepo.getAll.mockResolvedValue(mockUsers);
-
-      const result = await UserService.getAll();
-
-      expect(mockedRepo.getAll).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockUsers);
-    });
-
-    it('should return empty array when no users exist', async () => {
-      mockedRepo.getAll.mockResolvedValue([]);
-
-      const result = await UserService.getAll();
-
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
-    });
-
   });
 
   describe('adminCreateUser', () => {
