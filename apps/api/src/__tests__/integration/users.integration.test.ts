@@ -42,7 +42,6 @@ await jest.unstable_mockModule('../../middleware/auth.middleware.js', () => ({
 // Mock userRepository — controls all DB calls made by the service layer
 await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
-    getAll:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
     findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
     createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
@@ -52,13 +51,31 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   },
 }));
 
+// Mock adminRepository — controls DB calls made by adminService
+await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
+  default: {
+    getAllUsers: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+  },
+}));
+
+// Mock rbac middleware — passthrough for any role (role assertions tested separately)
+await jest.unstable_mockModule('../../middleware/rbac.middleware.js', () => ({
+  requireRole: (_role: string) =>
+    async (
+      _req: import('express').Request,
+      _res: import('express').Response,
+      next: import('express').NextFunction
+    ) => next(),
+}));
+
 // Import AFTER all mocks are registered
 const { default: app, appReady }          = await import('../../app.js');
 const { default: request }                = await import('supertest');
 const { default: UserRepository }         = await import('../../repositories/userRepository.js');
+const { default: AdminRepository }        = await import('../../repositories/adminRepository.js');
 
 // Typed mock helpers
-const mockGetAll          = UserRepository.getAll          as jest.Mock<() => Promise<unknown[]>>;
+const mockGetAll          = AdminRepository.getAllUsers as jest.Mock<() => Promise<unknown[]>>;
 const mockFindByEmail     = UserRepository.findByEmail     as jest.Mock<() => Promise<unknown>>;
 const mockFindById        = UserRepository.findById        as jest.Mock<() => Promise<unknown>>;
 const mockCreateAdminUser = UserRepository.createAdminUser as jest.Mock<() => Promise<unknown>>;
@@ -95,17 +112,17 @@ describe('Integration — Users API', () => {
     mockUpdateBanStatus.mockReset();
   });
 
-  // ── GET /api/v1/users/getAll — A-05 auth guard ───────────────────────────
+  // ── GET /api/v1/admin/getAllUsers — A-05 auth guard ───────────────────────────
 
-  it('GET /api/v1/users/getAll without auth headers → 401', async () => {
-    const response = await request(app).get('/api/v1/users/getAll');
+  it('GET /api/v1/admin/getAllUsers without auth headers → 401', async () => {
+    const response = await request(app).get('/api/v1/admin/getAllUsers');
 
     expect(response.status).toBe(401);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toMatch(/authentication required/i);
   });
 
-  it('GET /api/v1/users/getAll with valid auth headers → 200', async () => {
+  it('GET /api/v1/admin/getAllUsers with valid auth headers → 200', async () => {
     const mockUsers = [
       {
         id: '1',
@@ -125,7 +142,7 @@ describe('Integration — Users API', () => {
     mockGetAll.mockResolvedValueOnce(mockUsers);
 
     const response = await request(app)
-      .get('/api/v1/users/getAll')
+      .get('/api/v1/admin/getAllUsers')
       .set(userHeaders);
 
     expect(response.status).toBe(200);

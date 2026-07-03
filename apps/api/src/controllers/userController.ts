@@ -3,23 +3,6 @@ import UserService from '../services/userService.js';
 import { successResponse } from '../types/userTypes.js';
 import type { UserRole } from '../types/userTypes.js';
 
-// ---------------------------------------------------------------------------
-// GET /api/v1/users
-// ---------------------------------------------------------------------------
-
-/** List all users in the system. */
-const getAll = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const users = await UserService.getAll();
-    res.status(200).json(successResponse(users));
-  } catch (error) {
-    next(error);
-  }
-};
 
 // ---------------------------------------------------------------------------
 // POST /api/v1/admin/users  (Admin only)
@@ -107,4 +90,4 @@ const updateUserBanStatus = async (
   }
 };
 
-export default { getAll, adminCreateUser, updateUserRole, updateUserBanStatus };
+export default { adminCreateUser, updateUserRole, updateUserBanStatus };
