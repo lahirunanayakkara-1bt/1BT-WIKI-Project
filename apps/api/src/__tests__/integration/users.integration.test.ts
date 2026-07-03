@@ -56,9 +56,10 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 const { default: app, appReady }          = await import('../../app.js');
 const { default: request }                = await import('supertest');
 const { default: UserRepository }         = await import('../../repositories/userRepository.js');
+const { default: AdminRepository }         = await import('../../repositories/adminRepository.js');
 
 // Typed mock helpers
-const mockGetAll          = UserRepository.getAll          as jest.Mock<() => Promise<unknown[]>>;
+const mockGetAll          = AdminRepository.getAllUsers          as jest.Mock<() => Promise<unknown[]>>;
 const mockFindByEmail     = UserRepository.findByEmail     as jest.Mock<() => Promise<unknown>>;
 const mockFindById        = UserRepository.findById        as jest.Mock<() => Promise<unknown>>;
 const mockCreateAdminUser = UserRepository.createAdminUser as jest.Mock<() => Promise<unknown>>;
@@ -95,17 +96,17 @@ describe('Integration — Users API', () => {
     mockUpdateBanStatus.mockReset();
   });
 
-  // ── GET /api/v1/users/getAll — A-05 auth guard ───────────────────────────
+  // ── GET /api/v1/admin/getAllUsers — A-05 auth guard ───────────────────────────
 
-  it('GET /api/v1/users/getAll without auth headers → 401', async () => {
-    const response = await request(app).get('/api/v1/users/getAll');
+  it('GET /api/v1/admin/getAllUsers without auth headers → 401', async () => {
+    const response = await request(app).get('/api/v1/admin/getAllUsers');
 
     expect(response.status).toBe(401);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toMatch(/authentication required/i);
   });
 
-  it('GET /api/v1/users/getAll with valid auth headers → 200', async () => {
+  it('GET /api/v1/admin/getAllUsers with valid auth headers → 200', async () => {
     const mockUsers = [
       {
         id: '1',
@@ -125,7 +126,7 @@ describe('Integration — Users API', () => {
     mockGetAll.mockResolvedValueOnce(mockUsers);
 
     const response = await request(app)
-      .get('/api/v1/users/getAll')
+      .get('/api/v1/admin/getAllUsers')
       .set(userHeaders);
 
     expect(response.status).toBe(200);

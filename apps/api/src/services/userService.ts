@@ -11,15 +11,6 @@ import type {
 const VALID_ROLES: UserRole[] = ['Admin', 'Reviewer', 'User'];
 
 // ---------------------------------------------------------------------------
-// Read
-// ---------------------------------------------------------------------------
-
-/** Return the full list of users in the system. */
-const getAll = async (): Promise<User[]> => {
-  return UserRepository.getAll();
-};
-
-// ---------------------------------------------------------------------------
 // Admin operations
 // ---------------------------------------------------------------------------
 
@@ -111,4 +102,4 @@ const updateUserBanStatus = async (
   });
 };
 
-export default { getAll, adminCreateUser, updateUserRole, updateUserBanStatus };
+export default { adminCreateUser, updateUserRole, updateUserBanStatus };

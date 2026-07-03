@@ -2,40 +2,6 @@ import pool from '../db/index.js';
 import { AppError } from '../errors/AppError.js';
 import type { User, CreateUserInput } from '../types/userTypes.js';
 
-// ---------------------------------------------------------------------------
-// Read operations
-// ---------------------------------------------------------------------------
-
-/**
- * Return all users ordered by creation date (newest first).
- * Column names are camelCase in neon_auth.user — must be double-quoted in SQL.
- */
-const getAll = async (): Promise<User[]> => {
-  try {
-    const { rows } = await pool.query<User>(
-      `SELECT
-         id,
-         name,
-         email,
-         "emailVerified",
-         image,
-         "createdAt",
-         "updatedAt",
-         role,
-         banned,
-         "banReason",
-         "banExpires"
-       FROM neon_auth.user
-       ORDER BY "createdAt" DESC`
-    );
-    return rows;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn('Unable to fetch users from database:', error instanceof Error ? error.message : error);
-    return [];
-  }
-};
-
 /**
  * Find a single user by their email address.
  * Returns null when no match is found.
@@ -253,4 +219,4 @@ const updateById = async (userId: string, updates: { name?: string; image?: stri
   }
 };
 
-export default { getAll, findByEmail, findById, createAdminUser, updateRole, updateBanStatus, updateById };
+export default { findByEmail, findById, createAdminUser, updateRole, updateBanStatus, updateById };

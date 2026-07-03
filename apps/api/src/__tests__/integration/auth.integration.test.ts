@@ -2,7 +2,7 @@
 //
 // Integration tests for A-05 — auth + RBAC guards on all API routes.
 // Covers:
-//   • GET  /api/v1/users/getAll          → authenticate only
+//   • GET  /api/v1/users/getAllUsers         → authenticate only
 //   • POST /api/v1/admin/users           → authenticate + requireRole('Admin')
 //   • PATCH /api/v1/admin/users/:id/role → authenticate + requireRole('Admin')
 //   • PATCH /api/v1/admin/users/:id/ban  → authenticate + requireRole('Admin')
@@ -49,7 +49,7 @@ await jest.unstable_mockModule('../../middleware/auth.middleware.js', () => ({
 // ── 3. Mock userRepository ────────────────────────────────────────────────
 await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
   default: {
-    getAll:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    getAllUsers:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
     findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
     createAdminUser: jest.fn(),
@@ -81,21 +81,21 @@ const userHeaders = {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Integration — A-05: auth guard on GET /api/v1/users/getAll', () => {
+describe('Integration — A-05: auth guard on GET /api/v1/admin/getAllUsers', () => {
 
   beforeAll(async () => {
     await appReady;
   });
 
   it('no auth headers → 401', async () => {
-    const res = await request(app).get('/api/v1/users/getAll');
+    const res = await request(app).get('/api/v1/admin/getAllUsers');
     expect(res.status).toBe(401);
     expect(res.body).toMatchObject({ success: false, error: 'Authentication required' });
   });
 
   it('valid User-role headers → 200', async () => {
     const res = await request(app)
-      .get('/api/v1/users/getAll')
+      .get('/api/v1/admin/getAllUsers')
       .set(userHeaders);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);

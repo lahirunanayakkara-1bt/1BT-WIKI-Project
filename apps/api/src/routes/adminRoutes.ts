@@ -10,10 +10,14 @@
 
 import { Router } from 'express';
 import UserController from '../controllers/userController.js';
+import AdminController from '../controllers/adminCOntroller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { requireRole } from '../middleware/rbac.middleware.js';
 
 const router = Router();
+
+// GET /api/v1/admin/getAllUsers — list all users (any authenticated user)
+router.get('/getAllUsers', authenticate, AdminController.getAllUsers);
 
 // POST /api/v1/admin/users — Admin: onboard a new user
 router.post('/users', authenticate, requireRole('Admin'), UserController.adminCreateUser);
