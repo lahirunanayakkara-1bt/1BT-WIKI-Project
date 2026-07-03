@@ -34,7 +34,7 @@ function SearchIcon() {
   );
 }
 
-function SortIcon({ field, active, dir }: { field: string; active: boolean; dir: SortDir }) {
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
     <svg
       className={`w-3.5 h-3.5 transition-transform ${active ? 'text-brand-red' : 'text-brand-text-secondary/40'} ${active && dir === 'desc' ? 'rotate-180' : ''}`}
@@ -306,7 +306,7 @@ function UserManagementContent(): React.JSX.Element {
                   }`}
                 >
                   {f === 'createdAt' ? 'Joined' : f}
-                  <SortIcon field={f} active={sortField === f} dir={sortDir} />
+                  <SortIcon active={sortField === f} dir={sortDir} />
                 </button>
               ))}
             </div>
