@@ -144,6 +144,9 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
   
   const headers = new Headers(options.headers);
   headers.set('Authorization', `Bearer ${token}`);
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
   
   let response = await fetch(url, { ...options, headers });
 
@@ -158,6 +161,9 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     
     const retryHeaders = new Headers(options.headers);
     retryHeaders.set('Authorization', `Bearer ${token}`);
+    if (!retryHeaders.has('Content-Type')) {
+      retryHeaders.set('Content-Type', 'application/json');
+    }
     
     response = await fetch(url, { ...options, headers: retryHeaders });
     

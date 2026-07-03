@@ -24,6 +24,7 @@ interface UserContextValue {
   user: UserMeData | null;
   loading: boolean;
   error: Error | null;
+  refetch: () => Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -50,27 +51,29 @@ export function UserProvider({ children }: UserProviderProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await apiFetch<UserMeData>('/users/me');
-        if (result.success && result.data) {
-          setUser(result.data);
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('[UserProvider] Failed to fetch user profile:', message);
-        setError(err instanceof Error ? err : new Error(message));
-        // user stays null → consumers fall back to Guest / unauthenticated state
-      } finally {
-        setLoading(false);
+  const fetchUser = async () => {
+    setLoading(true);
+    try {
+      const result = await apiFetch<UserMeData>('/users/me');
+      if (result.success && result.data) {
+        setUser(result.data);
       }
-    };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[UserProvider] Failed to fetch user profile:', message);
+      setError(err instanceof Error ? err : new Error(message));
+      // user stays null → consumers fall back to Guest / unauthenticated state
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUser();
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading, error }}>
+    <UserContext.Provider value={{ user, loading, error, refetch: fetchUser }}>
       {children}
     </UserContext.Provider>
   );
