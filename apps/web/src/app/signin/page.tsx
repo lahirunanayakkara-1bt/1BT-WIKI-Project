@@ -96,6 +96,19 @@ function SignInContent() {
                           Please sign in using your verified 1BT company email address.
                         </p>
                       </div>
+                      <div className="mt-3">
+                        <a 
+                          href="https://accounts.google.com/AccountChooser" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center rounded-md bg-red-100 px-3 py-2 text-sm font-semibold text-red-800 shadow-sm hover:bg-red-200 transition-colors"
+                        >
+                          Switch Google Account
+                        </a>
+                        <p className="mt-2 text-xs text-red-600">
+                          (Opens in a new tab. After switching, come back here and try again)
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
