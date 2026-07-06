@@ -76,7 +76,7 @@ function UsersIcon(): React.JSX.Element {
 }
 
 const mainNavItems: NavItem[] = [
-  { label: 'Home', href: '/', icon: <HomeIcon />, testId: 'nav-home' },
+  { label: 'Home', href: '/home', icon: <HomeIcon />, testId: 'nav-home' },
   { label: 'Articles', href: '/articles', icon: <ArticleIcon />, testId: 'nav-articles' },
   { label: 'Tech Talks', href: '/tech-talks', icon: <TechTalkIcon />, testId: 'nav-tech-talks', showLiveBadge: true },
   { label: 'Forum', href: '/forum', icon: <ForumIcon />, testId: 'nav-forum' },

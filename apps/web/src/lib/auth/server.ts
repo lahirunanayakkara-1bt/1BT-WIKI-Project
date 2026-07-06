@@ -12,5 +12,7 @@ export const auth = createNeonAuth({
     secret: cookieSecret,
     sessionDataTtl: 300, // 5 minutes
   },
+  // @ts-ignore - NeonAuthConfig type is missing this Better Auth property
+  trustedOrigins: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   // logLevel: 'silent',
 });

@@ -12,7 +12,7 @@ export default function SignInCallbackPage() {
         const handleSignInCallback = async () => {
             const { data: session } = await authClient.getSession();
             if (session?.user) {
-                window.location.href = '/';
+                window.location.href = '/home';
             } else {
                 window.location.href = '/signin';
             }
