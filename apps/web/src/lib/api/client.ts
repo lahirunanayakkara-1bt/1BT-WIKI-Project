@@ -10,7 +10,7 @@ import { authClient } from '@/lib/auth/client';
  * security requirements (NO localStorage/sessionStorage is used).
  */
 
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'}/api/v1`;
 
 // In-memory cache for the JWT and its decoded expiration timestamp.
 // We use module scope instead of React Context because it is much simpler,
