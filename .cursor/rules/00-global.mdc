@@ -14,14 +14,15 @@ alwaysApply: true
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Next.js + TypeScript + Tailwind CSS |
-| Auth UI | Clerk.js |
+| Auth UI | **Neon Auth** (built on Stack Auth — `@stackframe/stack`) |
 | Rich Text | TipTap editor |
 | Backend | Node.js + Express + TypeScript |
 | Database | Neon PostgreSQL |
+| Auth User Sync | `neon_auth.user` table (auto-managed by Neon Auth) |
 | Deployment | Vercel |
 | Testing | Cypress (E2E) + Jest (unit/integration) |
 | Code Quality | SonarQube |
-| AI | Claude API (claude-sonnet-4-6) |
+| AI | GEMINI API |
 
 ## TypeScript Standards
 - Always use `strict: true` — zero tolerance for TypeScript errors
@@ -91,12 +92,12 @@ async function fetchArticle(id: string): Promise<Article> {
 
 ## Commit Message Format
 ```
-[TASK-ID] type(scope): short description
+[TASK-ID]-[OWNER] type(scope): short description
 
 Examples:
-[A-01] feat(auth): add Google OAuth domain restriction
-[KB-03] fix(articles): prevent draft edit after submission
-[RV-02] feat(review): send approval notification to author
+[A-01]-[LN] feat(auth): add Google OAuth domain restriction
+[KB-03]-[CS] fix(articles): prevent draft edit after submission
+[RV-02]-[MG] feat(review): send approval notification to author
 ```
 Types: `feat` | `fix` | `refactor` | `test` | `docs` | `chore`
 
@@ -105,7 +106,7 @@ Each member owns their domain. **Never create or modify files outside your domai
 
 | Domain | Owner | Paths |
 |--------|-------|-------|
-| Auth · Session · RBAC · Comments · Likes · Quiz AI | **Lahiru** | `**/auth/**`, `**/comments/**`, `**/likes/**`, `**/quiz/**` |
+| Auth · Session · RBAC · Comments · Likes · Quiz AI | **Lahiru** | `**/auth/**`, `**/comments/**`, `**/likes/**`, `**/quiz/**`, `src/lib/neon-auth*`, `src/middleware/auth*` |
 | User Mgmt · Review · Notifications · Tech Talks | **Chathurika** | `**/users/**`, `**/reviewer/**`, `**/notifications/**`, `**/tech-talks/**` |
 | Articles CRUD · Admin Dashboard · Homepage Feed | **Malindu** | `**/articles/**`, `**/admin/**`, `**/homepage/**` |
 | Shared / Infrastructure | **All (via PR)** | `src/config/**`, `src/middleware/**`, `src/types/**`, `src/db/**` |

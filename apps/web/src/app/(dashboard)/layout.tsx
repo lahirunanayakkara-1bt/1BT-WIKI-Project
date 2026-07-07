@@ -1,0 +1,172 @@
+'use client';
+
+import React, { useState, useRef } from 'react';
+import { Navbar } from '@/components/layout/Navbar';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { UserProvider } from '@/lib/hooks/useUser';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(useGSAP);
+
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps): React.JSX.Element {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mainWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Initial App Preloader Animation
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setIsAppLoading(false);
+      }
+    });
+
+    // 1. Logo scale & rotation entry
+    tl.fromTo('.preloader-logo',
+      { scale: 0, rotation: -30, opacity: 0 },
+      { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.5)' }
+    );
+
+    // 2. WIKI text slide up and fade
+    tl.fromTo('.preloader-text',
+      { y: 10, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
+      '-=0.3'
+    );
+
+    // 3. Keep loading visible, then fade-out the preloader overlay
+    tl.to('.preloader', {
+      opacity: 0,
+      pointerEvents: 'none',
+      duration: 0.5,
+      ease: 'power3.inOut',
+      delay: 0.7,
+    });
+
+    // 4. Coordinated reveal of Sidebar, Navbar, and main page content
+    const sidebar = document.querySelector('[data-testid="sidebar"]');
+    const navbar = document.querySelector('[data-testid="navbar"]');
+    const mainContent = document.querySelector('[data-testid="main-content"]');
+
+    if (sidebar) {
+      tl.fromTo(sidebar,
+        { x: -240 },
+        { x: 0, duration: 0.5, ease: 'power3.out' },
+        '-=0.3'
+      );
+    }
+    if (navbar) {
+      tl.fromTo(navbar,
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' },
+        '-=0.3'
+      );
+    }
+    if (mainContent) {
+      tl.fromTo(mainContent,
+        { y: 15, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
+        '-=0.4'
+      );
+    }
+  }, { scope: containerRef });
+
+  // Sidebar Open/Close Toggle Animation
+  useGSAP(() => {
+    if (isAppLoading) return; // Prevent initial layout conflicts
+
+    const sidebar = document.querySelector('[data-testid="sidebar"]');
+    const navbar = document.querySelector('[data-testid="navbar"]');
+    const mainWrapper = mainWrapperRef.current;
+
+    if (!sidebar || !navbar || !mainWrapper) return;
+
+    if (isSidebarOpen) {
+      // Slide sidebar IN
+      gsap.to(sidebar, {
+        x: 0,
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power2.out',
+      });
+      // Slide navbar and main content area to make space
+      gsap.to(navbar, {
+        left: 240,
+        duration: 0.4,
+        ease: 'power2.out',
+      });
+      gsap.to(mainWrapper, {
+        marginLeft: 240,
+        duration: 0.4,
+        ease: 'power2.out',
+      });
+
+      // Stagger-in the sidebar navigation links
+      gsap.fromTo('.sidebar-item',
+        { x: -15, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.3, stagger: 0.04, ease: 'power2.out', delay: 0.05 }
+      );
+    } else {
+      // Slide sidebar OUT
+      gsap.to(sidebar, {
+        x: -240,
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+      });
+      // Slide navbar and main content area to full width
+      gsap.to(navbar, {
+        left: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+      });
+      gsap.to(mainWrapper, {
+        marginLeft: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+      });
+    }
+  }, { dependencies: [isSidebarOpen, isAppLoading] });
+
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+
+  return (
+    <UserProvider>
+    <div ref={containerRef} className="flex h-screen overflow-hidden bg-[#F5F5F5]">
+      {/* Initial App Load Splash Screen */}
+      {isAppLoading && (
+        <div className="preloader fixed inset-0 bg-[#1A1A1A] z-[9999] flex flex-col items-center justify-center">
+          <div className="preloader-logo h-16 w-16 bg-[#CC0000] rounded-xl flex items-center justify-center shadow-2xl shadow-[#CC0000]/15 border border-white/5">
+            <span className="text-white text-lg font-black leading-none tracking-tight">1BT</span>
+          </div>
+          <div className="preloader-text mt-4 text-white/90 font-bold tracking-[0.25em] text-xs uppercase opacity-0">
+            WIKI
+          </div>
+          <div className="preloader-spinner mt-8 w-5 h-5 border-2 border-white/10 border-t-[#CC0000] rounded-full animate-spin"></div>
+        </div>
+      )}
+
+      <Sidebar />
+      <div ref={mainWrapperRef} className="flex flex-col flex-1 ml-60">
+        <Navbar
+          notificationCount={3}
+          userInitials="ML"
+          userName="Malindu"
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={toggleSidebar}
+        />
+        <main className="flex-1 overflow-y-auto pt-16 bg-[#F5F5F5]" data-testid="main-content">
+          {children}
+        </main>
+      </div>
+    </div>
+    </UserProvider>
+  );
+}
+

@@ -34,6 +34,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Cypress Binary
+        run: pnpm --filter web exec cypress install
+
       - name: Lint Web
         run: pnpm --filter web lint
 
@@ -42,7 +45,7 @@ jobs:
 
       - name: Run Cypress E2E
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VERCEL_DATABASE_URL: ${{ secrets.VERCEL_DATABASE_URL }}
         run: |
           PORT=5000 pnpm --filter api dev &
           pnpm --filter web start &

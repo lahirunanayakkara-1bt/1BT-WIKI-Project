@@ -31,10 +31,10 @@ Create a complete REST API endpoint for 1BT WIKI following the project's layered
 
 Generate all four layers in this exact structure:
 1. **Types** (`src/types/[resource].types.ts`) — input/output interfaces
-2. **Repository** (`src/repositories/[resource].repository.ts`) — SQL query method only, parameterized
-3. **Service** (`src/services/[resource].service.ts`) — business logic, uses repository, throws AppError
-4. **Controller** (`src/controllers/[resource].controller.ts`) — parses req, calls service, returns successResponse()
-5. **Route** (add to `src/routes/[resource].routes.ts`) — route definition with middleware
+2. **Repository** (`src/repositories/[resource]Repository.ts`) — SQL query method only, parameterized
+3. **Service** (`src/services/[resource]Service.ts`) — business logic, uses repository, throws AppError
+4. **Controller** (`src/controllers/[resource]Controller.ts`) — parses req, calls service, returns successResponse()
+5. **Route** (add to `src/routes/[resource]Routes.ts`) — route definition with middleware
 
 Follow these rules:
 - Use `async/await`, no callbacks

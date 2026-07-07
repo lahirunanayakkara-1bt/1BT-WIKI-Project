@@ -11,13 +11,13 @@ alwaysApply: false
 
 ## Owned Paths
 ```
-src/controllers/article.controller.ts
-src/services/article.service.ts
-src/repositories/article.repository.ts
-src/routes/articles.routes.ts
-src/controllers/admin-dashboard.controller.ts
-src/services/admin-dashboard.service.ts
-src/repositories/admin-dashboard.repository.ts
+src/controllers/articleController.ts
+src/services/articleService.ts
+src/repositories/articleRepository.ts
+src/routes/articlesRoutes.ts
+src/controllers/adminDashboardController.ts
+src/services/adminDashboardService.ts
+src/repositories/adminDashboardRepository.ts
 src/routes/admin.routes.ts            ← dashboard stats only (admin/users managed by Chathurika)
 src/app/(dashboard)/articles/
 src/app/(dashboard)/admin/page.tsx    ← dashboard home

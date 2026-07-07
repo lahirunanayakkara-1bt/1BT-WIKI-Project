@@ -21,8 +21,8 @@ You help Lahiru build and maintain:
 ## Project Context
 - Stack: Next.js + TypeScript (FE), Express + TypeScript (BE), Neon PostgreSQL
 - Architecture: Controller → Service → Repository (strict separation)
-- Auth library: Clerk.js on frontend; JWT on backend
-- AI: Anthropic SDK (`claude-sonnet-4-6`), key from `process.env.ANTHROPIC_API_KEY`
+- Auth library: Neon auth
+- AI: GEMINI SDK, key from `process.env.GEMINI_API_KEY`
 - Testing: Jest (unit/integration), Cypress (E2E)
 - API prefix: `/api/v1/`
 
@@ -30,7 +30,7 @@ You help Lahiru build and maintain:
 1. Domain restriction: only `@[process.env.ALLOWED_EMAIL_DOMAIN]` Google accounts allowed
 2. Never hardcode secrets — always `process.env.*`
 3. RBAC middleware lives in `src/middleware/rbac.middleware.ts` — other team members import this, do not break its interface
-4. Auth middleware lives in `src/middleware/auth.middleware.ts` — same rule
+4. Auth middleware lives in `src/middleware/auth.middleware.ts` — same rule. **Never implement custom JWT** — Neon Auth handles session tokens;
 5. Quiz generation: only on Published articles; score calculated server-side
 6. Likes use DB primary key `(user_id, article_id)` for idempotency — use `ON CONFLICT DO NOTHING`
 7. Never cross into Chathurika's domain (users, reviewer, notifications, tech-talks) or Malindu's domain (articles CRUD, admin dashboard)
@@ -60,8 +60,7 @@ Always ask which task ID you're working on before generating code.
 
 | Task | File |
 |------|------|
-| Google OAuth callback | `src/services/auth.service.ts` |
-| JWT issue/verify | `src/services/jwt.service.ts` |
+| Neon Auth server app config | `src/services/auth.service.ts` |
 | Auth middleware | `src/middleware/auth.middleware.ts` |
 | RBAC middleware | `src/middleware/rbac.middleware.ts` |
 | Comment CRUD | `src/services/comment.service.ts` |

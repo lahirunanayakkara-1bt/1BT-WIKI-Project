@@ -8,14 +8,14 @@ alwaysApply: false
 
 ## Connection
 - Use `@neondatabase/serverless` with connection pooling
-- Pool configured in `src/config/db.ts` — import `pool` from there; never create new connections elsewhere
+- Pool configured in `src/db/index.ts` — import `pool` from there; never create new connections elsewhere
 
 ```typescript
 // src/config/db.ts
 import { Pool } from '@neondatabase/serverless';
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.VERCEL_DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30000,
 });
@@ -52,94 +52,135 @@ const result = await pool.query(
 ## Core Schema (reference — do not alter without migration)
 
 ```sql
--- Users (managed by Clerk; mirrored here for relations)
-CREATE TABLE users (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  clerk_id    VARCHAR(255) UNIQUE NOT NULL,
-  email       VARCHAR(255) UNIQUE NOT NULL,
-  name        VARCHAR(255),
-  avatar_url  TEXT,
-  role        VARCHAR(20) DEFAULT 'User' CHECK (role IN ('Admin', 'Reviewer', 'User')),
-  is_active   BOOLEAN DEFAULT TRUE,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ DEFAULT NOW()
-);
+## Neon Auth — User Sync Table
+Neon Auth automatically maintains the `neon_auth.users` table. **Never create or manually manage a `users` table** — Neon Auth owns that schema.
+
 
 -- Articles
-CREATE TABLE articles (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  author_id   UUID NOT NULL REFERENCES users(id),
-  title       VARCHAR(500) NOT NULL,
-  body        JSONB NOT NULL,             -- TipTap JSON
-  tags        TEXT[] DEFAULT '{}',
-  status      VARCHAR(20) DEFAULT 'Draft'
-              CHECK (status IN ('Draft', 'Pending', 'Published', 'Rejected')),
-  view_count  INTEGER DEFAULT 0,
-  reviewer_feedback TEXT,
-  deleted_at  TIMESTAMPTZ,               -- soft delete
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ DEFAULT NOW()
+CREATE TYPE article_status AS ENUM (
+    'Draft', 
+    'Pending', 
+    'Published',
+    'Unpublished'
+);
+
+CREATE TABLE IF NOT EXISTS articles (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title               VARCHAR(500) NOT NULL,
+  body                JSONB NOT NULL DEFAULT '{}',
+  article_status      article_status NOT NULL,
+  author_id           UUID NOT NULL REFERENCES neon_auth.user(id),
+  article_tags        TEXT[] DEFAULT '{}',
+  created_by          UUID             NOT NULL REFERENCES neon_auth.user(id) ON DELETE RESTRICT,
+  deleted_at          TIMESTAMPTZ,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Comments
-CREATE TABLE comments (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  article_id  UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-  author_id   UUID NOT NULL REFERENCES users(id),
-  body        TEXT NOT NULL,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE article_comments (
+    id          UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id  UUID      NOT NULL REFERENCES articles (id) ON DELETE CASCADE,
+    created_by  UUID      NOT NULL REFERENCES neon_auth.user(id) ON DELETE RESTRICT,
+    body        TEXT      NOT NULL,
+    deleted_at  TIMESTAMP,                                  -- soft delete for owner/admin removal
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- Likes (unique constraint prevents duplicates)
-CREATE TABLE likes (
-  user_id     UUID NOT NULL REFERENCES users(id),
-  article_id  UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (user_id, article_id)
+CREATE TABLE article_likes (
+    id          UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id  UUID      NOT NULL REFERENCES articles (id) ON DELETE CASCADE,
+    user_id     UUID      NOT NULL REFERENCES neon_auth.user(id)    ON DELETE CASCADE,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_article_likes UNIQUE (article_id, user_id)
 );
 
 -- Notifications
+CREATE TYPE notification_reference_type AS ENUM (
+    'article',
+    'tech_talk',
+    'comment',
+    'like',
+    'review'
+);
+
+CREATE TYPE notification_type AS ENUM (
+    'success',
+    'failure',
+    'info'
+);
+
 CREATE TABLE notifications (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     UUID NOT NULL REFERENCES users(id),
-  type        VARCHAR(50) NOT NULL,       -- 'article_approved', 'article_rejected', 'new_comment', etc.
-  message     TEXT NOT NULL,
-  read_status BOOLEAN DEFAULT FALSE,
-  reference_id UUID,                      -- article_id or comment_id the notification relates to
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+    id              UUID                       PRIMARY KEY DEFAULT gen_random_uuid(),
+    recipient_id    UUID                       NOT NULL REFERENCES neon_auth.user(id) ON DELETE CASCADE,
+    notification_title varchar(255) NOT NULL,
+    notification_reference_type  notification_reference_type NOT NULL,
+    reference_id    UUID                       NOT NULL,   -- polymorphic FK (article / tech_talk / comment id)
+    notification_type notification_type NOT NULL,
+    message         TEXT                       NOT NULL,
+    is_read         BOOLEAN                    NOT NULL DEFAULT FALSE,
+    read_at         TIMESTAMP                  NOT NULL, -- Null should be allowed
+    deleted_at          TIMESTAMP,                          -- soft delete
+    created_at          TIMESTAMP        NOT NULL DEFAULT NOW()
 );
 
 -- Tech Talks
+CREATE TYPE tech_talk_status AS ENUM ('draft', 'published', 'unpublished');
+
 CREATE TABLE tech_talks (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title         VARCHAR(500) NOT NULL,
-  description   TEXT,
-  presenters    TEXT[],
-  tags          TEXT[] DEFAULT '{}',
-  event_date    TIMESTAMPTZ,
-  slides_url    TEXT,
-  youtube_url   TEXT,
-  status        VARCHAR(20) DEFAULT 'Draft'
-                CHECK (status IN ('Draft', 'Published')),
-  created_by    UUID REFERENCES users(id),
-  deleted_at    TIMESTAMPTZ,
-  created_at    TIMESTAMPTZ DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ DEFAULT NOW()
+    id                  UUID             PRIMARY KEY DEFAULT gen_random_uuid(),
+    title               VARCHAR(500)     NOT NULL,
+    description         TEXT,
+    presenters          TEXT[]           NOT NULL DEFAULT '{}',
+    event_date          TIMESTAMP        NOT NULL,
+    slides_url          TEXT,
+    youtube_iframe_url  TEXT,
+    tech_talks_status   tech_talk_status NOT NULL DEFAULT 'draft',
+    created_by          UUID             NOT NULL REFERENCES neon_auth.user(id) ON DELETE RESTRICT,
+    deleted_at          TIMESTAMP,                          -- soft delete
+    created_at          TIMESTAMP        NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP        NOT NULL DEFAULT NOW()
 );
 
--- Quiz Attempts
-CREATE TABLE quiz_attempts (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID NOT NULL REFERENCES users(id),
-  article_id    UUID NOT NULL REFERENCES articles(id),
-  questions     JSONB NOT NULL,           -- generated questions
-  answers       JSONB NOT NULL,           -- user's submitted answers
-  score         INTEGER,
-  total         INTEGER,
-  score_percent DECIMAL(5,2),
-  submitted_at  TIMESTAMPTZ DEFAULT NOW()
+-- Reviews
+CREATE TYPE review_status AS ENUM (
+    'Pending', 
+    'Approved', 
+    'Rejected'
 );
+
+CREATE TABLE article_reviews (
+    id                  UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id          UUID          NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    reviewer_id         UUID          NOT NULL REFERENCES neon_auth.user(id),
+    review_feedback     TEXT,
+    review_status       review_status NOT NULL,
+    created_by          UUID             NOT NULL REFERENCES neon_auth.user(id) ON DELETE RESTRICT,
+    deleted_at          TIMESTAMP,                          -- soft delete
+    created_at          TIMESTAMP        NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP        NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT chk_review_feedback CHECK (
+        (review_status = 'Rejected' AND review_feedback IS NOT NULL)
+        OR (review_status <> 'Rejected')
+    )
+);
+
+-- Quiz Attempts 
+-- CREATE TABLE quiz_attempts (
+--   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   user_id       UUID NOT NULL REFERENCES neon_auth.users(id),
+--   article_id    UUID NOT NULL REFERENCES articles(id),
+--   questions     JSONB NOT NULL,           -- generated questions
+--   answers       JSONB NOT NULL,           -- user's submitted answers
+--   score         INTEGER,
+--   total         INTEGER,
+--   score_percent DECIMAL(5,2),
+--   submitted_at  TIMESTAMPTZ DEFAULT NOW()
+-- );
 ```
 
 ## Migration Rules
@@ -161,7 +202,7 @@ CREATE INDEX idx_articles_status ON articles(status);
 ```
 
 ## Soft Delete Pattern
-- Tables with `deleted_at` use soft delete — never hard delete from `articles` and `tech_talks`
+- Tables with `deleted_at` use soft delete — never hard delete from `articles`, `reviews`, `notifications`, `comments` and `tech_talks`
 - All queries on soft-delete tables must include `AND deleted_at IS NULL`
 - Admin hard-delete: `UPDATE articles SET deleted_at = NOW() WHERE id = $1`
 
@@ -175,7 +216,7 @@ SELECT
   COUNT(DISTINCT l.user_id) AS like_count,
   COUNT(DISTINCT c.id) AS comment_count
 FROM articles a
-JOIN users u ON u.id = a.author_id
+JOIN neon_auth.users u ON u.id = a.author_id
 LEFT JOIN likes l ON l.article_id = a.id
 LEFT JOIN comments c ON c.article_id = a.id
 WHERE a.status = 'Published' AND a.deleted_at IS NULL
