@@ -21,7 +21,7 @@ function SignInContent() {
       });
 
       if (!error) {
-        router.push('/home');
+        router.push('/');
       } else {
         console.error('Google sign-in error:', error);
       }
