@@ -18,10 +18,11 @@ app.get('/api/v1/health', (_req, res) => {
 
 export const appReady: Promise<void> = (async () => {
   try {
-    const [{ default: userRouter }, { default: adminRouter }] =
+    const [{ default: userRouter }, { default: adminRouter }, { default: articlesRouter }] =
       await Promise.all([
         import('./routes/userRoutes.js'),
         import('./routes/adminRoutes.js'),
+        import('./routes/articlesRoutes.js'),
       ]);
 
     // User routes  →  /api/v1/users
@@ -29,6 +30,9 @@ export const appReady: Promise<void> = (async () => {
 
     // Admin routes →  /api/v1/admin
     app.use('/api/v1/admin', adminRouter);
+
+    // Articles routes → /api/v1/articles
+    app.use('/api/v1/articles', articlesRouter);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     // eslint-disable-next-line no-console
