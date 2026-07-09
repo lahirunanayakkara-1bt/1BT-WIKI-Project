@@ -147,3 +147,61 @@ describe('NotificationRepository.findById', () => {
     expect(params).toEqual(['notif-uuid-1']);
   });
 });
+
+describe('NotificationRepository.list', () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should build correct parameterized SQL and return mapped entities', async () => {
+    // Arrange
+    const row1 = makeDbRow();
+    const row2 = makeDbRow({
+      id:                'notif-uuid-2',
+      notification_title: 'New comment',
+      notification_type:  'info',
+      message:            'Someone commented on your article.',
+    });
+    mockQuery.mockResolvedValue({ rows: [row1, row2] });
+
+    // Act
+    const result = await NotificationRepository.list('user-uuid-1', { limit: 20, offset: 0 });
+
+    // Assert — query called with parameterized SQL
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+
+    const [sql, params] = mockQuery.mock.calls[0] as [string, (string | number)[]];
+    expect(sql).toContain('FROM notifications');
+    expect(sql).toContain('recipient_id = $1');
+    expect(sql).toContain('deleted_at IS NULL');
+    expect(sql).toContain('ORDER BY created_at DESC');
+    expect(sql).toContain('LIMIT $2 OFFSET $3');
+    expect(params).toEqual(['user-uuid-1', 20, 0]);
+
+    // Assert — returned entities are mapped to camelCase
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(expectedEntity);
+    expect(result[1]).toEqual({
+      ...expectedEntity,
+      id:                'notif-uuid-2',
+      notificationTitle: 'New comment',
+      notificationType:  'info',
+      message:           'Someone commented on your article.',
+    });
+  });
+
+  it('should return an empty array when no rows are found', async () => {
+    // Arrange
+    mockQuery.mockResolvedValue({ rows: [] });
+
+    // Act
+    const result = await NotificationRepository.list('user-uuid-1', { limit: 10, offset: 0 });
+
+    // Assert
+    expect(result).toEqual([]);
+    expect(Array.isArray(result)).toBe(true);
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+  });
+});
+

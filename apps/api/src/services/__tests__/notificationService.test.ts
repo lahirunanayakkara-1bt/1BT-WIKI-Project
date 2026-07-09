@@ -1,14 +1,15 @@
 // apps/api/src/services/__tests__/notificationService.test.ts
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { CreateNotificationInput } from '../../types/notificationTypes.js';
+import type { CreateNotificationInput, Notification } from '../../types/notificationTypes.js';
 
 // ── ESM mock registration — must be before any import of the service ────────
 
 const mockCreate = jest.fn<any>();
+const mockList   = jest.fn<any>();
 
 await jest.unstable_mockModule('../../repositories/notificationRepository.js', () => ({
-  default: { create: mockCreate },
+  default: { create: mockCreate, list: mockList },
 }));
 
 // Import AFTER mock is registered (ESM requirement)
@@ -27,6 +28,15 @@ const samplePayload: CreateNotificationInput = {
   referenceId:               'article-uuid-1',
   notificationType:          'success',
   message:                   'Your article has been approved.',
+};
+
+const sampleNotification: Notification = {
+  id:                        'notif-uuid-1',
+  ...samplePayload,
+  isRead:                    false,
+  readAt:                    null,
+  deletedAt:                 null,
+  createdAt:                 new Date('2026-07-01T00:00:00.000Z'),
 };
 
 // ---------------------------------------------------------------------------
@@ -71,3 +81,38 @@ describe('NotificationService.send', () => {
     expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('NotificationService.list', () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should delegate userId and options to repository.list() and return its result', async () => {
+    // Arrange
+    const notifications = [sampleNotification];
+    mockList.mockResolvedValue(notifications);
+
+    // Act
+    const result = await notificationService.list('user-uuid-1', { limit: 20, offset: 0 });
+
+    // Assert
+    expect(mockList).toHaveBeenCalledTimes(1);
+    expect(mockList).toHaveBeenCalledWith('user-uuid-1', { limit: 20, offset: 0 });
+    expect(result).toBe(notifications);
+  });
+
+  it('should propagate repository errors (does not catch them)', async () => {
+    // Arrange
+    const dbError = new Error('Database is unavailable');
+    mockList.mockRejectedValue(dbError);
+
+    // Act + Assert
+    await expect(
+      notificationService.list('user-uuid-1', { limit: 20, offset: 0 }),
+    ).rejects.toThrow('Database is unavailable');
+
+    expect(mockList).toHaveBeenCalledTimes(1);
+  });
+});
+

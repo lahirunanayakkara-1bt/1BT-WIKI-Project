@@ -18,12 +18,17 @@ app.get('/api/v1/health', (_req, res) => {
 
 export const appReady: Promise<void> = (async () => {
   try {
-    const [{ default: userRouter }, { default: adminRouter }, { default: articlesRouter }] =
-      await Promise.all([
-        import('./routes/userRoutes.js'),
-        import('./routes/adminRoutes.js'),
-        import('./routes/articlesRoutes.js'),
-      ]);
+    const [
+      { default: userRouter },
+      { default: adminRouter },
+      { default: articlesRouter },
+      { default: notificationsRouter },
+    ] = await Promise.all([
+      import('./routes/userRoutes.js'),
+      import('./routes/adminRoutes.js'),
+      import('./routes/articlesRoutes.js'),
+      import('./routes/notificationsRoutes.js'),
+    ]);
 
     // User routes  →  /api/v1/users
     app.use('/api/v1/users', userRouter);
@@ -33,6 +38,9 @@ export const appReady: Promise<void> = (async () => {
 
     // Articles routes → /api/v1/articles
     app.use('/api/v1/articles', articlesRouter);
+
+    // Notifications routes → /api/v1/notifications
+    app.use('/api/v1/notifications', notificationsRouter);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     // eslint-disable-next-line no-console

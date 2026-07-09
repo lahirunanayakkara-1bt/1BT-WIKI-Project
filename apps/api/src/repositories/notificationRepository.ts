@@ -119,4 +119,46 @@ const findById = async (id: string): Promise<Notification | null> => {
   }
 };
 
-export default { create, findById };
+// ---------------------------------------------------------------------------
+// List
+// ---------------------------------------------------------------------------
+
+/**
+ * Return paginated notifications for a recipient.
+ * Excludes soft-deleted rows (deleted_at IS NULL).
+ * Returns an empty array when no rows match.
+ */
+const list = async (
+  recipientId: string,
+  options: { limit: number; offset: number },
+): Promise<Notification[]> => {
+  try {
+    const { rows } = await pool.query<NotificationRow>(
+      `SELECT
+         id,
+         recipient_id,
+         notification_title,
+         notification_reference_type,
+         reference_id,
+         notification_type,
+         message,
+         is_read,
+         read_at,
+         deleted_at,
+         created_at
+       FROM notifications
+       WHERE recipient_id = $1
+         AND deleted_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [recipientId, options.limit, options.offset],
+    );
+
+    return rows.map(mapRow);
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { create, findById, list };
+
