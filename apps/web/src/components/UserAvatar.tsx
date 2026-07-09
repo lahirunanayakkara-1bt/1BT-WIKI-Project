@@ -14,11 +14,18 @@ export const UserAvatar = ({ format }: UserAvatarProps) => {
         if (format === 'collapsed') {
             return (
                 <div className="h-8 w-8 rounded-full bg-gray-300">
-                    <img
-                        src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        alt="User Avatar"
-                        className="cover rounded-full"
-                    />
+                    {user.avatarUrl ? (
+                        <img
+                            src={user.avatarUrl}
+                            alt="User Avatar"
+                            className="cover rounded-full h-8 w-8 object-cover"
+                            referrerPolicy="no-referrer"
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-500 text-sm font-semibold text-white">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </div>
+                    )}
                     {/* <Image 
                         src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
@@ -31,11 +38,18 @@ export const UserAvatar = ({ format }: UserAvatarProps) => {
         } else if (format === 'expanded') {
             return (
                 <div className="flex items-center gap-2">
-                    <img
-                        src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        alt="User Avatar"
-                        className="h-8 w-8 rounded-full"
-                    />
+                    {user.avatarUrl ? (
+                        <img
+                            src={user.avatarUrl}
+                            alt="User Avatar"
+                            className="h-8 w-8 rounded-full object-cover"
+                            referrerPolicy="no-referrer"
+                        />
+                    ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-500 text-sm font-semibold text-white">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </div>
+                    )}
                     {/* <Image 
                         src={user.avatarUrl || user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         alt="User Avatar"
