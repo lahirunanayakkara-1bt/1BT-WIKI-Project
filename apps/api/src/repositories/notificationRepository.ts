@@ -26,17 +26,17 @@ interface NotificationRow {
 }
 
 const mapRow = (row: NotificationRow): Notification => ({
-  id:                        row.id,
-  recipientId:               row.recipient_id,
-  notificationTitle:         row.notification_title,
+  id: row.id,
+  recipientId: row.recipient_id,
+  notificationTitle: row.notification_title,
   notificationReferenceType: row.notification_reference_type as Notification['notificationReferenceType'],
-  referenceId:               row.reference_id,
-  notificationType:          row.notification_type as Notification['notificationType'],
-  message:                   row.message,
-  isRead:                    row.is_read,
-  readAt:                    row.read_at,
-  deletedAt:                 row.deleted_at,
-  createdAt:                 row.created_at,
+  referenceId: row.reference_id,
+  notificationType: row.notification_type as Notification['notificationType'],
+  message: row.message,
+  isRead: row.is_read,
+  readAt: row.read_at,
+  deletedAt: row.deleted_at,
+  createdAt: row.created_at,
 });
 
 // ---------------------------------------------------------------------------
@@ -160,5 +160,37 @@ const list = async (
   }
 };
 
-export default { create, findById, list };
+const markAsRead = async (
+  id: string,
+  recipientId: string,
+): Promise<Notification | null> => {
+  try {
+    const { rows } = await pool.query<NotificationRow>(
+      `UPDATE notifications
+      SET is_read = true,
+      read_at = NOW()
+      WHERE id = $1
+      AND recipient_id = $2
+      AND deleted_at IS NULL
+      RETURNING
+        id,
+        recipient_id,
+        notification_title,
+        message,
+        is_read,
+        read_at,
+        deleted_at,
+        created_at`,
+      [id, recipientId],
+    );
+
+    return rows[0] ? mapRow(rows[0]) : null;
+
+  } catch (error) {
+
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { create, findById, list, markAsRead };
 
