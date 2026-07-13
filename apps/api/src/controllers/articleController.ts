@@ -34,4 +34,32 @@ const create = async (
   }
 };
 
-export default { create };
+const update = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const authorId = req.user!.userId;
+    
+    let input = {};
+    if (req.body.data) {
+      try {
+        input = JSON.parse(req.body.data);
+      } catch (e) {
+        throw new AppError('Invalid JSON in "data" field', 400);
+      }
+    }
+    
+    const images = (req.files as Express.Multer.File[]) ?? [];
+
+    const article = await ArticleService.updateArticle(id, input, authorId, images);
+
+    res.status(200).json(successResponse(article, 'Article updated successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { create, update };
