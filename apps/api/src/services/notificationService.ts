@@ -1,7 +1,7 @@
 // apps/api/src/services/notificationService.ts
 
 import NotificationRepository from '../repositories/notificationRepository.js';
-import type { CreateNotificationInput } from '../types/notificationTypes.js';
+import type { CreateNotificationInput, Notification } from '../types/notificationTypes.js';
 
 // ---------------------------------------------------------------------------
 // Service
@@ -26,6 +26,20 @@ class NotificationService {
   async send(payload: CreateNotificationInput): Promise<void> {
     await NotificationRepository.create(payload);
   }
+
+  /**
+   * Return paginated notifications for the given user.
+   *
+   * @param userId  - The recipient's user id
+   * @param options - Pagination controls (limit, offset)
+   */
+  async list(
+    userId: string,
+    options: { limit: number; offset: number },
+  ): Promise<Notification[]> {
+    return NotificationRepository.list(userId, options);
+  }
 }
 
 export default new NotificationService();
+
