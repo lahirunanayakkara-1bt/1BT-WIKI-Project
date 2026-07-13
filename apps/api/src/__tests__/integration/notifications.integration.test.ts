@@ -55,7 +55,7 @@ await jest.unstable_mockModule('../../repositories/notificationRepository.js', (
   default: {
     create:   jest.fn(),
     findById: jest.fn(),
-    list:     jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    list:     jest.fn<(...args: unknown[]) => Promise<unknown[]>>().mockResolvedValue([]),
   },
 }));
 
@@ -72,7 +72,7 @@ const { default: app, appReady } = await import('../../app.js');
 const { default: request }       = await import('supertest');
 const { default: NotificationRepository } = await import('../../repositories/notificationRepository.js');
 
-const mockedList = NotificationRepository.list as jest.Mock<() => Promise<unknown[]>>;
+const mockedList = NotificationRepository.list as jest.Mock<(...args: unknown[]) => Promise<unknown[]>>;
 
 // ---------------------------------------------------------------------------
 // Tests
