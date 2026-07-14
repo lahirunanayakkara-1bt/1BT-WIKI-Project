@@ -100,7 +100,7 @@ Skip for CLI tools, scripts, or apps without user accounts. If the app needs aut
 
 **5. ORM Setup (optional)**
 
-Check for existing ORM (Prisma, Drizzle, TypeORM). If none, ask if they want one. For Drizzle integration, see https://neon.com/docs/guides/drizzle.md.
+Check for existing ORM (Prisma, Drizzle, TypeORM). If none, ask if they want one — this project's convention is **Prisma**. For connecting Prisma to Neon, see https://neon.com/docs/guides/prisma.md; for the full schema-migrations workflow, see https://neon.com/docs/guides/prisma-migrations.md.
 
 **6. Schema Setup**
 
@@ -121,51 +121,72 @@ Use this when you need to pick the correct transport and driver based on runtime
 
 Link: https://neon.com/docs/connect/choose-connection.md
 
-### Recommended: Drizzle + the right driver for your runtime
+### Recommended: Prisma + the right driver for your runtime
 
-Always pair Neon with an ORM such as **Drizzle** for easy schema management and migrations. Pick the driver based on how the runtime treats your code:
+Always pair Neon with an ORM such as **Prisma** for easy schema management and migrations. Use two connection strings — a **pooled** one (`-pooler` in the hostname) for the app at runtime, and a **direct** one for the Prisma CLI, since Prisma Migrate requires a direct connection to perform schema changes:
 
-- **Long-running or shared-runtime environments → node-postgres (`pg`).** Neon Functions, and any host where the function runtime is shared across requests / runs on fluid compute (e.g. **Vercel** with Fluid compute), keep a module-scope process alive across many requests. Open a `pg` pool **once at module scope** and reuse it across requests.
-- **Fully isolated serverless (Lambda-style) → Neon's serverless driver (`@neondatabase/serverless`).** Hosts like **Netlify** spin up a fresh, isolated instance per request, so a persistent TCP pool can't be reused; the serverless driver queries over HTTP and is built for this.
-
-**Neon Functions / Vercel / fluid compute — Drizzle + node-postgres:**
-
-```typescript
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-import * as schema from "./schema";
-
-// Created once at module scope; reused by every request the instance handles.
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
-const db = drizzle({ client: pool, schema });
+```bash
+# .env
+# Pooled connection for your application
+DATABASE_URL="postgresql://[user]:[password]@[endpoint]-pooler.[region].aws.neon.tech/[dbname]?sslmode=require"
+# Direct connection for the Prisma CLI (migrations, introspection)
+DIRECT_URL="postgresql://[user]:[password]@[endpoint].[region].aws.neon.tech/[dbname]?sslmode=require"
 ```
 
-On **Vercel** (Fluid compute) also attach the pool with `attachDatabasePool` from `@vercel/functions`, so the function runtime drains idle connections before an instance suspends:
+Then pick the connection strategy based on how the runtime treats your code:
 
-```typescript
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-import { attachDatabasePool } from "@vercel/functions";
-import * as schema from "./schema";
+- **Long-running or shared-runtime environments (traditional Node servers, Neon Functions, or any host where the runtime is shared across requests, e.g. Vercel with Fluid compute) → the standard `postgresql` connector, no driver adapter needed.** A TCP connection pool can safely be reused across requests.
+- **Fully isolated serverless or edge (Cloudflare Workers, Vercel Edge Functions, or other Lambda-style hosts with no persistent process) → the `@prisma/adapter-neon` driver adapter.** It queries over Neon's serverless HTTP/WebSocket driver, which works where a persistent TCP pool can't be reused. Don't install `@neondatabase/serverless` or `ws` separately — the adapter package bundles what it needs.
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-attachDatabasePool(pool); // let the Vercel runtime manage the pooled connections
-const db = drizzle({ client: pool, schema });
+**Standard setup — long-running / shared-runtime environments:**
+
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 ```
 
-**Netlify and other fully-isolated serverless — Drizzle + Neon serverless driver:**
+> Prisma 7+ moves connection config out of `schema.prisma` into `prisma.config.ts` instead of a `datasource url`/`directUrl`. Check the installed Prisma version before generating either form.
 
 ```typescript
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { PrismaClient } from "@prisma/client"; // Prisma 7+: import from your configured `output` path instead (e.g. "./generated/prisma")
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle({ client: sql });
+const prisma = new PrismaClient();
 ```
+
+**Edge / fully-isolated serverless — Prisma + `@prisma/adapter-neon`:**
+
+```bash
+npm install @prisma/client @prisma/adapter-neon
+```
+
+```typescript
+import { PrismaClient } from "@prisma/client"; // Prisma 7+: import from your configured `output` path
+import { PrismaNeon } from "@prisma/adapter-neon";
+
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
+```
+
+**Migrations workflow (any runtime):**
+
+```bash
+npx prisma migrate dev --name [description]   # local: generate + apply
+npx prisma migrate deploy                     # CI/production: apply only, never migrate dev
+```
+
+Full tutorial: https://neon.com/docs/guides/prisma-migrations.md
 
 ### Serverless Driver
 
-Use this for `@neondatabase/serverless` patterns, including HTTP queries, WebSocket transactions, and runtime-specific optimizations.
+Use this for `@neondatabase/serverless` patterns, including HTTP queries, WebSocket transactions, and runtime-specific optimizations — relevant if you're querying Neon directly without an ORM, or building the low-level driver that `@prisma/adapter-neon` wraps.
 
 Link: https://neon.com/docs/serverless/serverless-driver.md
 
@@ -343,6 +364,7 @@ Key points:
 - Replicas are read-only compute endpoints sharing the same storage.
 - Creation is fast and scaling is independent from primary compute.
 - Typical use cases: analytics, reporting, and read-heavy APIs.
+- With Prisma, use the `@prisma/extension-read-replicas` client extension to route reads to a replica — see https://neon.com/docs/guides/read-replica-prisma.md.
 
 Link: https://neon.com/docs/introduction/read-replicas.md
 
@@ -355,6 +377,7 @@ Key points:
 - Neon pooling uses PgBouncer.
 - Add `-pooler` to endpoint hostnames to use pooled connections.
 - Pooling is especially important in serverless runtimes with bursty concurrency.
+- With Prisma, use the pooled connection string for `DATABASE_URL` (the app's runtime queries) and the direct (non-pooled) connection string for `DIRECT_URL` (Prisma CLI migrations/introspection) — see the Prisma section above.
 
 Link: https://neon.com/docs/connect/connection-pooling.md
 
@@ -372,5 +395,6 @@ Key points:
 
 - Neon supports native logical replication workflows.
 - Useful for replicating to/from external Postgres systems.
+- Prisma Pulse (real-time change streaming built on Prisma) uses logical replication under the hood — see https://neon.com/docs/guides/logical-replication-prisma-pulse.md.
 
 Link: https://neon.com/docs/guides/logical-replication-guide.md
