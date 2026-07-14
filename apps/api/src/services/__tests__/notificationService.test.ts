@@ -6,10 +6,11 @@ import type { CreateNotificationInput, Notification } from '../../types/notifica
 // ── ESM mock registration — must be before any import of the service ────────
 
 const mockCreate = jest.fn<any>();
-const mockList   = jest.fn<any>();
+const mockList = jest.fn<any>();
+const mockMarkAsRead = jest.fn<any>();
 
 await jest.unstable_mockModule('../../repositories/notificationRepository.js', () => ({
-  default: { create: mockCreate, list: mockList },
+  default: { create: mockCreate, list: mockList, markAsRead: mockMarkAsRead },
 }));
 
 // Import AFTER mock is registered (ESM requirement)
@@ -22,21 +23,21 @@ const { default: notificationService } = await import(
 // ---------------------------------------------------------------------------
 
 const samplePayload: CreateNotificationInput = {
-  recipientId:               'user-uuid-1',
-  notificationTitle:         'Article approved',
+  recipientId: 'user-uuid-1',
+  notificationTitle: 'Article approved',
   notificationReferenceType: 'article',
-  referenceId:               'article-uuid-1',
-  notificationType:          'success',
-  message:                   'Your article has been approved.',
+  referenceId: 'article-uuid-1',
+  notificationType: 'success',
+  message: 'Your article has been approved.',
 };
 
 const sampleNotification: Notification = {
-  id:                        'notif-uuid-1',
+  id: 'notif-uuid-1',
   ...samplePayload,
-  isRead:                    false,
-  readAt:                    null,
-  deletedAt:                 null,
-  createdAt:                 new Date('2026-07-01T00:00:00.000Z'),
+  isRead: false,
+  readAt: null,
+  deletedAt: null,
+  createdAt: new Date('2026-07-01T00:00:00.000Z'),
 };
 
 // ---------------------------------------------------------------------------
@@ -52,12 +53,12 @@ describe('NotificationService.send', () => {
   it('should call repository.create() with the exact payload', async () => {
     // Arrange
     mockCreate.mockResolvedValue({
-      id:                        'notif-uuid-1',
+      id: 'notif-uuid-1',
       ...samplePayload,
-      isRead:                    false,
-      readAt:                    null,
-      deletedAt:                 null,
-      createdAt:                 new Date('2026-07-01T00:00:00.000Z'),
+      isRead: false,
+      readAt: null,
+      deletedAt: null,
+      createdAt: new Date('2026-07-01T00:00:00.000Z'),
     });
 
     // Act
@@ -116,3 +117,52 @@ describe('NotificationService.list', () => {
   });
 });
 
+describe('NotificationService.markAsRead', () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should delegate id and recipientId to repository.markAsRead() and return its result unchanged', async () => {
+    // Arrange
+    const readNotification: Notification = {
+      ...sampleNotification,
+      isRead: true,
+      readAt: new Date('2026-07-13T09:10:00.000Z'),
+    };
+    mockMarkAsRead.mockResolvedValue(readNotification);
+
+    // Act
+    const result = await notificationService.markAsRead('notif-uuid-1', 'user-uuid-1');
+
+    // Assert
+    expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
+    expect(mockMarkAsRead).toHaveBeenCalledWith('notif-uuid-1', 'user-uuid-1');
+    expect(result).toBe(readNotification);
+  });
+
+  it('should throw AppError(404) when repository.markAsRead() returns null', async () => {
+    // Arrange
+    mockMarkAsRead.mockResolvedValue(null);
+
+    // Act + Assert
+    await expect(
+      notificationService.markAsRead('nonexistent-id', 'user-uuid-1'),
+    ).rejects.toThrow('Notification not found');
+
+    expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
+  });
+
+  it('should propagate repository errors (does not catch them)', async () => {
+    // Arrange
+    const dbError = new Error('Database is unavailable');
+    mockMarkAsRead.mockRejectedValue(dbError);
+
+    // Act + Assert
+    await expect(
+      notificationService.markAsRead('notif-uuid-1', 'user-uuid-1'),
+    ).rejects.toThrow('Database is unavailable');
+
+    expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
+  });
+});
