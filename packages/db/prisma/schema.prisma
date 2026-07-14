@@ -1,0 +1,345 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["neon_auth", "public"]
+}
+
+model account {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(6)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(6)
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime  @db.Timestamptz(6)
+  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId])
+  @@schema("neon_auth")
+}
+
+model invitation {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @db.Uuid
+  email          String
+  role           String?
+  status         String
+  expiresAt      DateTime     @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
+  inviterId      String       @db.Uuid
+  user           user         @relation(fields: [inviterId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organization   organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([email])
+  @@index([organizationId])
+  @@schema("neon_auth")
+}
+
+model jwks {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicKey  String
+  privateKey String
+  createdAt  DateTime  @db.Timestamptz(6)
+  expiresAt  DateTime? @db.Timestamptz(6)
+
+  @@schema("neon_auth")
+}
+
+model member {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String       @db.Uuid
+  role           String
+  createdAt      DateTime     @db.Timestamptz(6)
+  organization   organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user           user         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@schema("neon_auth")
+}
+
+model organization {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  slug       String       @unique
+  logo       String?
+  createdAt  DateTime     @db.Timestamptz(6)
+  metadata   String?
+  invitation invitation[]
+  member     member[]
+
+  @@schema("neon_auth")
+}
+
+model project_config {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  endpoint_id        String   @unique
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime @default(now()) @db.Timestamptz(6)
+  trusted_origins    Json
+  social_providers   Json
+  email_provider     Json?
+  email_and_password Json?
+  allow_localhost    Boolean
+  plugin_configs     Json?
+  webhook_config     Json?
+
+  @@schema("neon_auth")
+}
+
+model session {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expiresAt            DateTime @db.Timestamptz(6)
+  token                String   @unique
+  createdAt            DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime @db.Timestamptz(6)
+  ipAddress            String?
+  userAgent            String?
+  userId               String   @db.Uuid
+  impersonatedBy       String?
+  activeOrganizationId String?
+  user                 user     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId])
+  @@schema("neon_auth")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model user {
+  id                                                String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                              String
+  email                                             String                @unique
+  emailVerified                                     Boolean
+  image                                             String?
+  createdAt                                         DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt                                         DateTime              @default(now()) @db.Timestamptz(6)
+  role                                              String?
+  banned                                            Boolean?
+  banReason                                         String?
+  banExpires                                        DateTime?             @db.Timestamptz(6)
+  account                                           account[]
+  invitation                                        invitation[]
+  member                                            member[]
+  session                                           session[]
+  article_attachments                               article_attachments[]
+  article_comments                                  article_comments[]
+  article_likes                                     article_likes[]
+  article_reviews_article_reviews_created_byTouser  article_reviews[]     @relation("article_reviews_created_byTouser")
+  article_reviews_article_reviews_reviewer_idTouser article_reviews[]     @relation("article_reviews_reviewer_idTouser")
+  articles                                          articles[]
+  notifications                                     notifications[]
+  tech_talks                                        tech_talks[]
+
+  @@schema("neon_auth")
+}
+
+model verification {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([identifier])
+  @@schema("neon_auth")
+}
+
+model article_attachments {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id     String    @db.Uuid
+  uploaded_by    String    @db.Uuid
+  file_name      String
+  b2_file_key    String    @unique
+  b2_file_id     String
+  b2_bucket_name String
+  file_url       String
+  mime_type      String
+  size_bytes     Int
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  deleted_at     DateTime? @db.Timestamptz(6)
+  articles       articles  @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user           user      @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([article_id], map: "idx_article_attachments_article_id")
+  @@index([uploaded_by], map: "idx_article_attachments_uploaded_by")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model article_comments {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id String    @db.Uuid
+  created_by String    @db.Uuid
+  body       String
+  deleted_at DateTime? @db.Timestamp(6)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  articles   articles  @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       user      @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+
+  @@index([article_id, created_at], map: "idx_article_comments_active", where: raw("(deleted_at IS NULL)"))
+  @@index([article_id], map: "idx_article_comments_article_id")
+  @@index([created_by], map: "idx_article_comments_created_by")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model article_likes {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  articles   articles @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([article_id, user_id], map: "uq_article_likes")
+  @@index([article_id], map: "idx_article_likes_article_id")
+  @@index([user_id], map: "idx_article_likes_user_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model article_reviews {
+  id                                     String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  article_id                             String        @db.Uuid
+  reviewer_id                            String        @db.Uuid
+  review_feedback                        String?
+  review_status                          review_status
+  created_by                             String        @db.Uuid
+  deleted_at                             DateTime?     @db.Timestamp(6)
+  created_at                             DateTime      @default(now()) @db.Timestamp(6)
+  updated_at                             DateTime      @default(now()) @db.Timestamp(6)
+  articles                               articles      @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_article_reviews_created_byTouser  user          @relation("article_reviews_created_byTouser", fields: [created_by], references: [id], onUpdate: NoAction)
+  user_article_reviews_reviewer_idTouser user          @relation("article_reviews_reviewer_idTouser", fields: [reviewer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([article_id], map: "idx_article_reviews_article_id")
+  @@index([reviewer_id], map: "idx_article_reviews_reviewer_id")
+  @@schema("public")
+}
+
+model articles {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title               String                @db.VarChar(500)
+  body                Json                  @default("{}")
+  status              article_status
+  author_id           String                @db.Uuid
+  views               Int                   @default(0)
+  article_tags        String[]              @default([])
+  deleted_at          DateTime?             @db.Timestamptz(6)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  article_attachments article_attachments[]
+  article_comments    article_comments[]
+  article_likes       article_likes[]
+  article_reviews     article_reviews[]
+  user                user                  @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([author_id], map: "idx_articles_author_id")
+  @@index([deleted_at], map: "idx_articles_deleted_at")
+  @@index([status], map: "idx_articles_status")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notifications {
+  id                          String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipient_id                String                      @db.Uuid
+  notification_title          String                      @db.VarChar(255)
+  notification_reference_type notification_reference_type
+  reference_id                String                      @db.Uuid
+  notification_type           notification_type
+  message                     String
+  is_read                     Boolean                     @default(false)
+  read_at                     DateTime?                   @db.Timestamp(6)
+  deleted_at                  DateTime?                   @db.Timestamp(6)
+  created_at                  DateTime                    @default(now()) @db.Timestamp(6)
+  user                        user                        @relation(fields: [recipient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([recipient_id, is_read], map: "idx_notifications_is_read", where: raw("(is_read = false)"))
+  @@index([recipient_id], map: "idx_notifications_recipient_id")
+  @@index([notification_reference_type, reference_id], map: "idx_notifications_reference")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tech_talks {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title              String           @db.VarChar(500)
+  description        String?
+  presenters         String[]         @default([])
+  event_date         DateTime         @db.Timestamp(6)
+  slides_url         String?
+  youtube_iframe_url String?
+  tech_talks_status  tech_talk_status @default(draft)
+  created_by         String           @db.Uuid
+  deleted_at         DateTime?        @db.Timestamp(6)
+  created_at         DateTime         @default(now()) @db.Timestamp(6)
+  updated_at         DateTime         @default(now()) @db.Timestamp(6)
+  user               user             @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+
+  @@index([created_by], map: "idx_tech_talks_created_by")
+  @@index([deleted_at], map: "idx_tech_talks_deleted_at")
+  @@index([event_date(sort: Desc)], map: "idx_tech_talks_event_date")
+  @@index([event_date(sort: Desc)], map: "idx_tech_talks_published", where: raw("((tech_talks_status = 'published'::tech_talk_status) AND (deleted_at IS NULL))"))
+  @@index([tech_talks_status], map: "idx_tech_talks_status")
+  @@schema("public")
+}
+
+enum article_status {
+  Draft
+  Pending
+  Published
+  Unpublished
+
+  @@schema("public")
+}
+
+enum notification_reference_type {
+  article
+  tech_talk
+  comment
+  like
+  review
+
+  @@schema("public")
+}
+
+enum notification_type {
+  success
+  failure
+  info
+
+  @@schema("public")
+}
+
+enum review_status {
+  Pending
+  Approved
+  Rejected
+
+  @@schema("public")
+}
+
+enum tech_talk_status {
+  draft
+  published
+  unpublished
+
+  @@schema("public")
+}
