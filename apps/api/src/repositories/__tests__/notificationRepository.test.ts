@@ -231,7 +231,7 @@ describe('NotificationRepository.markAsRead', () => {
     expect(sql).toContain('AND recipient_id = $2');
     expect(sql).toContain('AND deleted_at IS NULL');
     expect(sql).toContain('RETURNING');
-    expect(params).toEqual(['notifi-uuid-1', 'user-uuid-1']);
+    expect(params).toEqual(['notif-uuid-1', 'user-uuid-1']);
 
     expect(result).toEqual({
       ...expectedEntity,

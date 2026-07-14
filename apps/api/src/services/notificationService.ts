@@ -46,7 +46,7 @@ class NotificationService {
     const notification = await NotificationRepository.markAsRead(id, recipientId);
 
     if (!notification) {
-      throw new AppError('Notificatication not found', 404);
+      throw new AppError('Notification not found', 404);
     }
 
     return notification;
