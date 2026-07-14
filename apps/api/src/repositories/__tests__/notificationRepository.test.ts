@@ -25,42 +25,42 @@ const { default: NotificationRepository } = await import(
 
 /** A raw DB row as returned by pg (snake_case columns). */
 const makeDbRow = (overrides: Record<string, unknown> = {}) => ({
-  id:                           'notif-uuid-1',
-  recipient_id:                 'user-uuid-1',
-  notification_title:           'Article approved',
-  notification_reference_type:  'article',
-  reference_id:                 'article-uuid-1',
-  notification_type:            'success',
-  message:                      'Your article has been approved.',
-  is_read:                      false,
-  read_at:                      null,
-  deleted_at:                   null,
-  created_at:                   new Date('2026-07-01T00:00:00.000Z'),
+  id: 'notif-uuid-1',
+  recipient_id: 'user-uuid-1',
+  notification_title: 'Article approved',
+  notification_reference_type: 'article',
+  reference_id: 'article-uuid-1',
+  notification_type: 'success',
+  message: 'Your article has been approved.',
+  is_read: false,
+  read_at: null,
+  deleted_at: null,
+  created_at: new Date('2026-07-01T00:00:00.000Z'),
   ...overrides,
 });
 
 /** The expected camelCase entity after mapping. */
 const expectedEntity: Notification = {
-  id:                        'notif-uuid-1',
-  recipientId:               'user-uuid-1',
-  notificationTitle:         'Article approved',
+  id: 'notif-uuid-1',
+  recipientId: 'user-uuid-1',
+  notificationTitle: 'Article approved',
   notificationReferenceType: 'article',
-  referenceId:               'article-uuid-1',
-  notificationType:          'success',
-  message:                   'Your article has been approved.',
-  isRead:                    false,
-  readAt:                    null,
-  deletedAt:                 null,
-  createdAt:                 new Date('2026-07-01T00:00:00.000Z'),
+  referenceId: 'article-uuid-1',
+  notificationType: 'success',
+  message: 'Your article has been approved.',
+  isRead: false,
+  readAt: null,
+  deletedAt: null,
+  createdAt: new Date('2026-07-01T00:00:00.000Z'),
 };
 
 const sampleInput: CreateNotificationInput = {
-  recipientId:               'user-uuid-1',
-  notificationTitle:         'Article approved',
+  recipientId: 'user-uuid-1',
+  notificationTitle: 'Article approved',
   notificationReferenceType: 'article',
-  referenceId:               'article-uuid-1',
-  notificationType:          'success',
-  message:                   'Your article has been approved.',
+  referenceId: 'article-uuid-1',
+  notificationType: 'success',
+  message: 'Your article has been approved.',
 };
 
 // ---------------------------------------------------------------------------
@@ -158,10 +158,10 @@ describe('NotificationRepository.list', () => {
     // Arrange
     const row1 = makeDbRow();
     const row2 = makeDbRow({
-      id:                'notif-uuid-2',
+      id: 'notif-uuid-2',
       notification_title: 'New comment',
-      notification_type:  'info',
-      message:            'Someone commented on your article.',
+      notification_type: 'info',
+      message: 'Someone commented on your article.',
     });
     mockQuery.mockResolvedValue({ rows: [row1, row2] });
 
@@ -184,10 +184,10 @@ describe('NotificationRepository.list', () => {
     expect(result[0]).toEqual(expectedEntity);
     expect(result[1]).toEqual({
       ...expectedEntity,
-      id:                'notif-uuid-2',
+      id: 'notif-uuid-2',
       notificationTitle: 'New comment',
-      notificationType:  'info',
-      message:           'Someone commented on your article.',
+      notificationType: 'info',
+      message: 'Someone commented on your article.',
     });
   });
 
@@ -205,3 +205,58 @@ describe('NotificationRepository.list', () => {
   });
 });
 
+
+describe('NotificationRepository.markAsRead', () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should build correct parameterized UPDATE SQL scoped by id and recipientId, excluding soft-deleted rows', async () => {
+    const readRow = makeDbRow({
+      is_read: true,
+      read_at: new Date('2026-07-13T09:10:00.000z'),
+
+    });
+    mockQuery.mockResolvedValue({ rows: [readRow] });
+
+    const result = await NotificationRepository.markAsRead('notif-uuid-1', 'user-uuid-1');
+
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+
+    const [sql, params] = mockQuery.mock.calls[0] as [string, string[]];
+    expect(sql).toContain('UPDATE notifications');
+    expect(sql).toContain('SET is_read = true');
+    expect(sql).toContain('WHERE id = $1');
+    expect(sql).toContain('AND recipient_id = $2');
+    expect(sql).toContain('AND deleted_at IS NULL');
+    expect(sql).toContain('RETURNING');
+    expect(params).toEqual(['notif-uuid-1', 'user-uuid-1']);
+
+    expect(result).toEqual({
+      ...expectedEntity,
+      isRead: true,
+      readAt: new Date('2026-07-13T09:10:00.000Z'),
+    });
+  });
+
+  it('should return null no matching row is found(wrong id, wrong owner, or soft-deleted)', async () => {
+    mockQuery.mockResolvedValue({ rows: [] });
+
+    const result = await NotificationRepository.markAsRead('nonexistent-id', 'user-uuid-1');
+
+    // Assert
+    expect(result).toBeNull();
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+  });
+
+  it('should throw AppError(503) when the database query fails', async () => {
+    // Arrange
+    mockQuery.mockRejectedValue(new Error('connection reset'));
+
+    // Act & Assert
+    await expect(
+      NotificationRepository.markAsRead('notif-uuid-1', 'user-uuid-1'),
+    ).rejects.toThrow('Database is unavailable');
+  });
+});

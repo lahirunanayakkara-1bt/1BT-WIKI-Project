@@ -12,4 +12,6 @@ const router = Router();
 // GET /api/v1/notifications — list authenticated user's notifications (NO-02)
 router.get('/', authenticate, NotificationController.getNotifications);
 
+router.patch('/:id/read', authenticate, NotificationController.markNotificationAsRead);
+
 export default router;
