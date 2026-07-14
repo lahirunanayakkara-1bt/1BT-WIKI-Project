@@ -6,6 +6,14 @@ import { AppError } from '../../errors/AppError.js';
 jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
   default: {
     create: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
+  },
+}));
+
+jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => ({
+  default: {
+    findLatestByArticleId: jest.fn(),
   },
 }));
 
@@ -24,6 +32,7 @@ jest.unstable_mockModule('../../lib/b2Client.js', () => ({
 const { default: ArticleService } = await import('../articleService.js');
 const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
 const { default: ArticleAttachmentRepository } = await import('../../repositories/articleAttachmentRepository.js');
+const { default: ArticleReviewRepository } = await import('../../repositories/articleReviewRepository.js');
 const { default: b2Client } = await import('../../lib/b2Client.js');
 
 describe('ArticleService.createArticle', () => {
@@ -177,6 +186,105 @@ describe('ArticleService.createArticle', () => {
         attachments: [],
         warnings: ['Failed to upload fail.png: Upload failed'],
       });
+    });
+  });
+});
+
+describe('ArticleService.updateArticle', () => {
+  const authorId = 'user-123';
+  const articleId = 'article-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.B2_BUCKET_NAME = 'test-bucket';
+  });
+
+  afterEach(() => {
+    delete process.env.B2_BUCKET_NAME;
+  });
+
+  it('should throw AppError if article is not found', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(ArticleService.updateArticle(articleId, {}, authorId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+  });
+
+  it('should throw AppError if user is not the author', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({ authorId: 'other-user' });
+
+    await expect(ArticleService.updateArticle(articleId, {}, authorId))
+      .rejects.toThrow(new AppError('Only the author can edit this article', 403));
+  });
+
+  it('should throw AppError if article is not Draft or Rejected', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({ authorId, status: 'Published' });
+    (ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>).mockResolvedValue({ reviewStatus: 'Approved' });
+
+    await expect(ArticleService.updateArticle(articleId, {}, authorId))
+      .rejects.toThrow(new AppError('Only Draft or Rejected articles can be edited', 400));
+  });
+
+  it('should allow editing if article is Draft', async () => {
+    const existingArticle = { id: articleId, authorId, status: 'Draft', title: 'Old Title' };
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(existingArticle);
+    
+    const updatedArticle = { ...existingArticle, title: 'New Title' };
+    (ArticleRepository.update as jest.Mock<any>).mockResolvedValue(updatedArticle);
+
+    const result = await ArticleService.updateArticle(articleId, { title: 'New Title' }, authorId);
+
+    expect(ArticleRepository.update).toHaveBeenCalledWith(articleId, { title: 'New Title' });
+    expect(result).toEqual(updatedArticle);
+  });
+
+  it('should reset status to Draft if article was Rejected', async () => {
+    const existingArticle = { id: articleId, authorId, status: 'In Review' };
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(existingArticle);
+    (ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>).mockResolvedValue({ reviewStatus: 'Rejected' });
+    
+    const updatedArticle = { ...existingArticle, status: 'Draft', title: 'New Title' };
+    (ArticleRepository.update as jest.Mock<any>).mockResolvedValue(updatedArticle);
+
+    const result = await ArticleService.updateArticle(articleId, { title: 'New Title' }, authorId);
+
+    expect(ArticleRepository.update).toHaveBeenCalledWith(articleId, { title: 'New Title', status: 'Draft' });
+    expect(result).toEqual(updatedArticle);
+  });
+
+  it('should return existing article if no updates and no images provided', async () => {
+    const existingArticle = { id: articleId, authorId, status: 'Draft', title: 'Old Title' };
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(existingArticle);
+
+    const result = await ArticleService.updateArticle(articleId, {}, authorId);
+
+    expect(ArticleRepository.update).not.toHaveBeenCalled();
+    expect(result).toEqual(existingArticle);
+  });
+
+  it('should successfully upload new images', async () => {
+    const existingArticle = { id: articleId, authorId, status: 'Draft', title: 'Old Title' };
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(existingArticle);
+
+    const images = [{
+      originalname: 'test.png',
+      mimetype: 'image/png',
+      size: 1024,
+      buffer: Buffer.from('test'),
+    } as Express.Multer.File];
+
+    const uploadedFile = { fileId: 'file-123', fileUrl: 'http://example.com/file' };
+    const createdAttachment = { id: 'attachment-123', fileName: 'test.png' };
+
+    (b2Client.uploadFile as jest.Mock<any>).mockResolvedValue(uploadedFile);
+    (ArticleAttachmentRepository.create as jest.Mock<any>).mockResolvedValue(createdAttachment);
+
+    const result = await ArticleService.updateArticle(articleId, {}, authorId, images);
+
+    expect(ArticleRepository.update).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      ...existingArticle,
+      attachments: [createdAttachment],
     });
   });
 });

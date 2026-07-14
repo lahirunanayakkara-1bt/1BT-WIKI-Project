@@ -72,3 +72,19 @@ export interface ArticleAttachment {
   deletedAt: Date | null;
 }
 
+export interface UpdateArticleInput {
+  title?: string;
+  body?: JSONContent;
+  tags?: string[];
+}
+
+export interface ArticleReview {
+  id: string;
+  articleId: string;
+  reviewerId: string;
+  reviewStatus: string;
+  comments?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
