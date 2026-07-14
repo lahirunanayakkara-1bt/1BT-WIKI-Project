@@ -6,9 +6,10 @@ import type { Request, Response, NextFunction } from 'express';
 // ── ESM mock registration — must be before any import of the controller ────────
 
 const mockList = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+const mockMarkAsRead = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
 await jest.unstable_mockModule('../../services/notificationService.js', () => ({
-  default: { list: mockList },
+  default: { list: mockList, markAsRead: mockMarkAsRead },
 }));
 
 // Import AFTER mock is registered (ESM requirement)
@@ -21,13 +22,17 @@ const { default: notificationController } = await import(
 // ---------------------------------------------------------------------------
 
 // A minimal Request shape enough for our tests
-const buildReq = (query: Record<string, string> = {}): Partial<Request> => ({
+const buildReq = (
+  query: Record<string, string> = {},
+  params: Record<string, string> = {},
+): Partial<Request> => ({
   user: {
     userId: 'test-user-id',
     email: 'test@example.com',
     role: 'User',
   },
   query,
+  params,
 });
 
 const buildRes = (): Partial<Response> => {
@@ -156,6 +161,55 @@ describe('NotificationController.getNotifications', () => {
     await notificationController.getNotifications(req, res, mockNext);
 
     // Assert
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
+    expect(mockNext).toHaveBeenCalledWith(testError);
+  });
+});
+
+
+describe('NotificationController.markNotificationAsRead', () => {
+  let mockNext: jest.MockedFunction<NextFunction>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockNext = jest.fn() as unknown as jest.MockedFunction<NextFunction>;
+  });
+
+  it('should call notificationService.markAsRead with req.params.id and req.user.userId', async () => {
+    const req = buildReq({}, { id: 'notif-1' }) as unknown as Request;
+    const res = buildRes() as Response;
+    const mockNotification = { id: 'notif-1', isRead: true };
+    mockMarkAsRead.mockResolvedValue(mockNotification);
+
+    await notificationController.markNotificationAsRead(req, res, mockNext);
+
+    expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
+    expect(mockMarkAsRead).toHaveBeenCalledWith('notif-1', 'test-user-id');
+
+  });
+
+  it('should respond with res.status(200) and res.json({ success: true, data: ...}) on success', async () => {
+    const req = buildReq({}, { id: 'notif-1' }) as unknown as Request;
+    const res = buildRes() as Response;
+    const mockNotification = { id: 'notif-1', isRead: true };
+    mockMarkAsRead.mockResolvedValue(mockNotification);
+
+    await notificationController.markNotificationAsRead(req, res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ success: true, data: mockNotification });
+    expect(mockNext).not.toHaveBeenCalled();
+  });
+
+  it('should call next(err) with the original error when notificationService.markAsRead rejects/throws (e.g. AppError 404', async () => {
+    const req = buildReq({}, { id: 'nonexistent-id' }) as unknown as Request;
+    const res = buildRes() as Response;
+    const testError = new Error('Notification not found');
+    mockMarkAsRead.mockRejectedValue(testError);
+
+    await notificationController.markNotificationAsRead(req, res, mockNext);
+
     expect(res.status).not.toHaveBeenCalled();
     expect(res.json).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalledWith(testError);

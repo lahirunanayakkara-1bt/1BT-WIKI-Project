@@ -2,6 +2,8 @@
 
 import NotificationRepository from '../repositories/notificationRepository.js';
 import type { CreateNotificationInput, Notification } from '../types/notificationTypes.js';
+import { AppError } from '../errors/AppError.js';
+
 
 // ---------------------------------------------------------------------------
 // Service
@@ -38,6 +40,16 @@ class NotificationService {
     options: { limit: number; offset: number },
   ): Promise<Notification[]> {
     return NotificationRepository.list(userId, options);
+  }
+
+  async markAsRead(id: string, recipientId: string): Promise<Notification> {
+    const notification = await NotificationRepository.markAsRead(id, recipientId);
+
+    if (!notification) {
+      throw new AppError('Notification not found', 404);
+    }
+
+    return notification;
   }
 }
 
