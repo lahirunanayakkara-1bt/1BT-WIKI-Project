@@ -51,7 +51,7 @@ const update = async (
   // Prisma will update updatedAt automatically via @updatedAt
   
   // Since 'status' is typed as a string in the interface, but an enum in Prisma, we cast it.
-  const updateData: Prisma.ArticleUpdateInput = {
+  const updateData: Prisma.articleUpdateInput = {
     ...(fields.title !== undefined && { title: fields.title }),
     ...(fields.body !== undefined && { body: fields.body as Prisma.InputJsonValue }),
     ...(fields.tags !== undefined && { tags: fields.tags }),
