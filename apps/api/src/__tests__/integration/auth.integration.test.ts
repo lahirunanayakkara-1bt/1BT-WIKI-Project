@@ -10,6 +10,18 @@
 import { jest, describe, it, expect, beforeAll } from '@jest/globals';
 
 // ── 1. Mock the DB pool ───────────────────────────────────────────────────
+
+// ── Mock Prisma DB from @repo/db ───────────────────────────────────────────
+await jest.unstable_mockModule('@repo/db', () => ({
+  prisma: {
+    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    articleAttachment: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    review: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    notification: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+  },
+}));
+
 await jest.unstable_mockModule('../../db/index.js', () => ({
   default: {
     query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),

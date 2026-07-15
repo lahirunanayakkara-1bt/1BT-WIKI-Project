@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client"
+  provider        = "prisma-client-js"
   output          = "../src/generated/prisma"
   previewFeatures = ["partialIndexes"]
 }
@@ -117,31 +117,30 @@ model session {
   @@schema("neon_auth")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model user {
-  id                                                String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                                              String
-  email                                             String                @unique
-  emailVerified                                     Boolean
-  image                                             String?
-  createdAt                                         DateTime              @default(now()) @db.Timestamptz(6)
-  updatedAt                                         DateTime              @default(now()) @db.Timestamptz(6)
-  role                                              String?
-  banned                                            Boolean?
-  banReason                                         String?
-  banExpires                                        DateTime?             @db.Timestamptz(6)
-  account                                           account[]
-  invitation                                        invitation[]
-  member                                            member[]
-  session                                           session[]
-  article_attachments                               article_attachments[]
-  article_comments                                  article_comments[]
-  article_likes                                     article_likes[]
-  article_reviews_article_reviews_created_byTouser  article_reviews[]     @relation("article_reviews_created_byTouser")
-  article_reviews_article_reviews_reviewer_idTouser article_reviews[]     @relation("article_reviews_reviewer_idTouser")
-  articles                                          articles[]
-  notifications                                     notifications[]
-  tech_talks                                        tech_talks[]
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  email           String              @unique
+  emailVerified   Boolean
+  image           String?
+  createdAt       DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime            @default(now()) @db.Timestamptz(6)
+  role            String?
+  banned          Boolean?
+  banReason       String?
+  banExpires      DateTime?           @db.Timestamptz(6)
+  account         account[]
+  invitation      invitation[]
+  member          member[]
+  session         session[]
+  attachments     articleAttachment[]
+  comments        comment[]
+  likes           like[]
+  reviewsCreated  articleReview[]     @relation("article_reviews_created_byTouser")
+  reviewsReviewed articleReview[]     @relation("article_reviews_reviewer_idTouser")
+  articles        article[]
+  notifications   notification[]
+  techTalks       techTalk[]
 
   @@schema("neon_auth")
 }
@@ -158,188 +157,201 @@ model verification {
   @@schema("neon_auth")
 }
 
-model article_attachments {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  article_id     String    @db.Uuid
-  uploaded_by    String    @db.Uuid
-  file_name      String
-  b2_file_key    String    @unique
-  b2_file_id     String
-  b2_bucket_name String
-  file_url       String
-  mime_type      String
-  size_bytes     Int
-  created_at     DateTime? @default(now()) @db.Timestamptz(6)
-  deleted_at     DateTime? @db.Timestamptz(6)
-  articles       articles  @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user           user      @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([article_id], map: "idx_article_attachments_article_id")
-  @@index([uploaded_by], map: "idx_article_attachments_uploaded_by")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model article_comments {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  article_id String    @db.Uuid
-  created_by String    @db.Uuid
-  body       String
-  deleted_at DateTime? @db.Timestamp(6)
-  created_at DateTime  @default(now()) @db.Timestamp(6)
-  updated_at DateTime  @default(now()) @db.Timestamp(6)
-  articles   articles  @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user       user      @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-
-  @@index([article_id, created_at], map: "idx_article_comments_active", where: raw("(deleted_at IS NULL)"))
-  @@index([article_id], map: "idx_article_comments_article_id")
-  @@index([created_by], map: "idx_article_comments_created_by")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model article_likes {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  article_id String   @db.Uuid
-  user_id    String   @db.Uuid
-  created_at DateTime @default(now()) @db.Timestamp(6)
-  articles   articles @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([article_id, user_id], map: "uq_article_likes")
-  @@index([article_id], map: "idx_article_likes_article_id")
-  @@index([user_id], map: "idx_article_likes_user_id")
-  @@schema("public")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model article_reviews {
-  id                                     String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  article_id                             String        @db.Uuid
-  reviewer_id                            String        @db.Uuid
-  review_feedback                        String?
-  review_status                          review_status
-  created_by                             String        @db.Uuid
-  deleted_at                             DateTime?     @db.Timestamp(6)
-  created_at                             DateTime      @default(now()) @db.Timestamp(6)
-  updated_at                             DateTime      @default(now()) @db.Timestamp(6)
-  articles                               articles      @relation(fields: [article_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user_article_reviews_created_byTouser  user          @relation("article_reviews_created_byTouser", fields: [created_by], references: [id], onUpdate: NoAction)
-  user_article_reviews_reviewer_idTouser user          @relation("article_reviews_reviewer_idTouser", fields: [reviewer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([article_id], map: "idx_article_reviews_article_id")
-  @@index([reviewer_id], map: "idx_article_reviews_reviewer_id")
-  @@schema("public")
-}
-
-model articles {
-  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title               String                @db.VarChar(500)
-  body                Json                  @default("{}")
-  status              article_status
-  author_id           String                @db.Uuid
-  views               Int                   @default(0)
-  article_tags        String[]              @default([])
-  deleted_at          DateTime?             @db.Timestamptz(6)
-  created_at          DateTime              @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
-  article_attachments article_attachments[]
-  article_comments    article_comments[]
-  article_likes       article_likes[]
-  article_reviews     article_reviews[]
-  user                user                  @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([author_id], map: "idx_articles_author_id")
-  @@index([deleted_at], map: "idx_articles_deleted_at")
-  @@index([status], map: "idx_articles_status")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model notifications {
-  id                          String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  recipient_id                String                      @db.Uuid
-  notification_title          String                      @db.VarChar(255)
-  notification_reference_type notification_reference_type
-  reference_id                String                      @db.Uuid
-  notification_type           notification_type
-  message                     String
-  is_read                     Boolean                     @default(false)
-  read_at                     DateTime?                   @db.Timestamp(6)
-  deleted_at                  DateTime?                   @db.Timestamp(6)
-  created_at                  DateTime                    @default(now()) @db.Timestamp(6)
-  user                        user                        @relation(fields: [recipient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([recipient_id, is_read], map: "idx_notifications_is_read", where: raw("(is_read = false)"))
-  @@index([recipient_id], map: "idx_notifications_recipient_id")
-  @@index([notification_reference_type, reference_id], map: "idx_notifications_reference")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model tech_talks {
-  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title              String           @db.VarChar(500)
-  description        String?
-  presenters         String[]         @default([])
-  event_date         DateTime         @db.Timestamp(6)
-  slides_url         String?
-  youtube_iframe_url String?
-  tech_talks_status  tech_talk_status @default(draft)
-  created_by         String           @db.Uuid
-  deleted_at         DateTime?        @db.Timestamp(6)
-  created_at         DateTime         @default(now()) @db.Timestamp(6)
-  updated_at         DateTime         @default(now()) @db.Timestamp(6)
-  user               user             @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-
-  @@index([created_by], map: "idx_tech_talks_created_by")
-  @@index([deleted_at], map: "idx_tech_talks_deleted_at")
-  @@index([event_date(sort: Desc)], map: "idx_tech_talks_event_date")
-  @@index([event_date(sort: Desc)], map: "idx_tech_talks_published", where: raw("((tech_talks_status = 'published'::tech_talk_status) AND (deleted_at IS NULL))"))
-  @@index([tech_talks_status], map: "idx_tech_talks_status")
-  @@schema("public")
-}
-
-enum article_status {
+enum ArticleStatus {
   Draft
   Pending
   Published
   Unpublished
 
+  @@map("article_status")
   @@schema("public")
 }
 
-enum notification_reference_type {
+model article {
+  id        String        @id @default(uuid()) @db.Uuid
+  title     String        @db.VarChar(500)
+  body      Json          @default("{}")
+  status    ArticleStatus @map("status")
+  authorId  String        @map("author_id") @db.Uuid
+  views     Int           @default(0)
+  tags      String[]      @default([]) @map("article_tags")
+  deletedAt DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  attachments articleAttachment[]
+  comments    comment[]
+  likes       like[]
+  reviews     articleReview[]
+
+  user user @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([authorId], map: "idx_articles_author_id")
+  @@index([deletedAt], map: "idx_articles_deleted_at")
+  @@index([status], map: "idx_articles_status")
+  @@map("articles")
+  @@schema("public")
+}
+
+model articleAttachment {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  articleId    String    @map("article_id") @db.Uuid
+  uploadedBy   String    @map("uploaded_by") @db.Uuid
+  fileName     String    @map("file_name")
+  b2FileKey    String    @unique @map("b2_file_key")
+  b2FileId     String    @map("b2_file_id")
+  b2BucketName String    @map("b2_bucket_name")
+  fileUrl      String    @map("file_url")
+  mimeType     String    @map("mime_type")
+  sizeBytes    Int       @map("size_bytes")
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  article      article   @relation(fields: [articleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user         user      @relation(fields: [uploadedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([articleId], map: "idx_article_attachments_article_id")
+  @@index([uploadedBy], map: "idx_article_attachments_uploaded_by")
+  @@map("article_attachments")
+  @@schema("public")
+}
+
+model comment {
+  id        String    @id @default(uuid()) @db.Uuid
+  articleId String    @map("article_id") @db.Uuid
+  createdBy String    @map("created_by") @db.Uuid
+  body      String
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  article article @relation(fields: [articleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user    user    @relation(fields: [createdBy], references: [id], onUpdate: NoAction)
+
+  @@index([articleId, createdAt], map: "idx_article_comments_active", where: raw("(deleted_at IS NULL)"))
+  @@index([articleId], map: "idx_article_comments_article_id")
+  @@index([createdBy], map: "idx_article_comments_created_by")
+  @@map("article_comments")
+  @@schema("public")
+}
+
+model like {
+  id        String   @id @default(uuid()) @db.Uuid
+  articleId String   @map("article_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  article article @relation(fields: [articleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user    user    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([articleId, userId], map: "uq_article_likes")
+  @@index([articleId], map: "idx_article_likes_article_id")
+  @@index([userId], map: "idx_article_likes_user_id")
+  @@map("article_likes")
+  @@schema("public")
+}
+
+enum NotificationReferenceType {
   article
   tech_talk
   comment
   like
   review
 
+  @@map("notification_reference_type")
   @@schema("public")
 }
 
-enum notification_type {
+enum NotificationType {
   success
   failure
   info
 
+  @@map("notification_type")
   @@schema("public")
 }
 
-enum review_status {
-  Pending
-  Approved
-  Rejected
+model notification {
+  id            String                    @id @default(uuid()) @db.Uuid
+  recipientId   String                    @map("recipient_id") @db.Uuid
+  title         String                    @map("notification_title") @db.VarChar(255)
+  referenceType NotificationReferenceType @map("notification_reference_type")
+  referenceId   String                    @map("reference_id") @db.Uuid
+  type          NotificationType          @map("notification_type")
+  message       String
+  isRead        Boolean                   @default(false) @map("is_read")
+  readAt        DateTime?                 @map("read_at") @db.Timestamp(6)
+  deletedAt     DateTime?                 @map("deleted_at") @db.Timestamp(6)
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamp(6)
 
+  user user @relation(fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([recipientId, isRead], map: "idx_notifications_is_read", where: raw("(is_read = false)"))
+  @@index([recipientId], map: "idx_notifications_recipient_id")
+  @@index([referenceType, referenceId], map: "idx_notifications_reference")
+  @@map("notifications")
   @@schema("public")
 }
 
-enum tech_talk_status {
+enum TechTalkStatus {
   draft
   published
   unpublished
 
+  @@map("tech_talk_status")
+  @@schema("public")
+}
+
+model techTalk {
+  id               String         @id @default(uuid()) @db.Uuid
+  title            String         @db.VarChar(500)
+  description      String?
+  presenters       String[]       @default([])
+  eventDate        DateTime       @map("event_date") @db.Timestamp(6)
+  slidesUrl        String?        @map("slides_url")
+  youtubeIframeUrl String?        @map("youtube_iframe_url")
+  status           TechTalkStatus @default(draft) @map("tech_talks_status")
+  createdBy        String         @map("created_by") @db.Uuid
+  deletedAt        DateTime?      @map("deleted_at") @db.Timestamp(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  user user @relation(fields: [createdBy], references: [id], onUpdate: NoAction)
+
+  @@index([createdBy], map: "idx_tech_talks_created_by")
+  @@index([deletedAt], map: "idx_tech_talks_deleted_at")
+  @@index([eventDate(sort: Desc)], map: "idx_tech_talks_event_date")
+  @@index([eventDate(sort: Desc)], map: "idx_tech_talks_published", where: raw("((tech_talks_status = 'published'::tech_talk_status) AND (deleted_at IS NULL))"))
+  @@index([status], map: "idx_tech_talks_status")
+  @@map("tech_talks")
+  @@schema("public")
+}
+
+enum ReviewStatus {
+  Pending
+  Approved
+  Rejected
+
+  @@map("review_status")
+  @@schema("public")
+}
+
+model articleReview {
+  id         String       @id @default(uuid()) @db.Uuid
+  articleId  String       @map("article_id") @db.Uuid
+  reviewerId String       @map("reviewer_id") @db.Uuid
+  feedback   String?      @map("review_feedback")
+  status     ReviewStatus @map("review_status")
+  createdBy  String       @map("created_by") @db.Uuid
+  deletedAt  DateTime?    @map("deleted_at") @db.Timestamp(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  article       article @relation(fields: [articleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdByUser user    @relation("article_reviews_created_byTouser", fields: [createdBy], references: [id], onUpdate: NoAction)
+  reviewerUser  user    @relation("article_reviews_reviewer_idTouser", fields: [reviewerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([articleId], map: "idx_article_reviews_article_id")
+  @@index([reviewerId], map: "idx_article_reviews_reviewer_id")
+  @@map("article_reviews")
   @@schema("public")
 }

@@ -3,6 +3,18 @@
 import { jest, describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 
 // ESM requires unstable_mockModule — jest.mock() doesn't hoist in ESM
+
+// ── Mock Prisma DB from @repo/db ───────────────────────────────────────────
+await jest.unstable_mockModule('@repo/db', () => ({
+  prisma: {
+    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    articleAttachment: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    review: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    notification: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+  },
+}));
+
 await jest.unstable_mockModule('../../db/index.js', () => ({
   default: {
     query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),

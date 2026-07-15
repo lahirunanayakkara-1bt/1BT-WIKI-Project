@@ -1,6 +1,6 @@
 // apps/api/src/repositories/notificationRepository.ts
 
-import pool from '../db/index.js';
+import { prisma } from '@repo/db';
 import { AppError } from '../errors/AppError.js';
 import type {
   Notification,
@@ -8,75 +8,46 @@ import type {
 } from '../types/notificationTypes.js';
 
 // ---------------------------------------------------------------------------
-// Row → Entity mapper (snake_case DB columns → camelCase TS interface)
+// Prisma select and mapper
 // ---------------------------------------------------------------------------
 
-interface NotificationRow {
-  id: string;
-  recipient_id: string;
-  notification_title: string;
-  notification_reference_type: string;
-  reference_id: string;
-  notification_type: string;
-  message: string;
-  is_read: boolean;
-  read_at: Date | null;
-  deleted_at: Date | null;
-  created_at: Date;
-}
+const NOTIFICATION_SELECT = {
+  id: true,
+  recipientId: true,
+  title: true,
+  referenceType: true,
+  referenceId: true,
+  type: true,
+  message: true,
+  isRead: true,
+  readAt: true,
+  deletedAt: true,
+  createdAt: true,
+} as const;
 
-const mapRow = (row: NotificationRow): Notification => ({
-  id: row.id,
-  recipientId: row.recipient_id,
-  notificationTitle: row.notification_title,
-  notificationReferenceType: row.notification_reference_type as Notification['notificationReferenceType'],
-  referenceId: row.reference_id,
-  notificationType: row.notification_type as Notification['notificationType'],
-  message: row.message,
-  isRead: row.is_read,
-  readAt: row.read_at,
-  deletedAt: row.deleted_at,
-  createdAt: row.created_at,
-});
+type PrismaNotification = typeof prisma.notification extends { findFirst: (...args: any) => Promise<infer R> } ? NonNullable<R> : any;
+
+
 
 // ---------------------------------------------------------------------------
 // Create
 // ---------------------------------------------------------------------------
 
-/**
- * Insert a new notification row and return the mapped entity.
- * is_read defaults to FALSE, read_at defaults to NULL (DB defaults).
- */
 const create = async (input: CreateNotificationInput): Promise<Notification> => {
   try {
-    const { rows } = await pool.query<NotificationRow>(
-      `INSERT INTO notifications
-         (recipient_id, notification_title, notification_reference_type,
-          reference_id, notification_type, message)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING
-         id,
-         recipient_id,
-         notification_title,
-         notification_reference_type,
-         reference_id,
-         notification_type,
-         message,
-         is_read,
-         read_at,
-         deleted_at,
-         created_at`,
-      [
-        input.recipientId,
-        input.notificationTitle,
-        input.notificationReferenceType,
-        input.referenceId,
-        input.notificationType,
-        input.message,
-      ],
-    );
+    const result = await prisma.notification.create({
+      data: {
+        recipientId: input.recipientId,
+        title: input.notificationTitle,
+        referenceType: input.notificationReferenceType as any,
+        referenceId: input.referenceId,
+        type: input.notificationType as any,
+        message: input.message,
+      },
+      select: NOTIFICATION_SELECT,
+    });
 
-    return mapRow(rows[0]);
+    return result as unknown as Notification;
   } catch (error) {
     throw new AppError('Database is unavailable', 503);
   }
@@ -86,34 +57,14 @@ const create = async (input: CreateNotificationInput): Promise<Notification> => 
 // Read
 // ---------------------------------------------------------------------------
 
-/**
- * Find a single notification by its primary key.
- * Excludes soft-deleted rows (deleted_at IS NULL).
- * Returns null when no match is found.
- */
 const findById = async (id: string): Promise<Notification | null> => {
   try {
-    const { rows } = await pool.query<NotificationRow>(
-      `SELECT
-         id,
-         recipient_id,
-         notification_title,
-         notification_reference_type,
-         reference_id,
-         notification_type,
-         message,
-         is_read,
-         read_at,
-         deleted_at,
-         created_at
-       FROM notifications
-       WHERE id = $1
-         AND deleted_at IS NULL
-       LIMIT 1`,
-      [id],
-    );
+    const result = await prisma.notification.findFirst({
+      where: { id, deletedAt: null },
+      select: NOTIFICATION_SELECT,
+    });
 
-    return rows[0] ? mapRow(rows[0]) : null;
+    return result ? (result as unknown as Notification) : null;
   } catch (error) {
     throw new AppError('Database is unavailable', 503);
   }
@@ -123,38 +74,20 @@ const findById = async (id: string): Promise<Notification | null> => {
 // List
 // ---------------------------------------------------------------------------
 
-/**
- * Return paginated notifications for a recipient.
- * Excludes soft-deleted rows (deleted_at IS NULL).
- * Returns an empty array when no rows match.
- */
 const list = async (
   recipientId: string,
   options: { limit: number; offset: number },
 ): Promise<Notification[]> => {
   try {
-    const { rows } = await pool.query<NotificationRow>(
-      `SELECT
-         id,
-         recipient_id,
-         notification_title,
-         notification_reference_type,
-         reference_id,
-         notification_type,
-         message,
-         is_read,
-         read_at,
-         deleted_at,
-         created_at
-       FROM notifications
-       WHERE recipient_id = $1
-         AND deleted_at IS NULL
-       ORDER BY created_at DESC
-       LIMIT $2 OFFSET $3`,
-      [recipientId, options.limit, options.offset],
-    );
+    const results = await prisma.notification.findMany({
+      where: { recipientId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: options.limit,
+      skip: options.offset,
+      select: NOTIFICATION_SELECT,
+    });
 
-    return rows.map(mapRow);
+    return results as unknown as Notification[];
   } catch (error) {
     throw new AppError('Database is unavailable', 503);
   }
@@ -165,29 +98,24 @@ const markAsRead = async (
   recipientId: string,
 ): Promise<Notification | null> => {
   try {
-    const { rows } = await pool.query<NotificationRow>(
-      `UPDATE notifications
-      SET is_read = true,
-      read_at = NOW()
-      WHERE id = $1
-      AND recipient_id = $2
-      AND deleted_at IS NULL
-      RETURNING
-        id,
-        recipient_id,
-        notification_title,
-        message,
-        is_read,
-        read_at,
-        deleted_at,
-        created_at`,
-      [id, recipientId],
-    );
+    // We must ensure the notification belongs to the user and isn't deleted.
+    // Prisma update requires unique where. So we can either do updateMany or check first.
+    // Actually, `updateMany` returns count. So let's find first, then update.
+    const exists = await prisma.notification.findFirst({
+      where: { id, recipientId, deletedAt: null },
+    });
 
-    return rows[0] ? mapRow(rows[0]) : null;
+    if (!exists) return null;
+
+    const result = await prisma.notification.update({
+      where: { id },
+      data: { isRead: true, readAt: new Date() },
+      select: NOTIFICATION_SELECT,
+    });
+
+    return result ? (result as unknown as Notification) : null;
 
   } catch (error) {
-
     throw new AppError('Database is unavailable', 503);
   }
 };

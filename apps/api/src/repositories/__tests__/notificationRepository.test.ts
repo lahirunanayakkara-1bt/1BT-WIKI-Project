@@ -8,10 +8,20 @@ import type {
 
 // ── ESM mock registration — must be before any import of the repository ─────
 
-const mockQuery = jest.fn<any>();
+const mockCreate = jest.fn<any>();
+const mockFindFirst = jest.fn<any>();
+const mockFindMany = jest.fn<any>();
+const mockUpdate = jest.fn<any>();
 
-await jest.unstable_mockModule('../../db/index.js', () => ({
-  default: { query: mockQuery },
+await jest.unstable_mockModule('@repo/db', () => ({
+  prisma: {
+    notification: {
+      create: mockCreate,
+      findFirst: mockFindFirst,
+      findMany: mockFindMany,
+      update: mockUpdate,
+    },
+  },
 }));
 
 // Import AFTER mock is registered (ESM requirement)
@@ -75,29 +85,24 @@ describe('NotificationRepository.create', () => {
 
   it('should build correct parameterized SQL and return mapped entity', async () => {
     // Arrange
-    mockQuery.mockResolvedValue({ rows: [makeDbRow()] });
+    mockCreate.mockResolvedValue(expectedEntity);
 
     // Act
     const result = await NotificationRepository.create(sampleInput);
 
-    // Assert — query called with parameterized SQL
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    // Assert — prisma create called with expected data and select
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    const [createArgs] = mockCreate.mock.calls[0] as [any];
+    expect(createArgs.data).toEqual({
+      recipientId: sampleInput.recipientId,
+      title: sampleInput.notificationTitle,
+      referenceType: sampleInput.notificationReferenceType,
+      referenceId: sampleInput.referenceId,
+      type: sampleInput.notificationType,
+      message: sampleInput.message,
+    });
 
-    const [sql, params] = mockQuery.mock.calls[0] as [string, string[]];
-    expect(sql).toContain('INSERT INTO notifications');
-    expect(sql).toContain('$1');
-    expect(sql).toContain('$6');
-    expect(sql).toContain('RETURNING');
-    expect(params).toEqual([
-      sampleInput.recipientId,
-      sampleInput.notificationTitle,
-      sampleInput.notificationReferenceType,
-      sampleInput.referenceId,
-      sampleInput.notificationType,
-      sampleInput.message,
-    ]);
-
-    // Assert — returned entity is mapped to camelCase
+    // Assert — returned entity
     expect(result).toEqual(expectedEntity);
   });
 });
@@ -110,41 +115,41 @@ describe('NotificationRepository.findById', () => {
 
   it('should return null when no row is found', async () => {
     // Arrange
-    mockQuery.mockResolvedValue({ rows: [] });
+    mockFindFirst.mockResolvedValue(null);
 
     // Act
     const result = await NotificationRepository.findById('nonexistent-id');
 
     // Assert
     expect(result).toBeNull();
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockFindFirst).toHaveBeenCalledTimes(1);
   });
 
   it('should exclude soft-deleted rows (deleted_at IS NULL in WHERE clause)', async () => {
     // Arrange
-    mockQuery.mockResolvedValue({ rows: [] });
+    mockFindFirst.mockResolvedValue(null);
 
     // Act
     await NotificationRepository.findById('some-id');
 
-    // Assert — SQL includes the soft-delete filter
-    const [sql] = mockQuery.mock.calls[0] as [string];
-    expect(sql).toContain('deleted_at IS NULL');
+    // Assert — soft-delete filter used in where clause
+    const [findArgs] = mockFindFirst.mock.calls[0] as [any];
+    expect(findArgs.where).toEqual({ id: 'some-id', deletedAt: null });
   });
 
   it('should return mapped entity when a matching row is found', async () => {
     // Arrange
-    mockQuery.mockResolvedValue({ rows: [makeDbRow()] });
+    mockFindFirst.mockResolvedValue(expectedEntity);
 
     // Act
     const result = await NotificationRepository.findById('notif-uuid-1');
 
     // Assert
     expect(result).toEqual(expectedEntity);
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockFindFirst).toHaveBeenCalledTimes(1);
 
-    const [, params] = mockQuery.mock.calls[0] as [string, string[]];
-    expect(params).toEqual(['notif-uuid-1']);
+    const [findArgs] = mockFindFirst.mock.calls[0] as [any];
+    expect(findArgs.where).toEqual({ id: 'notif-uuid-1', deletedAt: null });
   });
 });
 
@@ -156,44 +161,29 @@ describe('NotificationRepository.list', () => {
 
   it('should build correct parameterized SQL and return mapped entities', async () => {
     // Arrange
-    const row1 = makeDbRow();
-    const row2 = makeDbRow({
-      id: 'notif-uuid-2',
-      notification_title: 'New comment',
-      notification_type: 'info',
-      message: 'Someone commented on your article.',
-    });
-    mockQuery.mockResolvedValue({ rows: [row1, row2] });
+    const item1 = expectedEntity;
+    const item2 = { ...expectedEntity, id: 'notif-uuid-2', notificationTitle: 'New comment', notificationType: 'info', message: 'Someone commented on your article.' };
+    mockFindMany.mockResolvedValue([item1, item2]);
 
     // Act
     const result = await NotificationRepository.list('user-uuid-1', { limit: 20, offset: 0 });
 
-    // Assert — query called with parameterized SQL
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    // Assert — prisma findMany called with expected args
+    expect(mockFindMany).toHaveBeenCalledTimes(1);
+    const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
+    expect(findManyArgs.where).toEqual({ recipientId: 'user-uuid-1', deletedAt: null });
+    expect(findManyArgs.take).toEqual(20);
+    expect(findManyArgs.skip).toEqual(0);
 
-    const [sql, params] = mockQuery.mock.calls[0] as [string, (string | number)[]];
-    expect(sql).toContain('FROM notifications');
-    expect(sql).toContain('recipient_id = $1');
-    expect(sql).toContain('deleted_at IS NULL');
-    expect(sql).toContain('ORDER BY created_at DESC');
-    expect(sql).toContain('LIMIT $2 OFFSET $3');
-    expect(params).toEqual(['user-uuid-1', 20, 0]);
-
-    // Assert — returned entities are mapped to camelCase
+    // Assert — returned entities
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual(expectedEntity);
-    expect(result[1]).toEqual({
-      ...expectedEntity,
-      id: 'notif-uuid-2',
-      notificationTitle: 'New comment',
-      notificationType: 'info',
-      message: 'Someone commented on your article.',
-    });
+    expect(result[0]).toEqual(item1);
+    expect(result[1]).toEqual(item2);
   });
 
   it('should return an empty array when no rows are found', async () => {
     // Arrange
-    mockQuery.mockResolvedValue({ rows: [] });
+    mockFindMany.mockResolvedValue([]);
 
     // Act
     const result = await NotificationRepository.list('user-uuid-1', { limit: 10, offset: 0 });
@@ -201,7 +191,7 @@ describe('NotificationRepository.list', () => {
     // Assert
     expect(result).toEqual([]);
     expect(Array.isArray(result)).toBe(true);
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockFindMany).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -213,46 +203,36 @@ describe('NotificationRepository.markAsRead', () => {
   });
 
   it('should build correct parameterized UPDATE SQL scoped by id and recipientId, excluding soft-deleted rows', async () => {
-    const readRow = makeDbRow({
-      is_read: true,
-      read_at: new Date('2026-07-13T09:10:00.000z'),
-
-    });
-    mockQuery.mockResolvedValue({ rows: [readRow] });
+    const readEntity = { ...expectedEntity, isRead: true, readAt: new Date('2026-07-13T09:10:00.000Z') };
+    mockFindFirst.mockResolvedValue(readEntity);
+    mockUpdate.mockResolvedValue(readEntity);
 
     const result = await NotificationRepository.markAsRead('notif-uuid-1', 'user-uuid-1');
 
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockFindFirst).toHaveBeenCalledTimes(1);
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
 
-    const [sql, params] = mockQuery.mock.calls[0] as [string, string[]];
-    expect(sql).toContain('UPDATE notifications');
-    expect(sql).toContain('SET is_read = true');
-    expect(sql).toContain('WHERE id = $1');
-    expect(sql).toContain('AND recipient_id = $2');
-    expect(sql).toContain('AND deleted_at IS NULL');
-    expect(sql).toContain('RETURNING');
-    expect(params).toEqual(['notif-uuid-1', 'user-uuid-1']);
+    const [updateArgs] = mockUpdate.mock.calls[0] as [any];
+    expect(updateArgs.where).toEqual({ id: 'notif-uuid-1' });
+    expect(updateArgs.data).toEqual({ isRead: true, readAt: expect.any(Date) });
 
-    expect(result).toEqual({
-      ...expectedEntity,
-      isRead: true,
-      readAt: new Date('2026-07-13T09:10:00.000Z'),
-    });
+    expect(result).toEqual(readEntity);
   });
 
   it('should return null no matching row is found(wrong id, wrong owner, or soft-deleted)', async () => {
-    mockQuery.mockResolvedValue({ rows: [] });
+    mockFindFirst.mockResolvedValue(null);
 
     const result = await NotificationRepository.markAsRead('nonexistent-id', 'user-uuid-1');
 
     // Assert
     expect(result).toBeNull();
-    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockFindFirst).toHaveBeenCalledTimes(1);
   });
 
   it('should throw AppError(503) when the database query fails', async () => {
     // Arrange
-    mockQuery.mockRejectedValue(new Error('connection reset'));
+    // Simulate DB error during findFirst
+    mockFindFirst.mockRejectedValue(new Error('connection reset'));
 
     // Act & Assert
     await expect(

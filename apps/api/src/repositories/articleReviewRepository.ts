@@ -1,38 +1,35 @@
-import pool from '../db/index.js';
+import { prisma } from '@repo/db';
 import type { ArticleReview } from '../types/article.types.js';
 
+const ARTICLE_REVIEW_SELECT = {
+  id: true,
+  articleId: true,
+  reviewerId: true,
+  status: true,
+  feedback: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 const findLatestByArticleId = async (articleId: string): Promise<ArticleReview | null> => {
-  const query = `
-    SELECT 
-      id,
-      article_id,
-      reviewer_id,
-      review_status,
-      comments,
-      created_at,
-      updated_at
-    FROM article_reviews
-    WHERE article_id = $1
-    ORDER BY created_at DESC
-    LIMIT 1
-  `;
+  const result = await prisma.articleReview.findFirst({
+    where: { articleId },
+    orderBy: { createdAt: 'desc' },
+    select: ARTICLE_REVIEW_SELECT,
+  });
 
-  const { rows } = await pool.query(query, [articleId]);
-
-  if (rows.length === 0) {
+  if (!result) {
     return null;
   }
 
-  const row = rows[0];
-
   return {
-    id: row.id,
-    articleId: row.article_id,
-    reviewerId: row.reviewer_id,
-    reviewStatus: row.review_status,
-    comments: row.comments,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: result.id,
+    articleId: result.articleId,
+    reviewerId: result.reviewerId,
+    reviewStatus: result.status,
+    comments: result.feedback ?? undefined,
+    createdAt: result.createdAt,
+    updatedAt: result.updatedAt,
   };
 };
 
