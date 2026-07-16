@@ -2,18 +2,12 @@
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock DB
-await jest.unstable_mockModule('../../../db/index.js', () => ({
-  default: {
-    query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
-    connect: jest.fn(),
-    end: jest.fn(),
-  },
-  pool: {
-    query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
-    connect: jest.fn(),
-    end: jest.fn(),
-  },
+// Mock Prisma DB from @repo/db
+await jest.unstable_mockModule('@repo/db', () => ({
+  prisma: {
+    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+  }
 }));
 
 // Mock Auth Middleware

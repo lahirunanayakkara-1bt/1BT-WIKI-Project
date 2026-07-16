@@ -1,5 +1,17 @@
-import pool from '../../db/index.js';
+import { prisma } from '@repo/db';
 import type { Article, CreateArticleInput, JSONContent } from '../types/article.types.js';
+import type { Prisma } from '@repo/db';
+
+const ARTICLE_SELECT = {
+  id: true,
+  title: true,
+  body: true,
+  status: true,
+  authorId: true,
+  tags: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 const create = async (data: CreateArticleInput & { authorId: string }): Promise<Article> => {
   const { title, body, tags, authorId } = data;
@@ -9,147 +21,50 @@ const create = async (data: CreateArticleInput & { authorId: string }): Promise<
   const defaultTags = tags ?? [];
   const status = 'Draft';
 
-  const query = `
-    INSERT INTO articles (
-      title, 
-      body, 
-      status, 
-      author_id, 
-      article_tags
-    )
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING 
-      id, 
-      title, 
-      body, 
-      status, 
-      author_id, 
-      article_tags, 
-      created_at, 
-      updated_at
-  `;
+  const result = await prisma.article.create({
+    data: {
+      title,
+      body: defaultBody as Prisma.InputJsonValue,
+      status,
+      authorId,
+      tags: defaultTags,
+    },
+    select: ARTICLE_SELECT,
+  });
 
-  const values = [
-    title,
-    JSON.stringify(defaultBody),
-    status,
-    authorId,
-    defaultTags
-  ];
-
-  const { rows } = await pool.query(query, values);
-  const row = rows[0];
-
-  return {
-    id: row.id,
-    title: row.title,
-    body: row.body,
-    status: row.status,
-    authorId: row.author_id,
-    tags: row.article_tags,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
+  return result as unknown as Article;
 };
 
 const findById = async (id: string): Promise<Article | null> => {
-  const query = `
-    SELECT 
-      id, 
-      title, 
-      body, 
-      status, 
-      author_id, 
-      article_tags, 
-      created_at, 
-      updated_at
-    FROM articles
-    WHERE id = $1
-    AND deleted_at IS NULL
-  `;
+  const result = await prisma.article.findFirst({
+    where: { id, deletedAt: null },
+    select: ARTICLE_SELECT,
+  });
 
-  const { rows } = await pool.query(query, [id]);
-
-  if (rows.length === 0) {
-    return null;
-  }
-
-  const row = rows[0];
-
-  return {
-    id: row.id,
-    title: row.title,
-    body: row.body,
-    status: row.status,
-    authorId: row.author_id,
-    tags: row.article_tags,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
+  return result ? (result as unknown as Article) : null;
 };
 
 const update = async (
   id: string,
   fields: Partial<{ title: string; body: JSONContent; tags: string[]; status: string }>
 ): Promise<Article> => {
-  const setClauses: string[] = [];
-  const values: unknown[] = [];
-  let paramIndex = 1;
-
-  if (fields.title !== undefined) {
-    setClauses.push(`title = $${paramIndex++}`);
-    values.push(fields.title);
-  }
-
-  if (fields.body !== undefined) {
-    setClauses.push(`body = $${paramIndex++}`);
-    values.push(JSON.stringify(fields.body));
-  }
-
-  if (fields.tags !== undefined) {
-    setClauses.push(`article_tags = $${paramIndex++}`);
-    values.push(fields.tags);
-  }
-
-  if (fields.status !== undefined) {
-    setClauses.push(`status = $${paramIndex++}`);
-    values.push(fields.status);
-  }
-
-  setClauses.push(`updated_at = NOW()`);
+  // Prisma will update updatedAt automatically via @updatedAt
   
-  const setString = setClauses.join(', ');
-  
-  const query = `
-    UPDATE articles
-    SET ${setString}
-    WHERE id = $${paramIndex}
-    RETURNING 
-      id, 
-      title, 
-      body, 
-      status, 
-      author_id, 
-      article_tags, 
-      created_at, 
-      updated_at
-  `;
-  
-  values.push(id);
-
-  const { rows } = await pool.query(query, values);
-  const row = rows[0];
-
-  return {
-    id: row.id,
-    title: row.title,
-    body: row.body,
-    status: row.status,
-    authorId: row.author_id,
-    tags: row.article_tags,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+  // Since 'status' is typed as a string in the interface, but an enum in Prisma, we cast it.
+  const updateData: Prisma.articleUpdateInput = {
+    ...(fields.title !== undefined && { title: fields.title }),
+    ...(fields.body !== undefined && { body: fields.body as Prisma.InputJsonValue }),
+    ...(fields.tags !== undefined && { tags: fields.tags }),
+    ...(fields.status !== undefined && { status: fields.status as any }),
   };
+
+  const result = await prisma.article.update({
+    where: { id },
+    data: updateData,
+    select: ARTICLE_SELECT,
+  });
+
+  return result as unknown as Article;
 };
 
 export default { create, findById, update };
