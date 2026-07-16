@@ -105,11 +105,12 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
           )}
 
           {activeTab === 'upload' && (
-            <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E5E7EB] bg-[#F5F5F5] transition-colors hover:border-[#CC0000] hover:bg-red-50 cursor-pointer">
+            <label className="relative flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E5E7EB] bg-[#F5F5F5] transition-colors hover:border-[#CC0000] hover:bg-red-50 cursor-pointer">
               <UploadCloud className="mb-4 h-10 w-10 text-[#9CA3AF]" />
               <p className="mb-1 text-sm font-bold text-[#1A1A1A]">Click to upload or drag and drop</p>
               <p className="text-xs text-[#6B7280]">SVG, PNG, JPG or GIF (max. 5MB)</p>
-            </div>
+              <input type="file" className="sr-only" accept="image/*" />
+            </label>
           )}
 
           {activeTab === 'url' && (
