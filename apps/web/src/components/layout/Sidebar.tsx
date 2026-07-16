@@ -124,7 +124,7 @@ export function Sidebar(): React.JSX.Element {
   const handleSignOut = async () => {
     try {
       await authClient.signOut();
-      window.location.href = '/signin'; // Redirect to the sign-in page after sign-out
+      window.location.assign('/signin'); // Redirect to the sign-in page after sign-out
     } catch (error) {
       console.error('Error during sign-out:', error);
     }

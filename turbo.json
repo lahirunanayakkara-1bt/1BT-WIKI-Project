@@ -11,7 +11,8 @@
         "VERCEL_NEON_AUTH_COOKIE_SECRET",
         "DATABASE_URL",
         "PORT"
-      ]
+      ],
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -25,7 +26,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "cache": false
     },
     "sonar": {
       "dependsOn": ["test"],
