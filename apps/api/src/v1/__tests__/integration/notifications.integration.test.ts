@@ -34,7 +34,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
 }));
 
 // ── 2. Mock the DB pool — must come before app import ──────────────────────
-await jest.unstable_mockModule('../../db/index.js', () => ({
+await jest.unstable_mockModule('../../../db/index.js', () => ({
   default: {
     query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
