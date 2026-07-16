@@ -3,12 +3,11 @@
   "ui": "tui",
   "tasks": {
     "generate": {
-      "cache": true,
-      "inputs": ["prisma/schema.prisma", "workspace:db"],
-      "outputs": ["src/generated/**"]
+      "cache": false,
+      "outputs": ["src/generated/prisma/**"]
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^generate", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
       "env": [
