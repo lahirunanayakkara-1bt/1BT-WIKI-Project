@@ -9,7 +9,13 @@
     "build": {
       "dependsOn": ["^generate", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "dist/**",
+        "src/generated/**"
+      ],
       "env": [
         "VERCEL_NEON_AUTH_BASE_URL",
         "VERCEL_NEON_AUTH_COOKIE_SECRET",
