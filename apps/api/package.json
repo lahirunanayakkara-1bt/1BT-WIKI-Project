@@ -43,9 +43,10 @@
   "keywords": [],
   "dependencies": {
     "@neondatabase/auth": "0.4.2-beta",
+    "@repo/db": "workspace:*",
     "backblaze-b2": "^1.7.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
     "jose": "^6.2.3",
     "multer": "^2.2.0",

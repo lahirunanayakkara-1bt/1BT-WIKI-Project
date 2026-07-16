@@ -2,6 +2,11 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "tasks": {
+    "generate": {
+      "cache": true,
+      "inputs": ["prisma/schema.prisma", "workspace:db"],
+      "outputs": ["src/generated/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
