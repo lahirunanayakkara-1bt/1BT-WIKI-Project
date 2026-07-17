@@ -240,6 +240,13 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
           setSaveStatus('saved');
           setLastError(null);
 
+          // BUG FIX: Persist the fallback title into state so subsequent PATCH requests
+          // don't send an empty string. Only overwrite if the user hasn't typed
+          // anything else while the request was in flight.
+          if (!titleRef.current.trim()) {
+            setTitle(titleForCreate);
+          }
+
           return id;
         } catch (error) {
           setSaveStatus('error');
@@ -257,7 +264,7 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
     } finally {
       creatingDraftRef.current = null;
     }
-  }, [withRequestLock]);
+  }, [withRequestLock, setTitle]);
 
   // ── saveDraft ─────────────────────────────────────────────────────────
   //
@@ -275,11 +282,14 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
     await withRequestLock(async () => {
       setSaveStatus('saving');
 
+      // BUG FIX: Guard against sending an empty title on autosave/PATCH
+      const safeTitle = titleRef.current.trim() || 'Untitled Draft';
+
       const formData = new FormData();
       formData.append(
         'data',
         JSON.stringify({
-          title: titleRef.current,
+          title: safeTitle,
           body: editorRef.current?.getJSON() ?? {},
           tags: tagsRef.current,
         }),
@@ -342,11 +352,14 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
           attachmentsRef.current.map((a) => a.id),
         );
 
+        // BUG FIX: Guard against sending an empty title on upload PATCH
+        const safeTitle = titleRef.current.trim() || 'Untitled Draft';
+
         const formData = new FormData();
         formData.append(
           'data',
           JSON.stringify({
-            title: titleRef.current,
+            title: safeTitle,
             body: editorRef.current?.getJSON() ?? {},
             tags: tagsRef.current,
           }),
