@@ -97,7 +97,7 @@ export function ReadingPreview() {
               <p>When you focus on the visual quality of execution rather than sheer volume of widgets, you build digital products that feel genuinely crafted, fluid, and robust.</p>
               
               <blockquote>
-                "Good design is obvious. Great design is transparent." — Joe Sparano
+                &quot;Good design is obvious. Great design is transparent.&quot; — Joe Sparano
               </blockquote>
 
               <p>The primary goal is to ensure the reader is immersed in the content without distractions. Notice how the reading width changes based on the viewport simulator above.</p>
