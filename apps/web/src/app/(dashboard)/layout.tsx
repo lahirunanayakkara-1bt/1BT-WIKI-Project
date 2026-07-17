@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { UserProvider } from '@/lib/hooks/useUser';
@@ -15,6 +16,9 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps): React.JSX.Element {
+  const pathname = usePathname();
+  const isEditorRoute = pathname?.startsWith('/editor');
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAppLoading, setIsAppLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -158,16 +162,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
         </div>
       )}
 
-      <Sidebar />
-      <div ref={mainWrapperRef} className="flex flex-col flex-1 ml-60">
-        <Navbar
-          notificationCount={3}
-          userInitials="ML"
-          userName="Malindu"
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={toggleSidebar}
-        />
-        <main className="flex-1 overflow-y-auto pt-16 bg-[#F5F5F5]" data-testid="main-content">
+      {!isEditorRoute && <Sidebar />}
+      <div ref={mainWrapperRef} className={`flex flex-col flex-1 ${!isEditorRoute ? 'ml-60' : ''}`}>
+        {!isEditorRoute && (
+          <Navbar
+            notificationCount={3}
+            userInitials="ML"
+            userName="Malindu"
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={toggleSidebar}
+          />
+        )}
+        <main className={`flex-1 overflow-y-auto bg-[#F5F5F5] ${!isEditorRoute ? 'pt-16' : ''}`} data-testid="main-content">
           {children}
         </main>
       </div>
