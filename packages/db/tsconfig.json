@@ -4,7 +4,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "strictNullChecks": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@repo/db": ["./src"],
+      "@repo/db/*": ["./src/*"]
+    }
   },
   "include": ["src/index.ts", "src/client.ts"],
   "exclude": ["node_modules", "dist", "src/generated/**"]
