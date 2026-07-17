@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { UserAvatar } from '../UserAvatar';
+import { isE2E } from '@/lib/e2e';
 
 interface NavbarProps {
   notificationCount?: number;
@@ -24,6 +25,7 @@ export function Navbar({
   const bellRef = useRef<HTMLButtonElement>(null);
 
   useGSAP(() => {
+    if (isE2E()) return;
     // [GSAP] Nav bar: fade-down (y: -20 -> 0, 0.5s)
     gsap.from(containerRef.current, {
       y: -20,

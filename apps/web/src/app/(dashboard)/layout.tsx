@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { UserProvider } from '@/lib/hooks/useUser';
+import { isE2E } from '@/lib/e2e';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -21,6 +22,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
 
   // Initial App Preloader Animation
   useGSAP(() => {
+    if (isE2E()) {
+      setIsAppLoading(false);
+      return;
+    }
+
     const tl = gsap.timeline({
       onComplete: () => {
         setIsAppLoading(false);
@@ -79,7 +85,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
 
   // Sidebar Open/Close Toggle Animation
   useGSAP(() => {
-    if (isAppLoading) return; // Prevent initial layout conflicts
+    if (isAppLoading || isE2E()) return; // Prevent initial layout conflicts
 
     const sidebar = document.querySelector('[data-testid="sidebar"]');
     const navbar = document.querySelector('[data-testid="navbar"]');
