@@ -1,14 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Loader2 } from 'lucide-react';
+import { useEditorDraft } from './EditorDraftContext';
 
 export function FeaturedMediaBox() {
+  const { uploadImage, featuredImageUrl, setFeaturedImageUrl } = useEditorDraft();
   const [displayInFeed, setDisplayInFeed] = useState(true);
   const [pinToTop, setPinToTop] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const Checkbox = ({ checked, onChange, label }: any) => (
+  const Checkbox = ({ checked, onChange, label }: {
+    checked: boolean;
+    onChange: () => void;
+    label: string;
+  }) => (
     <label className="flex items-center justify-between cursor-pointer group">
       <span className="text-sm font-medium text-[#1A1A1A] group-hover:text-[#CC0000] transition-colors">{label}</span>
       <div 
@@ -23,17 +30,34 @@ export function FeaturedMediaBox() {
     </label>
   );
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImageUrl(url);
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const fileUrl = await uploadImage(file);
+      setFeaturedImageUrl(fileUrl);
+      // TODO: Backend persistence needed once Prisma migration + featured-image
+      // schema field lands. Currently the backend has no way to persist "this
+      // attachment is the featured image" — it's just a regular attachment row.
+      // Track which attachment URL is the featured one in FRONTEND state only
+      // for now.
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+      // Reset the input so the same file can be re-selected
+      e.target.value = '';
     }
   };
 
   const removeImage = (e: React.MouseEvent) => {
     e.preventDefault();
-    setImageUrl(null);
+    setFeaturedImageUrl(null);
+    setUploadError(null);
   };
 
   return (
@@ -43,10 +67,17 @@ export function FeaturedMediaBox() {
         <span className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF]">Header Image</span>
       </div>
 
-      {imageUrl ? (
+      {isUploading ? (
+        <div className="relative mb-6 flex h-32 w-full items-center justify-center rounded-lg border-2 border-dashed border-[#CC0000]/30 bg-red-50">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-6 w-6 text-[#CC0000] animate-spin" />
+            <span className="text-xs font-medium text-[#CC0000]">Uploading...</span>
+          </div>
+        </div>
+      ) : featuredImageUrl ? (
         <div className="relative mb-6 h-32 w-full overflow-hidden rounded-lg group border border-[#E5E7EB]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt="Featured" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={featuredImageUrl} alt="Featured" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           
           <button 
             onClick={removeImage}
@@ -64,8 +95,19 @@ export function FeaturedMediaBox() {
             </svg>
           </div>
           <span className="text-xs font-medium text-[#6B7280]">Upload Image</span>
-          <input type="file" accept="image/*" onChange={handleImageUpload} className="sr-only" />
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={handleImageUpload}
+            className="sr-only"
+          />
         </label>
+      )}
+
+      {uploadError && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
+          <p className="text-xs text-red-600">{uploadError}</p>
+        </div>
       )}
 
       <div className="mb-4">

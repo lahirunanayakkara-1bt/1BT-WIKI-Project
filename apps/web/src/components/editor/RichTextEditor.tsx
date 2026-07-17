@@ -1,19 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Image as ImageIcon, Undo, Redo, X } from 'lucide-react';
+import { useEditorDraft } from './EditorDraftContext';
 
 interface RichTextEditorProps {
   onOpenImageEmbed: () => void;
 }
 
-const MenuBar = ({ editor, onOpenImageEmbed }: { editor: any, onOpenImageEmbed: () => void }) => {
+const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEditor>, onOpenImageEmbed: () => void }) => {
   if (!editor) return null;
 
-  const ToolbarButton = ({ onClick, isActive, disabled, children }: any) => (
+  const ToolbarButton = ({ onClick, isActive, disabled, children }: {
+    onClick: () => void;
+    isActive?: boolean;
+    disabled?: boolean;
+    children: React.ReactNode;
+  }) => (
     <button
       onClick={onClick}
       disabled={disabled}
@@ -91,8 +97,16 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: any, onOpenImageEmbed: 
 };
 
 export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
-  const [title, setTitle] = useState('Crafting Interfaces with Purpose and Intent');
-  const [tags, setTags] = useState(['Design', 'Craftsmanship', 'Writing']);
+  const {
+    title,
+    setTitle,
+    tags,
+    setTags,
+    registerEditor,
+    handleTitleBlur,
+    notifyContentChanged,
+  } = useEditorDraft();
+
   const popularTags = ['Technology', 'Design', 'Writing', 'Tutorial', 'Lifestyle', 'Productivity', 'Inspiration', 'Programming', 'Craftsmanship'];
 
   const editor = useEditor({
@@ -103,21 +117,26 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
         allowBase64: true,
       }),
     ],
-    content: `
-      <h2>A Checklist for Quality Layouts</h2>
-      <ul>
-        <li><strong>Restrained Typography:</strong> Pair modern geometric display fonts for headings with highly legible, clean sans-serif body text.</li>
-        <li><strong>Generous Negative Space:</strong> Allow elements to breathe; avoid cluttering the margins and rails with unnecessary logs, indicators, or status labels.</li>
-        <li><strong>Tactile Interaction:</strong> Provide clear visual feedback on hover, focus, and click transitions so user action is immediately reinforced.</li>
-      </ul>
-      <p>When you focus on the visual quality of execution rather than sheer volume of widgets, you build digital products that feel genuinely crafted, fluid, and robust. Go ahead and customize this text, try changing the headings, or embed your own assets to see the system in action!</p>
-    `,
+    content: '',
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none p-6 min-h-[400px]',
       },
     },
+    onUpdate: ({ editor: ed }) => {
+      const text = ed.state.doc.textContent;
+      const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+      const chars = text.length;
+      notifyContentChanged(words, chars);
+    },
   });
+
+  // Register the TipTap editor instance in context so saveDraft/uploadImage
+  // can call editor.getJSON()
+  useEffect(() => {
+    registerEditor(editor ?? null);
+    return () => registerEditor(null);
+  }, [editor, registerEditor]);
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove));
@@ -137,6 +156,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          onBlur={handleTitleBlur}
           placeholder="Enter an inspiring title..."
           className="w-full bg-transparent text-4xl font-bold font-display text-[#1A1A1A] outline-none placeholder:text-[#9CA3AF] mb-8"
         />

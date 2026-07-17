@@ -1,47 +1,43 @@
 'use client';
 
-import React, { useRef } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
+import React from 'react';
 import { Clock, FileText, Hash } from 'lucide-react';
+import { useEditorDraft } from './EditorDraftContext';
 
 export function PublishingSettingsBox() {
-  const barRef = useRef<HTMLDivElement>(null);
-  
-  useGSAP(() => {
-    // Animate the progress bar width
-    if (barRef.current) {
-      gsap.fromTo(
-        barRef.current,
-        { width: '0%' },
-        { width: '98%', duration: 1.5, ease: 'power3.out', delay: 0.5 }
-      );
-    }
-  }, []);
+  const { wordCount, charCount, lastSavedAt, articleId } = useEditorDraft();
+
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+  const formatLastModified = () => {
+    if (!lastSavedAt) return 'Not saved yet';
+    return lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#6B7280]">Publishing Settings</h3>
-        <span className="rounded border border-[#22C55E]/30 bg-[#22C55E]/10 px-2 py-0.5 text-[10px] font-bold text-[#22C55E] uppercase tracking-wider">
-          Live
+        <span className="rounded border border-[#6B7280]/30 bg-[#F5F5F5] px-2 py-0.5 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+          Draft
         </span>
       </div>
 
-      {/* SEO Score Box */}
+      {/* Draft Status Box */}
       <div className="mb-8 rounded-lg bg-[#F5F5F5] p-5 border border-[#E5E7EB]">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">SEO Quality Score</span>
-          <span className="text-sm font-bold text-[#22C55E]">98/100</span>
+          <span className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">Draft Status</span>
+          <span className={`text-sm font-bold ${
+            articleId ? 'text-[#22C55E]' : 'text-[#9CA3AF]'
+          }`}>
+            {articleId ? 'Saved' : 'New'}
+          </span>
         </div>
-        
-        {/* Progress Bar Container */}
-        <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB] mt-3 mb-4">
-          <div ref={barRef} className="h-full bg-[#22C55E] rounded-full" />
-        </div>
-
-        <p className="text-xs text-[#6B7280] leading-relaxed">
-          ✨ Fully optimized! Excellent length, titles, and classifications for search discoverability.
+        <p className="text-xs text-[#6B7280] leading-relaxed mt-2">
+          {articleId
+            ? 'Your draft has been saved to the server. Changes are auto-saved after 3 seconds of inactivity.'
+            : 'Start writing to create a new draft. The draft will be saved when you set a title or upload an image.'
+          }
         </p>
       </div>
 
@@ -52,7 +48,7 @@ export function PublishingSettingsBox() {
             <FileText className="h-4 w-4" />
             <span className="text-sm font-medium">Words count</span>
           </div>
-          <span className="text-sm font-bold text-[#1A1A1A]">223</span>
+          <span className="text-sm font-bold text-[#1A1A1A]">{wordCount}</span>
         </div>
         
         <div className="flex items-center justify-between">
@@ -60,7 +56,7 @@ export function PublishingSettingsBox() {
             <Hash className="h-4 w-4" />
             <span className="text-sm font-medium">Characters count</span>
           </div>
-          <span className="text-sm font-bold text-[#1A1A1A]">1604</span>
+          <span className="text-sm font-bold text-[#1A1A1A]">{charCount}</span>
         </div>
 
         <div className="flex items-center justify-between">
@@ -68,19 +64,14 @@ export function PublishingSettingsBox() {
             <Clock className="h-4 w-4 text-[#CC0000]" />
             <span className="text-sm font-medium">Estimated Read Time</span>
           </div>
-          <span className="text-sm font-bold text-[#1A1A1A]">1 min</span>
+          <span className="text-sm font-bold text-[#1A1A1A]">{readTime} min</span>
         </div>
 
         <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
           <span className="text-sm font-medium text-[#6B7280]">Last Modified</span>
-          <span className="text-sm font-bold text-[#1A1A1A]">10:41 AM</span>
+          <span className="text-sm font-bold text-[#1A1A1A]">{formatLastModified()}</span>
         </div>
       </div>
-
-      <button className="mt-6 w-full flex items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white py-3 text-sm font-bold text-[#1A1A1A] hover:bg-[#F0F0F0] transition-colors shadow-sm">
-        <FileText className="h-4 w-4 text-[#6B7280]" />
-        Revert to Draft
-      </button>
     </div>
   );
 }

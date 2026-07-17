@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Lenis from 'lenis';
+import { EditorDraftProvider } from '@/components/editor/EditorDraftContext';
 import { EditorHeader } from '@/components/editor/EditorHeader';
 import { DraftManagerSidebar } from '@/components/editor/DraftManagerSidebar';
 import { ComposerView } from '@/components/editor/ComposerView';
@@ -41,30 +42,32 @@ export default function EditorWorkspacePage() {
   }, []);
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F5F5F5]">
-      <EditorHeader mode={mode} setMode={setMode} />
-      
-      <div className="flex flex-1 overflow-hidden">
-        <DraftManagerSidebar 
-          isOpen={isSidebarOpen} 
-          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
-        />
+    <EditorDraftProvider>
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F5F5F5]">
+        <EditorHeader mode={mode} setMode={setMode} />
         
-        <main className="flex-1 overflow-y-auto relative z-0" id="editor-scroll-container">
-          <div className="min-h-full">
-            {mode === 'compose' ? (
-              <ComposerView onOpenImageEmbed={() => setIsImageModalOpen(true)} />
-            ) : (
-              <ReadingPreview />
-            )}
-          </div>
-        </main>
-      </div>
+        <div className="flex flex-1 overflow-hidden">
+          <DraftManagerSidebar 
+            isOpen={isSidebarOpen} 
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          />
+          
+          <main className="flex-1 overflow-y-auto relative z-0" id="editor-scroll-container">
+            <div className="min-h-full">
+              {mode === 'compose' ? (
+                <ComposerView onOpenImageEmbed={() => setIsImageModalOpen(true)} />
+              ) : (
+                <ReadingPreview />
+              )}
+            </div>
+          </main>
+        </div>
 
-      <ImageEmbedModal 
-        isOpen={isImageModalOpen} 
-        onClose={() => setIsImageModalOpen(false)} 
-      />
-    </div>
+        <ImageEmbedModal 
+          isOpen={isImageModalOpen} 
+          onClose={() => setIsImageModalOpen(false)} 
+        />
+      </div>
+    </EditorDraftProvider>
   );
 }

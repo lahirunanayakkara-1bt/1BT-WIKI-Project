@@ -3,7 +3,8 @@
 import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Save } from 'lucide-react';
+import { useEditorDraft } from './EditorDraftContext';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -11,19 +12,76 @@ interface EditorHeaderProps {
 }
 
 export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
+  const { saveStatus, lastSavedAt, lastError, saveDraft } = useEditorDraft();
   const statusDotRef = useRef<HTMLDivElement>(null);
 
+  // Animate the status dot based on save state
   useGSAP(() => {
-    // Pulse animation for the sync status dot
-    gsap.to(statusDotRef.current, {
-      opacity: 0.4,
-      scale: 1.2,
-      duration: 1,
-      repeat: -1,
-      yoyo: true,
-      ease: 'power1.inOut',
-    });
-  }, []);
+    if (!statusDotRef.current) return;
+
+    gsap.killTweensOf(statusDotRef.current);
+
+    if (saveStatus === 'saving') {
+      gsap.to(statusDotRef.current, {
+        opacity: 0.4,
+        scale: 1.3,
+        duration: 0.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut',
+      });
+    } else if (saveStatus === 'saved') {
+      gsap.to(statusDotRef.current, {
+        opacity: 0.4,
+        scale: 1.2,
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut',
+      });
+    } else {
+      // idle or error — no pulse
+      gsap.set(statusDotRef.current, { opacity: 1, scale: 1 });
+    }
+  }, [saveStatus]);
+
+  const getStatusDotColor = () => {
+    switch (saveStatus) {
+      case 'saving':
+        return 'bg-[#EAB308]';
+      case 'saved':
+        return 'bg-[#22C55E]';
+      case 'error':
+        return 'bg-[#EF4444]';
+      default:
+        return 'bg-[#9CA3AF]';
+    }
+  };
+
+  const getStatusText = () => {
+    switch (saveStatus) {
+      case 'saving':
+        return 'Saving...';
+      case 'saved': {
+        if (lastSavedAt) {
+          return `Draft saved at ${lastSavedAt.toLocaleTimeString()}`;
+        }
+        return 'Draft saved';
+      }
+      case 'error':
+        return 'Save failed';
+      default:
+        return 'Unsaved';
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      await saveDraft();
+    } catch {
+      // Error state is already set in context
+    }
+  };
 
   return (
     <header className="flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] bg-white px-6 shrink-0 relative z-20 shadow-sm">
@@ -47,8 +105,13 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
         </button>
 
         <div className="flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#F5F5F5] px-3 py-1">
-          <div ref={statusDotRef} className="h-2 w-2 rounded-full bg-[#22C55E]" />
-          <span className="text-xs font-medium text-[#6B7280]">Draft Saved at 10:41:11 AM</span>
+          <div ref={statusDotRef} className={`h-2 w-2 rounded-full ${getStatusDotColor()}`} />
+          <span
+            className="text-xs font-medium text-[#6B7280] max-w-[200px] truncate"
+            title={saveStatus === 'error' && lastError ? lastError : undefined}
+          >
+            {getStatusText()}
+          </span>
         </div>
       </div>
 
@@ -85,15 +148,14 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
           </button>
         </div>
 
-        <button className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#1A1A1A] hover:bg-[#F0F0F0] transition-colors shadow-sm">
-          <svg className="h-4 w-4 text-[#6B7280]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          Revert to Draft
+        {/* Save Draft button (Correction 3: replaces the removed "Revert to Draft") */}
+        <button
+          onClick={handleSaveDraft}
+          disabled={saveStatus === 'saving'}
+          className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#1A1A1A] hover:bg-[#F0F0F0] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Save className="h-4 w-4 text-[#6B7280]" />
+          Save Draft
         </button>
 
         <button className="rounded-lg bg-[#CC0000] px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors">
