@@ -7,6 +7,7 @@ import { useGSAP } from '@gsap/react';
 import { authClient } from '@/lib/auth/client';
 import { UserAvatar } from '../UserAvatar';
 import { useUser } from '@/lib/hooks/useUser';
+import { isE2E } from '@/lib/e2e';
 
 interface NavItem {
   label: string;
@@ -101,6 +102,7 @@ export function Sidebar(): React.JSX.Element {
       : 'sidebar-item relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#9CA3AF] hover:bg-white/5 hover:text-white';
 
   useGSAP(() => {
+    if (isE2E()) return;
     // [GSAP] Sidebar Menu load Staggered fade-in + slide-right on initial load (stagger: 0.08s)
     gsap.from('.sidebar-item', {
       x: -20,
