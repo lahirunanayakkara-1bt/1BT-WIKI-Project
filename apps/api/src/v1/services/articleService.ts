@@ -133,15 +133,7 @@ const updateArticle = async (
     validateImages(images);
   }
 
-  const article = await ArticleRepository.findById(id);
-  
-  if (!article) {
-    throw new AppError('Article not found', 404);
-  }
-
-  if (article.authorId !== userId) {
-    throw new AppError('Only the author can edit this article', 403);
-  }
+  const article = await findOwned(id, userId);
 
   let isEditable = false;
   let resetToDraft = false;
@@ -189,4 +181,35 @@ const updateArticle = async (
   };
 };
 
-export default { createArticle, updateArticle };
+const findOwned = async (articleId: string, userId: string): Promise<Article> => {
+  const article = await ArticleRepository.findById(articleId);
+  
+  if (!article) {
+    throw new AppError('Article not found', 404);
+  }
+
+  if (article.authorId !== userId) {
+    throw new AppError('Only the author can edit this article', 403);
+  }
+
+  return article;
+};
+
+const assertTransition = (currentStatus: string, targetStatus: string): void => {
+  if (currentStatus === 'Draft' && targetStatus === 'Pending') {
+    return;
+  }
+  
+  throw new AppError(`Cannot transition from ${currentStatus} to ${targetStatus}`, 400);
+};
+
+const submitForReview = async (articleId: string, userId: string): Promise<Article> => {
+  const article = await findOwned(articleId, userId);
+  
+  assertTransition(article.status, 'Pending');
+  
+  return ArticleRepository.updateStatus(articleId, 'Pending');
+};
+
+export default { createArticle, updateArticle, submitForReview };
+

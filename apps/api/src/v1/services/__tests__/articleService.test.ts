@@ -8,6 +8,7 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
     create: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
+    updateStatus: jest.fn(),
   },
 }));
 
@@ -286,5 +287,48 @@ describe('ArticleService.updateArticle', () => {
       ...existingArticle,
       attachments: [createdAttachment],
     });
+  });
+});
+
+describe('ArticleService.submitForReview', () => {
+  const authorId = 'user-123';
+  const articleId = 'article-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw AppError if article is not found', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(ArticleService.submitForReview(articleId, authorId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+  });
+
+  it('should throw AppError if user is not the author', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({ authorId: 'other-user' });
+
+    await expect(ArticleService.submitForReview(articleId, authorId))
+      .rejects.toThrow(new AppError('Only the author can edit this article', 403));
+  });
+
+  it('should throw AppError if article status is not Draft', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({ authorId, status: 'Pending' });
+
+    await expect(ArticleService.submitForReview(articleId, authorId))
+      .rejects.toThrow(new AppError('Cannot transition from Pending to Pending', 400));
+  });
+
+  it('should submit article for review successfully', async () => {
+    const existingArticle = { id: articleId, authorId, status: 'Draft' };
+    const updatedArticle = { ...existingArticle, status: 'Pending' };
+    
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(existingArticle);
+    (ArticleRepository.updateStatus as jest.Mock<any>).mockResolvedValue(updatedArticle);
+
+    const result = await ArticleService.submitForReview(articleId, authorId);
+
+    expect(ArticleRepository.updateStatus).toHaveBeenCalledWith(articleId, 'Pending');
+    expect(result).toEqual(updatedArticle);
   });
 });

@@ -67,4 +67,14 @@ const update = async (
   return result as unknown as Article;
 };
 
-export default { create, findById, update };
+const updateStatus = async (id: string, status: string): Promise<Article> => {
+  const result = await prisma.article.update({
+    where: { id },
+    data: { status: status as any },
+    select: ARTICLE_SELECT,
+  });
+
+  return result as unknown as Article;
+};
+
+export default { create, findById, update, updateStatus };
