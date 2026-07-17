@@ -16,3 +16,8 @@ export interface CreateCommentInput {
   createdBy: string;
   body: string;
 }
+
+export interface CommentWithAuthor extends Comment {
+  authorName: string;
+  authorImage: string | null;
+}

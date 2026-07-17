@@ -10,6 +10,7 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
 jest.unstable_mockModule('../../repositories/commentRepository.js', () => ({
   default: {
     create: jest.fn(),
+    findByArticleId: jest.fn(),
   },
 }));
 
@@ -114,5 +115,62 @@ describe('CommentService.addComment', () => {
     await CommentService.addComment(articleId, authorId, 'Nice article');
 
     expect(NotificationService.send).not.toHaveBeenCalled();
+  });
+});
+
+describe('CommentService.listComments', () => {
+  const articleId = 'article-123';
+  const requesterId = 'user-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw AppError if article is not found', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(CommentService.listComments(articleId, requesterId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+  });
+
+  it('should throw AppError if article is not Published and requester is not its author', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({
+      id: articleId,
+      authorId: 'other-user',
+      status: 'Draft',
+    });
+
+    await expect(CommentService.listComments(articleId, requesterId))
+      .rejects.toThrow(new AppError('Cannot view comments on this article', 403));
+  });
+
+  it('should return comments if article is not Published but requester is its author', async () => {
+    const comments = [{ id: 'comment-1', authorName: 'Jane', authorImage: null }];
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({
+      id: articleId,
+      authorId: requesterId,
+      status: 'Draft',
+    });
+    (CommentRepository.findByArticleId as jest.Mock<any>).mockResolvedValue(comments);
+
+    const result = await CommentService.listComments(articleId, requesterId);
+
+    expect(CommentRepository.findByArticleId).toHaveBeenCalledWith(articleId);
+    expect(result).toEqual(comments);
+  });
+
+  it('should return comments for a Published article regardless of requester', async () => {
+    const comments = [{ id: 'comment-1', authorName: 'Jane', authorImage: 'https://example.com/pic.png' }];
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({
+      id: articleId,
+      authorId: 'other-user',
+      status: 'Published',
+    });
+    (CommentRepository.findByArticleId as jest.Mock<any>).mockResolvedValue(comments);
+
+    const result = await CommentService.listComments(articleId, requesterId);
+
+    expect(CommentRepository.findByArticleId).toHaveBeenCalledWith(articleId);
+    expect(result).toEqual(comments);
   });
 });

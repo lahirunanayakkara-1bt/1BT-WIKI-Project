@@ -5,6 +5,7 @@ import { AppError } from '../../../errors/AppError.js';
 jest.unstable_mockModule('../../services/commentService.js', () => ({
   default: {
     addComment: jest.fn(),
+    listComments: jest.fn(),
   },
 }));
 
@@ -63,6 +64,62 @@ describe('CommentController.create', () => {
     (mockCommentService.addComment as jest.Mock<any>).mockRejectedValue(error);
 
     await controller.create(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
+});
+
+describe('CommentController.list', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: jest.Mock<any>;
+
+  beforeEach(() => {
+    req = {
+      params: { id: 'article-123' },
+      user: { userId: 'user-123' } as any,
+    };
+    res = {
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn() as any,
+    };
+    next = jest.fn();
+    jest.clearAllMocks();
+  });
+
+  it('should call CommentService.listComments and return 200 with success response', async () => {
+    const comments = [
+      {
+        id: 'comment-123',
+        articleId: 'article-123',
+        createdBy: 'user-456',
+        body: 'Nice article',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authorName: 'Jane',
+        authorImage: null,
+      },
+    ];
+
+    (mockCommentService.listComments as jest.Mock<any>).mockResolvedValue(comments);
+
+    await controller.list(req as Request, res as Response, next);
+
+    expect(mockCommentService.listComments).toHaveBeenCalledWith('article-123', 'user-123');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: comments,
+      message: 'Comments retrieved successfully',
+    });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should pass errors from CommentService to next', async () => {
+    const error = new AppError('Cannot view comments on this article', 403);
+    (mockCommentService.listComments as jest.Mock<any>).mockRejectedValue(error);
+
+    await controller.list(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalledWith(error);
   });

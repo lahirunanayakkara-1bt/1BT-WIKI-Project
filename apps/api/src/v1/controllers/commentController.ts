@@ -22,4 +22,23 @@ const create = async (
   }
 };
 
-export default { create };
+const list = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id: articleId } = req.params;
+    // req.user is guaranteed to exist because of authenticate middleware
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const requesterId = req.user!.userId;
+
+    const comments = await CommentService.listComments(articleId, requesterId);
+
+    res.status(200).json(successResponse(comments, 'Comments retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { create, list };

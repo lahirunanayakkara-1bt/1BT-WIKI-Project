@@ -7,7 +7,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
     user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
     article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    comment: { create: jest.fn() },
+    comment: { create: jest.fn(), findMany: jest.fn() },
   }
 }));
 
@@ -46,6 +46,7 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
 await jest.unstable_mockModule('../../repositories/commentRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    findByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue([]),
   },
 }));
 
@@ -63,6 +64,7 @@ const { default: NotificationRepository } = await import('../../repositories/not
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockCreateComment = CommentRepository.create as jest.Mock<any>;
+const mockFindByArticleId = CommentRepository.findByArticleId as jest.Mock<any>;
 const mockCreateNotification = NotificationRepository.create as jest.Mock<any>;
 
 const userHeaders = {
@@ -151,6 +153,88 @@ describe('Comments API Integration', () => {
       expect(mockCreateNotification).toHaveBeenCalledWith(
         expect.objectContaining({ recipientId: 'other-user', notificationReferenceType: 'comment' })
       );
+    });
+  });
+
+  describe('GET /api/v1/articles/:id/comments', () => {
+    const articleId = 'article-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).get(`/api/v1/articles/${articleId}/comments`);
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 if article not found', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}/comments`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if article is not Published and requester is not its author', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}/comments`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 200 if article is not Published but requester is its author', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'user-123', status: 'Draft' });
+      mockFindByArticleId.mockResolvedValueOnce([]);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}/comments`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+    });
+
+    it('should return 200 with comments in chronological order including author name and image', async () => {
+      const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+      const comments = [
+        {
+          id: 'comment-1',
+          articleId,
+          createdBy: 'user-123',
+          body: 'First comment',
+          createdAt: new Date('2026-07-01T00:00:00Z'),
+          updatedAt: new Date('2026-07-01T00:00:00Z'),
+          authorName: 'Jane Doe',
+          authorImage: 'https://example.com/pic.png',
+        },
+        {
+          id: 'comment-2',
+          articleId,
+          createdBy: 'other-user',
+          body: 'Second comment',
+          createdAt: new Date('2026-07-02T00:00:00Z'),
+          updatedAt: new Date('2026-07-02T00:00:00Z'),
+          authorName: 'No Picture User',
+          authorImage: null,
+        },
+      ];
+
+      mockFindById.mockResolvedValueOnce(article);
+      mockFindByArticleId.mockResolvedValueOnce(comments);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}/comments`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.data[0].authorName).toBe('Jane Doe');
+      expect(response.body.data[0].authorImage).toBe('https://example.com/pic.png');
+      expect(response.body.data[1].authorName).toBe('No Picture User');
+      expect(response.body.data[1].authorImage).toBeNull();
     });
   });
 });

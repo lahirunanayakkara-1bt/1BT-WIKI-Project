@@ -2,7 +2,7 @@ import ArticleRepository from '../repositories/articleRepository.js';
 import CommentRepository from '../repositories/commentRepository.js';
 import NotificationService from './notificationService.js';
 import { AppError } from '../../errors/AppError.js';
-import type { Comment } from '../types/comment.types.js';
+import type { Comment, CommentWithAuthor } from '../types/comment.types.js';
 
 const validateBody = (body: string | undefined): string => {
   if (!body || body.trim() === '') {
@@ -55,4 +55,21 @@ const addComment = async (
   return comment;
 };
 
-export default { addComment };
+const listComments = async (
+  articleId: string,
+  requesterId: string
+): Promise<CommentWithAuthor[]> => {
+  const article = await ArticleRepository.findById(articleId);
+
+  if (!article) {
+    throw new AppError('Article not found', 404);
+  }
+
+  if (article.status !== 'Published' && article.authorId !== requesterId) {
+    throw new AppError('Cannot view comments on this article', 403);
+  }
+
+  return CommentRepository.findByArticleId(articleId);
+};
+
+export default { addComment, listComments };
