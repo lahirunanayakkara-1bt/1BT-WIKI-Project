@@ -10,4 +10,4 @@
 export { prisma, default } from './client.js';
 
 // Re-export all Prisma-generated types, enums, and the Prisma namespace
-export * from './generated/prisma/client.js';
+export * from '@repo/db/generated/prisma/client.js';
