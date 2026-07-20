@@ -204,3 +204,22 @@ const statusColors: Record<ArticleStatus, string> = {
   Rejected: 'bg-red-100 text-red-700',
 };
 ```
+
+## Long className strings
+
+When a className attribute mixes static classes with a conditional (ternary or `${}` template literal) and the resulting line becomes hard to read, prefer extracting the conditional part into a small named variable above the JSX, e.g.:
+
+```tsx
+// ✅ Correct
+const checkboxClasses = checked
+  ? 'bg-[#CC0000] border-[#CC0000]'
+  : 'bg-white border-[#E5E7EB] group-hover:border-[#CC0000]/50';
+
+<div className={`w-5 h-5 rounded flex items-center justify-center transition-colors border ${checkboxClasses}`}>
+  {/* ... */}
+</div>
+```
+
+This project does NOT currently have a `cn()` utility (`clsx` + `tailwind-merge`) installed. Do not import, reference, or assume `cn()` exists in generated code until this rule is explicitly updated to say otherwise — a team decision on adopting `cn()` is pending as of July 20, 2026, see PR review discussion on `FeaturedMediaBox.tsx`.
+
+If `cn()` is adopted in the future, this section should be updated to reference it instead of the manual-variable-extraction pattern above.
