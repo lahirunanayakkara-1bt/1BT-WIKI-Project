@@ -1,8 +1,13 @@
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from 'express';
-import { ArticleController } from '../articleController.js';
 import type { ArticleService } from '../../services/articleService.js';
 import { AppError } from '../../../errors/AppError.js';
+
+jest.unstable_mockModule('../../services/articleService.js', () => ({
+  ArticleService: jest.fn(),
+}));
+
+const { ArticleController } = await import('../articleController.js');
 
 // Build a typed mock service object — injected directly into the controller.
 const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'getPublishedById'>> => ({
@@ -18,7 +23,7 @@ describe('ArticleController', () => {
   let res: Partial<Response>;
   let next: jest.Mock<any>;
   let mockService: ReturnType<typeof makeMockService>;
-  let controller: ArticleController;
+  let controller: InstanceType<typeof ArticleController>;;
 
   beforeEach(() => {
     req = {

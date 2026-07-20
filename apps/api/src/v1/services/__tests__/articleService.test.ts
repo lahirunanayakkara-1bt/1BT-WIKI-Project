@@ -4,6 +4,31 @@ import { AppError } from '../../../errors/AppError.js';
 import type { ArticleRepository } from '../../repositories/articleRepository.js';
 
 // Side-effect dependencies that aren't injected — still mock via module system
+jest.unstable_mockModule('../../repositories/articleRepository.js', () => {
+  const mockCreate = jest.fn();
+  const mockFindById = jest.fn();
+  const mockUpdate = jest.fn();
+  const mockUpdateStatus = jest.fn();
+  const mockFindPublished = jest.fn();
+
+  return {
+    default: {
+      create: mockCreate,
+      findById: mockFindById,
+      update: mockUpdate,
+      updateStatus: mockUpdateStatus,
+      findPublished: mockFindPublished,
+    },
+    ArticleRepository: jest.fn().mockImplementation(() => ({
+      create: mockCreate,
+      findById: mockFindById,
+      update: mockUpdate,
+      updateStatus: mockUpdateStatus,
+      findPublished: mockFindPublished,
+    })),
+  };
+});
+
 jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => {
   const mockFindLatest = jest.fn();
   return {
