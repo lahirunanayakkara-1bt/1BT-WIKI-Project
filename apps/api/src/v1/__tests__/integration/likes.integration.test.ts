@@ -7,7 +7,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
     user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
     article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    like: { upsert: jest.fn() },
+    like: { upsert: jest.fn(), deleteMany: jest.fn() },
   }
 }));
 
@@ -46,6 +46,7 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
 await jest.unstable_mockModule('../../repositories/likeRepository.js', () => ({
   default: {
     upsert: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    remove: jest.fn<() => Promise<unknown>>().mockResolvedValue(undefined),
   },
 }));
 
@@ -63,6 +64,7 @@ const { default: NotificationRepository } = await import('../../repositories/not
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockUpsertLike = LikeRepository.upsert as jest.Mock<any>;
+const mockRemoveLike = LikeRepository.remove as jest.Mock<any>;
 const mockCreateNotification = NotificationRepository.create as jest.Mock<any>;
 
 const userHeaders = {
@@ -150,6 +152,65 @@ describe('Likes API Integration', () => {
       expect(first.status).toBe(200);
       expect(second.status).toBe(200);
       expect(mockUpsertLike).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('DELETE /api/v1/articles/:id/like', () => {
+    const articleId = 'article-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/like`);
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 if article not found', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/like`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should unlike the article', async () => {
+      const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+
+      mockFindById.mockResolvedValueOnce(article);
+      mockRemoveLike.mockResolvedValueOnce(undefined);
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/like`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        data: { liked: false },
+        message: 'Article unliked successfully',
+      });
+      expect(mockRemoveLike).toHaveBeenCalledWith(articleId, 'user-123');
+    });
+
+    it('should return 200 idempotently when unliking twice in a row', async () => {
+      const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+
+      mockFindById.mockResolvedValue(article);
+      mockRemoveLike.mockResolvedValue(undefined);
+
+      const first = await request(app)
+        .delete(`/api/v1/articles/${articleId}/like`)
+        .set(userHeaders);
+
+      const second = await request(app)
+        .delete(`/api/v1/articles/${articleId}/like`)
+        .set(userHeaders);
+
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(200);
+      expect(mockRemoveLike).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -10,6 +10,7 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
 jest.unstable_mockModule('../../repositories/likeRepository.js', () => ({
   default: {
     upsert: jest.fn(),
+    remove: jest.fn(),
   },
 }));
 
@@ -99,5 +100,47 @@ describe('LikeService.likeArticle', () => {
     expect(LikeRepository.upsert).toHaveBeenCalledTimes(2);
     expect(LikeRepository.upsert).toHaveBeenNthCalledWith(1, articleId, userId);
     expect(LikeRepository.upsert).toHaveBeenNthCalledWith(2, articleId, userId);
+  });
+});
+
+describe('LikeService.unlikeArticle', () => {
+  const articleId = 'article-123';
+  const userId = 'user-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw AppError if article is not found', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(LikeService.unlikeArticle(articleId, userId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+  });
+
+  it('should remove the like without sending a notification', async () => {
+    const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
+    (LikeRepository.remove as jest.Mock<any>).mockResolvedValue(undefined);
+
+    await LikeService.unlikeArticle(articleId, userId);
+
+    expect(LikeRepository.remove).toHaveBeenCalledWith(articleId, userId);
+    expect(NotificationService.send).not.toHaveBeenCalled();
+  });
+
+  it('should not throw when unliking the same article twice (idempotent)', async () => {
+    const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
+    (LikeRepository.remove as jest.Mock<any>).mockResolvedValue(undefined);
+
+    await LikeService.unlikeArticle(articleId, userId);
+    await LikeService.unlikeArticle(articleId, userId);
+
+    expect(LikeRepository.remove).toHaveBeenCalledTimes(2);
+    expect(LikeRepository.remove).toHaveBeenNthCalledWith(1, articleId, userId);
+    expect(LikeRepository.remove).toHaveBeenNthCalledWith(2, articleId, userId);
   });
 });

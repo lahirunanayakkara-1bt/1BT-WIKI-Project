@@ -11,4 +11,10 @@ const upsert = async (articleId: string, userId: string): Promise<Like> => {
   return result as unknown as Like;
 };
 
-export default { upsert };
+const remove = async (articleId: string, userId: string): Promise<void> => {
+  await prisma.like.deleteMany({
+    where: { articleId, userId },
+  });
+};
+
+export default { upsert, remove };

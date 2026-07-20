@@ -21,4 +21,23 @@ const like = async (
   }
 };
 
-export default { like };
+const unlike = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id: articleId } = req.params;
+    // req.user is guaranteed to exist because of authenticate middleware
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const userId = req.user!.userId;
+
+    await LikeService.unlikeArticle(articleId, userId);
+
+    res.status(200).json(successResponse({ liked: false }, 'Article unliked successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { like, unlike };

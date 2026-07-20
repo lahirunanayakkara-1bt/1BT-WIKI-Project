@@ -30,4 +30,14 @@ const likeArticle = async (articleId: string, userId: string): Promise<void> => 
   }
 };
 
-export default { likeArticle };
+const unlikeArticle = async (articleId: string, userId: string): Promise<void> => {
+  const article = await ArticleRepository.findById(articleId);
+
+  if (!article) {
+    throw new AppError('Article not found', 404);
+  }
+
+  await LikeRepository.remove(articleId, userId);
+};
+
+export default { likeArticle, unlikeArticle };

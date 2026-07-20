@@ -17,6 +17,9 @@ router.patch('/:id', authenticate, upload.array('images'), ArticleController.upd
 // POST /api/v1/articles/:id/like — Like a published article (idempotent)
 router.post('/:id/like', authenticate, LikeController.like);
 
+// DELETE /api/v1/articles/:id/like — Unlike a previously liked article (idempotent)
+router.delete('/:id/like', authenticate, LikeController.unlike);
+
 // /api/v1/articles/:id/comments — Comments on an article
 router.use('/:id/comments', commentsRoutes);
 
