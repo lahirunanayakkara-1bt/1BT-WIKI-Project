@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth/client';
+import { BRAND_FULL_NAME, BRAND_NAME } from '@/lib/constants/brand';
 
 function SignInContent() {
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +58,7 @@ function SignInContent() {
                 Knowledge hub
               </p>
               <h2 className="text-3xl font-semibold text-white">
-                Welcome to 1BT WIKI
+                Welcome to {BRAND_FULL_NAME}
               </h2>
               <p className="max-w-md text-sm leading-6 text-white/80">
                 Browse internal guides, articles, and team knowledge once you sign in.
@@ -93,7 +94,7 @@ function SignInContent() {
                       <h3 className="text-sm font-medium text-red-800">Access Denied</h3>
                       <div className="mt-1 text-sm text-red-700">
                         <p>
-                          Please sign in using your verified 1BT company email address.
+                          Please sign in using your verified {BRAND_NAME} company email address.
                         </p>
                       </div>
                       <div className="mt-3">

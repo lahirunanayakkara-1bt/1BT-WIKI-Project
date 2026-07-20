@@ -6,6 +6,7 @@ import { useGSAP } from '@gsap/react';
 import { ChevronLeft, Save } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
+import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -61,9 +62,9 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
         <div className="flex items-center gap-4 border-r border-[#E5E7EB] pr-6">
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <div className="h-10 w-10 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0 shadow-sm">
-              <span className="text-white text-xs font-black leading-none">1BT</span>
+              <span className="text-white text-xs font-black leading-none">{BRAND_NAME}</span>
             </div>
-            <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">WIKI</span>
+            <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">{BRAND_SUB_NAME}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9CA3AF]">
