@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { UserAvatar } from '../UserAvatar';
 import { isE2E } from '@/lib/e2e';
+import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 
 interface NavbarProps {
   notificationCount?: number;
@@ -87,9 +88,9 @@ export function Navbar({
         data-testid="logo"
       >
         <div className="h-10 w-10 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-black leading-none">1BT</span>
+          <span className="text-white text-xs font-black leading-none">{BRAND_NAME}</span>
         </div>
-        <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">WIKI</span>
+        <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">{BRAND_SUB_NAME}</span>
       </div>
 
       <div className="flex-1 px-4">

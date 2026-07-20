@@ -4,8 +4,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
+import { BRAND_FULL_NAME } from '@/lib/constants/brand';
+
 export const metadata: Metadata = {
-  title: '1BT WIKI',
+  title: BRAND_FULL_NAME,
   description: '1Billion Technology Internal Knowledge Base',
 };
 
