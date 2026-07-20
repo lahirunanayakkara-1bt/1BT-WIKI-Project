@@ -9,7 +9,8 @@ import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
 import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
-import { SaveDraftToast } from './SaveDraftToast';
+import { SuccessToast } from '../shared/SuccessToast';
+import { ConfirmationModal } from '../shared/ConfirmationModal';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -17,9 +18,12 @@ interface EditorHeaderProps {
 }
 
 export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
-  const { saveStatus, lastSavedAt, lastError, saveDraft } = useEditorDraft();
+  const { articleStatus, saveStatus, lastSavedAt, lastError, saveDraft, submitForReview } = useEditorDraft();
   const statusDotRef = useRef<HTMLDivElement>(null);
   const { isVisible: isToastVisible, message: toastMessage, showToast } = useAutoDismissToast();
+  
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Animate the status dot based on save state
   useGSAP(() => {
@@ -58,6 +62,20 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
       showToast(DRAFT_SAVED_MESSAGE);
     } catch {
       // Error state is already set in context
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    setIsSubmitting(true);
+    try {
+      await submitForReview();
+      setIsConfirmModalOpen(false);
+      showToast('Submitted for review');
+    } catch (error) {
+      // Error state is already set in context (status pill handles it)
+      setIsConfirmModalOpen(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -139,12 +157,25 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
           Save Draft
         </button>
 
-        <button className="rounded-lg bg-[#CC0000] px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors">
-          Publish Article
+        <button
+          onClick={() => setIsConfirmModalOpen(true)}
+          disabled={saveStatus === 'saving' || (articleStatus !== null && articleStatus !== 'Draft')}
+          className="rounded-lg bg-[#CC0000] px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors"
+        >
+          Submit for Review
         </button>
       </div>
       </header>
-      <SaveDraftToast visible={isToastVisible} message={toastMessage} />
+      <SuccessToast visible={isToastVisible} message={toastMessage} />
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        title="Submit for Review"
+        message="Are you sure you want to submit this article for review?"
+        confirmText="Submit"
+        onConfirm={handleSubmitForReview}
+        onCancel={() => setIsConfirmModalOpen(false)}
+        isConfirming={isSubmitting}
+      />
     </>
   );
 }

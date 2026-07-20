@@ -6,12 +6,12 @@ import { useGSAP } from '@gsap/react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface SaveDraftToastProps {
+interface SuccessToastProps {
   visible: boolean;
   message: string;
 }
 
-export function SaveDraftToast({ visible, message }: SaveDraftToastProps) {
+export function SuccessToast({ visible, message }: SuccessToastProps) {
   const toastRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -39,7 +39,7 @@ export function SaveDraftToast({ visible, message }: SaveDraftToastProps) {
   return (
     <div
       ref={toastRef}
-      data-testid="save-draft-toast"
+      data-testid="success-toast"
       className={cn(
         'fixed bottom-6 right-6 z-50 flex items-center gap-3',
         'rounded-lg bg-brand-dark px-4 py-3 text-white shadow-xl',
