@@ -79,4 +79,19 @@ const updateStatus = async (id: string, status: ArticleStatus): Promise<Article>
   return result as unknown as Article;
 };
 
-export default { create, findById, update, updateStatus };
+const findPublished = async (page: number, limit: number): Promise<{ articles: any[]; total: number }> => {
+  const where = { status: 'Published' as const, deletedAt: null };
+  const [articles, total] = await Promise.all([
+    prisma.article.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: { _count: { select: { likes: true, comments: true } } },
+    }),
+    prisma.article.count({ where }),
+  ]);
+  return { articles, total };
+};
+
+export default { create, findById, update, updateStatus, findPublished };

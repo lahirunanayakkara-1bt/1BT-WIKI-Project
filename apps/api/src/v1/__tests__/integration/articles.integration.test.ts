@@ -40,6 +40,7 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
     findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
     update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    findPublished: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
@@ -70,6 +71,7 @@ const { default: ArticleReviewRepository } = await import('../../repositories/ar
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockUpdate = ArticleRepository.update as jest.Mock<any>;
 const mockUpdateStatus = ArticleRepository.updateStatus as jest.Mock<any>;
+const mockFindPublished = ArticleRepository.findPublished as jest.Mock<any>;
 const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
 
 const userHeaders = {
@@ -132,6 +134,59 @@ describe('Articles API Integration', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.title).toBe('New Title');
       expect(mockUpdate).toHaveBeenCalledWith(articleId, { title: 'New Title' });
+    });
+  });
+
+  describe('GET /api/v1/articles', () => {
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).get('/api/v1/articles');
+      expect(response.status).toBe(401);
+    });
+
+    it('should return published articles with default pagination', async () => {
+      const mockArticles = [
+        {
+          id: 'article-1',
+          title: 'Title 1',
+          authorId: 'user-1',
+          tags: ['test'],
+          status: 'Published',
+          createdAt: new Date('2023-01-01').toISOString(),
+          updatedAt: new Date('2023-01-01').toISOString(),
+          _count: { likes: 5, comments: 2 },
+        }
+      ];
+
+      mockFindPublished.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
+
+      const response = await request(app)
+        .get('/api/v1/articles')
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.articles).toHaveLength(1);
+      expect(response.body.data.articles[0].likeCount).toBe(5);
+      expect(response.body.data.articles[0].commentCount).toBe(2);
+      expect(response.body.data.total).toBe(1);
+      expect(response.body.data.page).toBe(1);
+      expect(response.body.data.limit).toBe(20);
+      
+      expect(mockFindPublished).toHaveBeenCalledWith(1, 20);
+    });
+
+    it('should respect custom page and limit query params', async () => {
+      mockFindPublished.mockResolvedValueOnce({ articles: [], total: 0 });
+
+      const response = await request(app)
+        .get('/api/v1/articles?page=3&limit=5')
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.page).toBe(3);
+      expect(response.body.data.limit).toBe(5);
+      
+      expect(mockFindPublished).toHaveBeenCalledWith(3, 5);
     });
   });
 

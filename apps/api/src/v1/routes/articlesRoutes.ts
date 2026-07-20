@@ -9,6 +9,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 // POST /api/v1/articles — Create a new article as Draft
 router.post('/', authenticate, upload.array('images'), ArticleController.create);
 
+// GET /api/v1/articles — List published articles
+router.get('/', authenticate, ArticleController.listPublished);
+
 // PATCH /api/v1/articles/:id — Update an existing article
 router.patch('/:id', authenticate, upload.array('images'), ArticleController.update);
 

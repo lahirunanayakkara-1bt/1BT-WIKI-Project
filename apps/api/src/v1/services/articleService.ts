@@ -6,7 +6,7 @@ import ArticleAttachmentRepository from '../repositories/articleAttachmentReposi
 import ArticleReviewRepository from '../repositories/articleReviewRepository.js';
 import b2Client from '../lib/b2Client.js';
 import { AppError } from '../../errors/AppError.js';
-import type { Article, CreateArticleInput, UpdateArticleInput, ArticleAttachment, JSONContent } from '../types/article.types.js';
+import type { Article, CreateArticleInput, UpdateArticleInput, ArticleAttachment, JSONContent, ArticleListItem } from '../types/article.types.js';
 
 type ArticleUpdateFields = Partial<Pick<article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
 
@@ -215,5 +215,26 @@ const submitForReview = async (articleId: string, userId: string): Promise<Artic
   return ArticleRepository.updateStatus(articleId, ArticleStatus.Pending);
 };
 
-export default { createArticle, updateArticle, submitForReview };
+const listPublished = async (
+  page: number = 1,
+  limit: number = 20
+): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> => {
+  const { articles, total } = await ArticleRepository.findPublished(page, limit);
+  
+  const mappedArticles: ArticleListItem[] = articles.map((article: any) => ({
+    id: article.id,
+    title: article.title,
+    authorId: article.authorId,
+    tags: article.tags,
+    status: article.status,
+    createdAt: article.createdAt,
+    updatedAt: article.updatedAt,
+    likeCount: article._count?.likes ?? 0,
+    commentCount: article._count?.comments ?? 0,
+  }));
+
+  return { articles: mappedArticles, total, page, limit };
+};
+
+export default { createArticle, updateArticle, submitForReview, listPublished };
 

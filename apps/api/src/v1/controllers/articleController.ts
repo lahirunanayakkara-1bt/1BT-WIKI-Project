@@ -79,4 +79,21 @@ const submitForReview = async (
   }
 };
 
-export default { create, update, submitForReview };
+const listPublished = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 20;
+
+    const result = await ArticleService.listPublished(page, limit);
+
+    res.status(200).json(successResponse(result, 'Articles retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { create, update, submitForReview, listPublished };
