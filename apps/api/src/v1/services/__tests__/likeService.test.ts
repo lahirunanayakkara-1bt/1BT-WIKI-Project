@@ -1,0 +1,103 @@
+import { jest } from '@jest/globals';
+import { AppError } from '../../../errors/AppError.js';
+
+jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+  default: {
+    findById: jest.fn(),
+  },
+}));
+
+jest.unstable_mockModule('../../repositories/likeRepository.js', () => ({
+  default: {
+    upsert: jest.fn(),
+  },
+}));
+
+jest.unstable_mockModule('../notificationService.js', () => ({
+  default: {
+    send: jest.fn(),
+  },
+}));
+
+const { default: LikeService } = await import('../likeService.js');
+const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
+const { default: LikeRepository } = await import('../../repositories/likeRepository.js');
+const { default: NotificationService } = await import('../notificationService.js');
+
+describe('LikeService.likeArticle', () => {
+  const articleId = 'article-123';
+  const userId = 'user-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (NotificationService.send as jest.Mock<any>).mockResolvedValue(undefined);
+  });
+
+  it('should throw AppError if article is not found', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(LikeService.likeArticle(articleId, userId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+  });
+
+  it.each(['Draft', 'Pending', 'Rejected', 'Unpublished'])(
+    'should throw AppError if article status is %s',
+    async (status) => {
+      (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({
+        id: articleId,
+        authorId: 'other-user',
+        title: 'Test Article',
+        status,
+      });
+
+      await expect(LikeService.likeArticle(articleId, userId))
+        .rejects.toThrow(new AppError('Cannot like this article', 403));
+    }
+  );
+
+  it('should like the article and notify the article author', async () => {
+    const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+    const like = { id: 'like-123', articleId, userId, createdAt: new Date() };
+
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
+    (LikeRepository.upsert as jest.Mock<any>).mockResolvedValue(like);
+
+    await LikeService.likeArticle(articleId, userId);
+
+    expect(LikeRepository.upsert).toHaveBeenCalledWith(articleId, userId);
+    expect(NotificationService.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipientId: 'other-user',
+        notificationReferenceType: 'like',
+        referenceId: 'like-123',
+      })
+    );
+  });
+
+  it('should not send a notification when the author likes their own article', async () => {
+    const article = { id: articleId, authorId: userId, title: 'Test Article', status: 'Published' };
+    const like = { id: 'like-123', articleId, userId, createdAt: new Date() };
+
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
+    (LikeRepository.upsert as jest.Mock<any>).mockResolvedValue(like);
+
+    await LikeService.likeArticle(articleId, userId);
+
+    expect(NotificationService.send).not.toHaveBeenCalled();
+  });
+
+  it('should not throw when liking the same article twice (idempotent)', async () => {
+    const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+    const like = { id: 'like-123', articleId, userId, createdAt: new Date() };
+
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
+    (LikeRepository.upsert as jest.Mock<any>).mockResolvedValue(like);
+
+    await LikeService.likeArticle(articleId, userId);
+    await LikeService.likeArticle(articleId, userId);
+
+    expect(LikeRepository.upsert).toHaveBeenCalledTimes(2);
+    expect(LikeRepository.upsert).toHaveBeenNthCalledWith(1, articleId, userId);
+    expect(LikeRepository.upsert).toHaveBeenNthCalledWith(2, articleId, userId);
+  });
+});
