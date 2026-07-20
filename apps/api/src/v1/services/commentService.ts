@@ -72,4 +72,24 @@ const listComments = async (
   return CommentRepository.findByArticleId(articleId);
 };
 
-export default { addComment, listComments };
+const updateComment = async (
+  commentId: string,
+  userId: string,
+  input: string | undefined
+): Promise<Comment> => {
+  const body = validateBody(input);
+
+  const comment = await CommentRepository.findById(commentId);
+
+  if (!comment) {
+    throw new AppError('Comment not found', 404);
+  }
+
+  if (comment.createdBy !== userId) {
+    throw new AppError('Only the comment owner can edit this comment', 403);
+  }
+
+  return CommentRepository.update(commentId, body);
+};
+
+export default { addComment, listComments, updateComment };

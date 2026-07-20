@@ -7,7 +7,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
     user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
     article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    comment: { create: jest.fn(), findMany: jest.fn() },
+    comment: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
   }
 }));
 
@@ -47,6 +47,8 @@ await jest.unstable_mockModule('../../repositories/commentRepository.js', () => 
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     findByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue([]),
+    findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+    update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
@@ -65,6 +67,8 @@ const { default: NotificationRepository } = await import('../../repositories/not
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockCreateComment = CommentRepository.create as jest.Mock<any>;
 const mockFindByArticleId = CommentRepository.findByArticleId as jest.Mock<any>;
+const mockFindCommentById = CommentRepository.findById as jest.Mock<any>;
+const mockUpdateComment = CommentRepository.update as jest.Mock<any>;
 const mockCreateNotification = NotificationRepository.create as jest.Mock<any>;
 
 const userHeaders = {
@@ -235,6 +239,91 @@ describe('Comments API Integration', () => {
       expect(response.body.data[0].authorImage).toBe('https://example.com/pic.png');
       expect(response.body.data[1].authorName).toBe('No Picture User');
       expect(response.body.data[1].authorImage).toBeNull();
+    });
+  });
+
+  describe('PATCH /api/v1/articles/:id/comments/:commentId', () => {
+    const articleId = 'article-123';
+    const commentId = 'comment-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .send({ body: 'Updated body' });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 400 if body is empty', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders)
+        .send({ body: '   ' });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 400 if body exceeds 5000 characters', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders)
+        .send({ body: 'a'.repeat(5001) });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 404 if comment is not found', async () => {
+      mockFindCommentById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .patch(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders)
+        .send({ body: 'Updated body' });
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if requester is not the comment owner', async () => {
+      mockFindCommentById.mockResolvedValueOnce({
+        id: commentId,
+        articleId,
+        createdBy: 'other-user',
+        body: 'Original body',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const response = await request(app)
+        .patch(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders)
+        .send({ body: 'Updated body' });
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should update the comment when requester is its owner', async () => {
+      const existingComment = {
+        id: commentId,
+        articleId,
+        createdBy: 'user-123',
+        body: 'Original body',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const updatedComment = { ...existingComment, body: 'Updated body' };
+
+      mockFindCommentById.mockResolvedValueOnce(existingComment);
+      mockUpdateComment.mockResolvedValueOnce(updatedComment);
+
+      const response = await request(app)
+        .patch(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders)
+        .send({ body: 'Updated body' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.body).toBe('Updated body');
+      expect(mockUpdateComment).toHaveBeenCalledWith(commentId, 'Updated body');
     });
   });
 });

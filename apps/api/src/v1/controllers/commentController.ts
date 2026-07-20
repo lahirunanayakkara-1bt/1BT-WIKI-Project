@@ -41,4 +41,24 @@ const list = async (
   }
 };
 
-export default { create, list };
+const update = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { commentId } = req.params;
+    // req.user is guaranteed to exist because of authenticate middleware
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const userId = req.user!.userId;
+    const body = req.body.body as string | undefined;
+
+    const comment = await CommentService.updateComment(commentId, userId, body);
+
+    res.status(200).json(successResponse(comment, 'Comment updated successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { create, list, update };

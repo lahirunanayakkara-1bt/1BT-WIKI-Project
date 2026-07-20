@@ -11,6 +11,8 @@ jest.unstable_mockModule('../../repositories/commentRepository.js', () => ({
   default: {
     create: jest.fn(),
     findByArticleId: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
   },
 }));
 
@@ -172,5 +174,66 @@ describe('CommentService.listComments', () => {
 
     expect(CommentRepository.findByArticleId).toHaveBeenCalledWith(articleId);
     expect(result).toEqual(comments);
+  });
+});
+
+describe('CommentService.updateComment', () => {
+  const commentId = 'comment-123';
+  const userId = 'user-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw AppError if body is missing or empty', async () => {
+    await expect(CommentService.updateComment(commentId, userId, '   '))
+      .rejects.toThrow(new AppError('Comment body is required and cannot be empty', 400));
+  });
+
+  it('should throw AppError if body exceeds 5000 characters', async () => {
+    const body = 'a'.repeat(5001);
+    await expect(CommentService.updateComment(commentId, userId, body))
+      .rejects.toThrow(new AppError('Comment cannot exceed 5000 characters', 400));
+  });
+
+  it('should throw AppError if comment is not found', async () => {
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(CommentService.updateComment(commentId, userId, 'Updated body'))
+      .rejects.toThrow(new AppError('Comment not found', 404));
+  });
+
+  it('should throw AppError if requester is not the comment owner', async () => {
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue({
+      id: commentId,
+      articleId: 'article-123',
+      createdBy: 'other-user',
+      body: 'Original body',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await expect(CommentService.updateComment(commentId, userId, 'Updated body'))
+      .rejects.toThrow(new AppError('Only the comment owner can edit this comment', 403));
+  });
+
+  it('should update the comment when requester is its owner', async () => {
+    const existingComment = {
+      id: commentId,
+      articleId: 'article-123',
+      createdBy: userId,
+      body: 'Original body',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const updatedComment = { ...existingComment, body: 'Updated body' };
+
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(existingComment);
+    (CommentRepository.update as jest.Mock<any>).mockResolvedValue(updatedComment);
+
+    const result = await CommentService.updateComment(commentId, userId, '  Updated body  ');
+
+    expect(CommentRepository.update).toHaveBeenCalledWith(commentId, 'Updated body');
+    expect(result).toEqual(updatedComment);
   });
 });

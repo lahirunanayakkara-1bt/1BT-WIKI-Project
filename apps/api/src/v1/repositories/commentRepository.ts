@@ -33,4 +33,23 @@ const findByArticleId = async (articleId: string): Promise<CommentWithAuthor[]> 
   })) as unknown as CommentWithAuthor[];
 };
 
-export default { create, findByArticleId };
+const findById = async (id: string): Promise<Comment | null> => {
+  const result = await prisma.comment.findFirst({
+    where: { id, deletedAt: null },
+    select: COMMENT_SELECT,
+  });
+
+  return result as unknown as Comment | null;
+};
+
+const update = async (id: string, body: string): Promise<Comment> => {
+  const result = await prisma.comment.update({
+    where: { id },
+    data: { body },
+    select: COMMENT_SELECT,
+  });
+
+  return result as unknown as Comment;
+};
+
+export default { create, findByArticleId, findById, update };

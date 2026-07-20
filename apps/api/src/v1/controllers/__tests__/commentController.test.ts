@@ -6,6 +6,7 @@ jest.unstable_mockModule('../../services/commentService.js', () => ({
   default: {
     addComment: jest.fn(),
     listComments: jest.fn(),
+    updateComment: jest.fn(),
   },
 }));
 
@@ -120,6 +121,63 @@ describe('CommentController.list', () => {
     (mockCommentService.listComments as jest.Mock<any>).mockRejectedValue(error);
 
     await controller.list(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
+});
+
+describe('CommentController.update', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: jest.Mock<any>;
+
+  beforeEach(() => {
+    req = {
+      params: { commentId: 'comment-123' },
+      body: {},
+      user: { userId: 'user-123' } as any,
+    };
+    res = {
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn() as any,
+    };
+    next = jest.fn();
+    jest.clearAllMocks();
+  });
+
+  it('should call CommentService.updateComment and return 200 with success response', async () => {
+    req.body = { body: 'Updated body' };
+
+    const updatedComment = {
+      id: 'comment-123',
+      articleId: 'article-123',
+      createdBy: 'user-123',
+      body: 'Updated body',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    (mockCommentService.updateComment as jest.Mock<any>).mockResolvedValue(updatedComment);
+
+    await controller.update(req as Request, res as Response, next);
+
+    expect(mockCommentService.updateComment).toHaveBeenCalledWith('comment-123', 'user-123', 'Updated body');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: updatedComment,
+      message: 'Comment updated successfully',
+    });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should pass errors from CommentService to next', async () => {
+    req.body = { body: 'Updated body' };
+
+    const error = new AppError('Only the comment owner can edit this comment', 403);
+    (mockCommentService.updateComment as jest.Mock<any>).mockRejectedValue(error);
+
+    await controller.update(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalledWith(error);
   });
