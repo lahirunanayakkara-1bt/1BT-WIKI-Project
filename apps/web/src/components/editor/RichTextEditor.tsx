@@ -6,6 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Image as ImageIcon, Undo, Redo, X } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
+import { POPULAR_TAGS } from './data';
 
 interface RichTextEditorProps {
   onOpenImageEmbed: () => void;
@@ -107,8 +108,6 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
     notifyContentChanged,
   } = useEditorDraft();
 
-  const popularTags = ['Technology', 'Design', 'Writing', 'Tutorial', 'Lifestyle', 'Productivity', 'Inspiration', 'Programming', 'Craftsmanship'];
-
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -187,7 +186,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
 
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mr-2">Popular Suggestions:</span>
-          {popularTags.map(tag => {
+          {POPULAR_TAGS.map(tag => {
             const isSelected = tags.includes(tag);
             return (
               <button
