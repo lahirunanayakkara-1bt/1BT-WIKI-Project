@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Lenis from 'lenis';
+import React, { useState } from 'react';
+import { useLenisScroll } from '@/lib/hooks/useLenisScroll';
 import { EditorDraftProvider } from '@/components/editor/EditorDraftContext';
 import { EditorHeader } from '@/components/editor/EditorHeader';
 import { DraftManagerSidebar } from '@/components/editor/DraftManagerSidebar';
@@ -14,32 +14,7 @@ export default function EditorWorkspacePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-  // Initialize smooth scrolling with Lenis (120Hz feel)
-  useEffect(() => {
-    const wrapper = document.getElementById('editor-scroll-container');
-    if (!wrapper) return;
-
-    const lenis = new Lenis({
-      wrapper: wrapper as HTMLElement,
-      content: wrapper.firstElementChild as HTMLElement,
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-    });
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
+  useLenisScroll('editor-scroll-container');
 
   return (
     <EditorDraftProvider>
