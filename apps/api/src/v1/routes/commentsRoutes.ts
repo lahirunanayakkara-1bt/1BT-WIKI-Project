@@ -13,4 +13,7 @@ router.get('/', authenticate, CommentController.list);
 // PATCH /api/v1/articles/:id/comments/:commentId — Edit own comment
 router.patch('/:commentId', authenticate, CommentController.update);
 
+// DELETE /api/v1/articles/:id/comments/:commentId — Delete own comment
+router.delete('/:commentId', authenticate, CommentController.remove);
+
 export default router;

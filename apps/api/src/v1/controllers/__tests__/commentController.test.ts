@@ -7,6 +7,7 @@ jest.unstable_mockModule('../../services/commentService.js', () => ({
     addComment: jest.fn(),
     listComments: jest.fn(),
     updateComment: jest.fn(),
+    deleteComment: jest.fn(),
   },
 }));
 
@@ -178,6 +179,49 @@ describe('CommentController.update', () => {
     (mockCommentService.updateComment as jest.Mock<any>).mockRejectedValue(error);
 
     await controller.update(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
+});
+
+describe('CommentController.remove', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: jest.Mock<any>;
+
+  beforeEach(() => {
+    req = {
+      params: { commentId: 'comment-123' },
+      user: { userId: 'user-123' } as any,
+    };
+    res = {
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn() as any,
+    };
+    next = jest.fn();
+    jest.clearAllMocks();
+  });
+
+  it('should call CommentService.deleteComment and return 200 with success response', async () => {
+    (mockCommentService.deleteComment as jest.Mock<any>).mockResolvedValue(undefined);
+
+    await controller.remove(req as Request, res as Response, next);
+
+    expect(mockCommentService.deleteComment).toHaveBeenCalledWith('comment-123', 'user-123');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: null,
+      message: 'Comment deleted successfully',
+    });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should pass errors from CommentService to next', async () => {
+    const error = new AppError('Only the comment owner can delete this comment', 403);
+    (mockCommentService.deleteComment as jest.Mock<any>).mockRejectedValue(error);
+
+    await controller.remove(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalledWith(error);
   });

@@ -92,4 +92,18 @@ const updateComment = async (
   return CommentRepository.update(commentId, body);
 };
 
-export default { addComment, listComments, updateComment };
+const deleteComment = async (commentId: string, userId: string): Promise<void> => {
+  const comment = await CommentRepository.findById(commentId);
+
+  if (!comment) {
+    throw new AppError('Comment not found', 404);
+  }
+
+  if (comment.createdBy !== userId) {
+    throw new AppError('Only the comment owner can delete this comment', 403);
+  }
+
+  await CommentRepository.remove(commentId);
+};
+
+export default { addComment, listComments, updateComment, deleteComment };

@@ -13,6 +13,7 @@ jest.unstable_mockModule('../../repositories/commentRepository.js', () => ({
     findByArticleId: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
+    remove: jest.fn(),
   },
 }));
 
@@ -235,5 +236,53 @@ describe('CommentService.updateComment', () => {
 
     expect(CommentRepository.update).toHaveBeenCalledWith(commentId, 'Updated body');
     expect(result).toEqual(updatedComment);
+  });
+});
+
+describe('CommentService.deleteComment', () => {
+  const commentId = 'comment-123';
+  const userId = 'user-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw AppError if comment is not found', async () => {
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(CommentService.deleteComment(commentId, userId))
+      .rejects.toThrow(new AppError('Comment not found', 404));
+  });
+
+  it('should throw AppError if requester is not the comment owner', async () => {
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue({
+      id: commentId,
+      articleId: 'article-123',
+      createdBy: 'other-user',
+      body: 'Original body',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await expect(CommentService.deleteComment(commentId, userId))
+      .rejects.toThrow(new AppError('Only the comment owner can delete this comment', 403));
+
+    expect(CommentRepository.remove).not.toHaveBeenCalled();
+  });
+
+  it('should delete the comment when requester is its owner', async () => {
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue({
+      id: commentId,
+      articleId: 'article-123',
+      createdBy: userId,
+      body: 'Original body',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    (CommentRepository.remove as jest.Mock<any>).mockResolvedValue(undefined);
+
+    await CommentService.deleteComment(commentId, userId);
+
+    expect(CommentRepository.remove).toHaveBeenCalledWith(commentId);
   });
 });

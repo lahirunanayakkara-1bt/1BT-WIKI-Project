@@ -52,4 +52,11 @@ const update = async (id: string, body: string): Promise<Comment> => {
   return result as unknown as Comment;
 };
 
-export default { create, findByArticleId, findById, update };
+const remove = async (id: string): Promise<void> => {
+  await prisma.comment.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+};
+
+export default { create, findByArticleId, findById, update, remove };

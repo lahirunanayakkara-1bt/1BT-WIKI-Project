@@ -7,7 +7,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
     user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
     article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    comment: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+    comment: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn(), delete: jest.fn() },
   }
 }));
 
@@ -49,6 +49,7 @@ await jest.unstable_mockModule('../../repositories/commentRepository.js', () => 
     findByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue([]),
     findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
     update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    remove: jest.fn<() => Promise<unknown>>().mockResolvedValue(undefined),
   },
 }));
 
@@ -69,6 +70,7 @@ const mockCreateComment = CommentRepository.create as jest.Mock<any>;
 const mockFindByArticleId = CommentRepository.findByArticleId as jest.Mock<any>;
 const mockFindCommentById = CommentRepository.findById as jest.Mock<any>;
 const mockUpdateComment = CommentRepository.update as jest.Mock<any>;
+const mockRemoveComment = CommentRepository.remove as jest.Mock<any>;
 const mockCreateNotification = NotificationRepository.create as jest.Mock<any>;
 
 const userHeaders = {
@@ -324,6 +326,69 @@ describe('Comments API Integration', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.body).toBe('Updated body');
       expect(mockUpdateComment).toHaveBeenCalledWith(commentId, 'Updated body');
+    });
+  });
+
+  describe('DELETE /api/v1/articles/:id/comments/:commentId', () => {
+    const articleId = 'article-123';
+    const commentId = 'comment-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/comments/${commentId}`);
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 if comment is not found', async () => {
+      mockFindCommentById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if requester is not the comment owner', async () => {
+      mockFindCommentById.mockResolvedValueOnce({
+        id: commentId,
+        articleId,
+        createdBy: 'other-user',
+        body: 'Original body',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+      expect(mockRemoveComment).not.toHaveBeenCalled();
+    });
+
+    it('should delete the comment when requester is its owner', async () => {
+      mockFindCommentById.mockResolvedValueOnce({
+        id: commentId,
+        articleId,
+        createdBy: 'user-123',
+        body: 'Original body',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}/comments/${commentId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        data: null,
+        message: 'Comment deleted successfully',
+      });
+      expect(mockRemoveComment).toHaveBeenCalledWith(commentId);
     });
   });
 });

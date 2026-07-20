@@ -61,4 +61,23 @@ const update = async (
   }
 };
 
-export default { create, list, update };
+const remove = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { commentId } = req.params;
+    // req.user is guaranteed to exist because of authenticate middleware
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const userId = req.user!.userId;
+
+    await CommentService.deleteComment(commentId, userId);
+
+    res.status(200).json(successResponse(null, 'Comment deleted successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { create, list, update, remove };
