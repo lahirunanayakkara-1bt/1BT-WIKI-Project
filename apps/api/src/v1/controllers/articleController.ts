@@ -62,6 +62,23 @@ const update = async (
   }
 };
 
+const submitForReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const authorId = req.user!.userId;
+    
+    const article = await ArticleService.submitForReview(id, authorId);
+    
+    res.status(200).json(successResponse(article, 'Article submitted for review'));
+  } catch (error) {
+    next(error);
+  }
+};
+
 const listPublished = async (
   req: Request,
   res: Response,
@@ -79,4 +96,4 @@ const listPublished = async (
   }
 };
 
-export default { create, update, listPublished };
+export default { create, update, submitForReview, listPublished };

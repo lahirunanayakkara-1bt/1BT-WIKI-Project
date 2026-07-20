@@ -15,4 +15,7 @@ router.get('/', authenticate, ArticleController.listPublished);
 // PATCH /api/v1/articles/:id — Update an existing article
 router.patch('/:id', authenticate, upload.array('images'), ArticleController.update);
 
+// POST /api/v1/articles/:id/submit — Submit article for review (Draft -> Pending)
+router.post('/:id/submit', authenticate, ArticleController.submitForReview);
+
 export default router;
