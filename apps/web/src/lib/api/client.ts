@@ -131,6 +131,11 @@ export interface ApiResponse<T = unknown> {
 /**
  * A fetch wrapper that automatically attaches the JWT and handles 401 retries.
  * 
+ * When the request body is FormData, the Content-Type header is NOT set —
+ * the browser must set it automatically with the correct multipart boundary.
+ * For all other request bodies, Content-Type defaults to application/json
+ * if not already set by the caller.
+ * 
  * @param path The API path (e.g. '/users/me'). Should start with a slash.
  * @param options Standard fetch options.
  */
@@ -139,12 +144,15 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   const url = `${API_BASE_URL}${normalizedPath}`;
 
+  // FormData guard: let the browser set Content-Type with boundary for multipart
+  const isFormData = options.body instanceof FormData;
+
   // 1. Initial attempt
   let token = await getValidToken();
   
   const headers = new Headers(options.headers);
   headers.set('Authorization', `Bearer ${token}`);
-  if (!headers.has('Content-Type')) {
+  if (!isFormData && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
   
@@ -161,7 +169,7 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     
     const retryHeaders = new Headers(options.headers);
     retryHeaders.set('Authorization', `Bearer ${token}`);
-    if (!retryHeaders.has('Content-Type')) {
+    if (!isFormData && !retryHeaders.has('Content-Type')) {
       retryHeaders.set('Content-Type', 'application/json');
     }
     
@@ -187,4 +195,3 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
 
   return json;
 }
-

@@ -23,6 +23,18 @@ export interface Article {
   warnings?: string[];
 }
 
+export interface ArticleListItem {
+  id: string;
+  title: string;
+  authorId: string;
+  tags: string[];
+  status: ArticleStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  likeCount: number;
+  commentCount: number;
+}
+
 export interface CreateArticleInput {
   title: string;
   body?: JSONContent;

@@ -8,6 +8,8 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
     create: jest.fn(),
     findById: jest.fn(),
     update: jest.fn(),
+    updateStatus: jest.fn(),
+    findPublished: jest.fn(),
   },
 }));
 
@@ -288,3 +290,134 @@ describe('ArticleService.updateArticle', () => {
     });
   });
 });
+
+describe('ArticleService.submitForReview', () => {
+  const authorId = 'user-123';
+  const articleId = 'article-123';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw AppError if article is not found', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
+
+    await expect(ArticleService.submitForReview(articleId, authorId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+  });
+
+  it('should throw AppError if user is not the author', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({ authorId: 'other-user' });
+
+    await expect(ArticleService.submitForReview(articleId, authorId))
+      .rejects.toThrow(new AppError('Only the author can edit this article', 403));
+  });
+
+  it('should throw AppError if article status is not Draft', async () => {
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({ authorId, status: 'Pending' });
+
+    await expect(ArticleService.submitForReview(articleId, authorId))
+      .rejects.toThrow(new AppError('Cannot transition from Pending to Pending', 400));
+  });
+
+  it('should submit article for review successfully', async () => {
+    const existingArticle = { id: articleId, authorId, status: 'Draft' };
+    const updatedArticle = { ...existingArticle, status: 'Pending' };
+    
+    (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(existingArticle);
+    (ArticleRepository.updateStatus as jest.Mock<any>).mockResolvedValue(updatedArticle);
+
+    const result = await ArticleService.submitForReview(articleId, authorId);
+
+    expect(ArticleRepository.updateStatus).toHaveBeenCalledWith(articleId, 'Pending');
+    expect(result).toEqual(updatedArticle);
+  });
+});
+
+describe('ArticleService.listPublished', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return mapped published articles and total count', async () => {
+    const mockArticles = [
+      {
+        id: '1',
+        title: 'Title 1',
+        authorId: 'user1',
+        tags: ['test'],
+        status: 'Published',
+        createdAt: new Date('2023-01-01'),
+        updatedAt: new Date('2023-01-01'),
+        _count: { likes: 5, comments: 2 },
+      },
+      {
+        id: '2',
+        title: 'Title 2',
+        authorId: 'user2',
+        tags: [],
+        status: 'Published',
+        createdAt: new Date('2023-01-02'),
+        updatedAt: new Date('2023-01-02'),
+        _count: { likes: 0, comments: 0 },
+      }
+    ];
+
+    (ArticleRepository.findPublished as jest.Mock<any>).mockResolvedValue({ articles: mockArticles, total: 2 });
+
+    const result = await ArticleService.listPublished(1, 10);
+
+    expect(ArticleRepository.findPublished).toHaveBeenCalledWith(1, 10);
+    expect(result).toEqual({
+      articles: [
+        {
+          id: '1',
+          title: 'Title 1',
+          authorId: 'user1',
+          tags: ['test'],
+          status: 'Published',
+          createdAt: mockArticles[0].createdAt,
+          updatedAt: mockArticles[0].updatedAt,
+          likeCount: 5,
+          commentCount: 2,
+        },
+        {
+          id: '2',
+          title: 'Title 2',
+          authorId: 'user2',
+          tags: [],
+          status: 'Published',
+          createdAt: mockArticles[1].createdAt,
+          updatedAt: mockArticles[1].updatedAt,
+          likeCount: 0,
+          commentCount: 0,
+        }
+      ],
+      total: 2,
+      page: 1,
+      limit: 10,
+    });
+  });
+
+  it('should handle undefined _count gracefully', async () => {
+    const mockArticles = [
+      {
+        id: '1',
+        title: 'Title 1',
+        authorId: 'user1',
+        tags: [],
+        status: 'Published',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+
+    (ArticleRepository.findPublished as jest.Mock<any>).mockResolvedValue({ articles: mockArticles, total: 1 });
+
+    const result = await ArticleService.listPublished(1, 10);
+
+    expect(result.articles[0].likeCount).toBe(0);
+    expect(result.articles[0].commentCount).toBe(0);
+  });
+});
+

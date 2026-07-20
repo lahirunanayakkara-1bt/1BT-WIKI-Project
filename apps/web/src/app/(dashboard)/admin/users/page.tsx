@@ -8,6 +8,7 @@ import { BanModal } from './BanModal';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import type { AdminUser, UserRole } from './UserManagementTable';
+import { cn } from '@/lib/utils';
 
 gsap.registerPlugin(useGSAP);
 
@@ -37,7 +38,11 @@ function SearchIcon() {
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
     <svg
-      className={`w-3.5 h-3.5 transition-transform ${active ? 'text-brand-red' : 'text-brand-text-secondary/40'} ${active && dir === 'desc' ? 'rotate-180' : ''}`}
+      className={cn(
+        'w-3.5 h-3.5 transition-transform',
+        active ? 'text-brand-red' : 'text-brand-text-secondary/40',
+        active && dir === 'desc' && 'rotate-180'
+      )}
       fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
@@ -231,7 +236,7 @@ function UserManagementContent(): React.JSX.Element {
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-brand-surface border border-brand-border rounded shadow-sm px-4 py-3">
               <p className="text-xs font-medium text-brand-text-secondary uppercase tracking-wider mb-1">{label}</p>
-              <p className={`text-2xl font-bold ${color}`}>{value}</p>
+              <p className={cn('text-2xl font-bold', color)}>{value}</p>
             </div>
           ))}
         </div>
@@ -299,11 +304,12 @@ function UserManagementContent(): React.JSX.Element {
                   type="button"
                   onClick={() => toggleSort(f)}
                   data-testid={`sort-btn-${f}`}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors capitalize ${
+                  className={cn(
+                    'flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors capitalize',
                     sortField === f
                       ? 'bg-brand-red/8 text-brand-red'
                       : 'text-brand-text-secondary hover:bg-brand-bg'
-                  }`}
+                  )}
                 >
                   {f === 'createdAt' ? 'Joined' : f}
                   <SortIcon active={sortField === f} dir={sortDir} />
