@@ -1,6 +1,7 @@
 import { prisma } from '@repo/db';
 import type { Article, CreateArticleInput, JSONContent } from '../types/article.types.js';
 import type { Prisma } from '@repo/db';
+import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
 
 const ARTICLE_SELECT = {
   id: true,
@@ -44,18 +45,19 @@ const findById = async (id: string): Promise<Article | null> => {
   return result ? (result as unknown as Article) : null;
 };
 
+type ArticleBody = { title: string; body: JSONContent; tags: string[]; status: ArticleStatus };
+
 const update = async (
   id: string,
-  fields: Partial<{ title: string; body: JSONContent; tags: string[]; status: string }>
+  fields: Partial<ArticleBody>
 ): Promise<Article> => {
   // Prisma will update updatedAt automatically via @updatedAt
   
-  // Since 'status' is typed as a string in the interface, but an enum in Prisma, we cast it.
   const updateData: Prisma.articleUpdateInput = {
     ...(fields.title !== undefined && { title: fields.title }),
     ...(fields.body !== undefined && { body: fields.body as Prisma.InputJsonValue }),
     ...(fields.tags !== undefined && { tags: fields.tags }),
-    ...(fields.status !== undefined && { status: fields.status as any }),
+    ...(fields.status !== undefined && { status: fields.status }),
   };
 
   const result = await prisma.article.update({
@@ -67,4 +69,14 @@ const update = async (
   return result as unknown as Article;
 };
 
-export default { create, findById, update };
+const updateStatus = async (id: string, status: ArticleStatus): Promise<Article> => {
+  const result = await prisma.article.update({
+    where: { id },
+    data: { status },
+    select: ARTICLE_SELECT,
+  });
+
+  return result as unknown as Article;
+};
+
+export default { create, findById, update, updateStatus };

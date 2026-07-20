@@ -39,6 +39,7 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
     update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
@@ -68,6 +69,7 @@ const { default: ArticleReviewRepository } = await import('../../repositories/ar
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockUpdate = ArticleRepository.update as jest.Mock<any>;
+const mockUpdateStatus = ArticleRepository.updateStatus as jest.Mock<any>;
 const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
 
 const userHeaders = {
@@ -132,4 +134,62 @@ describe('Articles API Integration', () => {
       expect(mockUpdate).toHaveBeenCalledWith(articleId, { title: 'New Title' });
     });
   });
+
+  describe('POST /api/v1/articles/:id/submit', () => {
+    const articleId = 'article-123';
+    
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).post(`/api/v1/articles/${articleId}/submit`);
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 if article not found', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .post(`/api/v1/articles/${articleId}/submit`)
+        .set(userHeaders);
+        
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if user is not author', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+
+      const response = await request(app)
+        .post(`/api/v1/articles/${articleId}/submit`)
+        .set(userHeaders);
+        
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 400 if article is not Draft', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'user-123', status: 'Pending' });
+
+      const response = await request(app)
+        .post(`/api/v1/articles/${articleId}/submit`)
+        .set(userHeaders);
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Cannot transition from Pending to Pending');
+    });
+
+    it('should submit article for review successfully', async () => {
+      const existingArticle = { id: articleId, authorId: 'user-123', status: 'Draft' };
+      const updatedArticle = { ...existingArticle, status: 'Pending' };
+      
+      mockFindById.mockResolvedValueOnce(existingArticle);
+      mockUpdateStatus.mockResolvedValueOnce(updatedArticle);
+
+      const response = await request(app)
+        .post(`/api/v1/articles/${articleId}/submit`)
+        .set(userHeaders);
+        
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.status).toBe('Pending');
+      expect(mockUpdateStatus).toHaveBeenCalledWith(articleId, 'Pending');
+    });
+  });
 });
+
