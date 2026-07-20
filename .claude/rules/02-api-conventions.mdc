@@ -1,0 +1,156 @@
+---
+description: REST API naming conventions, versioning, HTTP methods, and route patterns for 1BT WIKI
+globs: ["src/routes/**/*.ts", "src/controllers/**/*.ts"]
+alwaysApply: false
+---
+
+# API Conventions — 1BT WIKI REST API
+
+## Versioning
+- All routes must be prefixed with `/api/v1/`
+- Router is mounted in `src/routes/index.ts` — never add versioning inside individual route files
+
+```typescript
+// src/routes/index.ts
+app.use('/api/v1/articles', articlesRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/reviewer', reviewerRouter);
+app.use('/api/v1/notifications', notificationsRouter);
+app.use('/api/v1/techTalks', techTalksRouter);
+app.use('/api/v1/quizAttempts', quizAttemptsRouter);
+app.use('/api/v1/admin', adminRouter);
+```
+
+## HTTP Method Usage
+| Intent | Method | Example |
+|--------|--------|---------|
+| Fetch list | GET | `GET /api/v1/articles` |
+| Fetch single | GET | `GET /api/v1/articles/:id` |
+| Create | POST | `POST /api/v1/articles` |
+| Partial update | PATCH | `PATCH /api/v1/articles/:id` |
+| Delete | DELETE | `DELETE /api/v1/articles/:id` |
+| State transitions | POST | `POST /api/v1/articles/:id/submit` |
+| Toggle/action | POST | `POST /api/v1/articles/:id/like` |
+
+**Never use PUT** — always PATCH for updates (partial updates only).
+
+## Route Naming Rules
+- Plural nouns for resources: `/articles`, `/users`, `/techTalks`
+- camelCase for multi-word resources: `/techTalks`, `/quizAttempts`
+- Sub-resources use nesting (max 2 levels deep): `/articles/:id/comments`
+- Actions (state transitions) as POST sub-routes: `/articles/:id/submit`, `/articles/:id/publish`
+
+## Established 1BT WIKI Routes (do not rename these)
+
+### Auth
+```
+POST   /api/v1/auth/signout
+GET    /api/v1/auth/google/callback
+```
+
+### Articles
+```
+GET    /api/v1/articles                      ← list published (sort, search)
+GET    /api/v1/articles/mine                 ← author's own articles (any status)
+GET    /api/v1/articles/:id                  ← article detail
+POST   /api/v1/articles                      ← create (Draft)
+PATCH  /api/v1/articles/:id                  ← edit own draft
+POST   /api/v1/articles/:id/submit           ← Draft → Pending
+DELETE /api/v1/articles/:id                  ← author deletes Draft; Admin deletes any
+```
+
+### Comments & Likes
+```
+GET    /api/v1/articles/:id/comments         ← list comments
+POST   /api/v1/articles/:id/comments         ← add comment
+PATCH  /api/v1/comments/:id                  ← edit own comment
+DELETE /api/v1/comments/:id                  ← delete own comment
+POST   /api/v1/articles/:id/like             ← like (idempotent)
+DELETE /api/v1/articles/:id/like             ← unlike
+```
+
+### Quiz
+```
+POST   /api/v1/articles/:id/quiz/generate    ← generate quiz from article (GEMINI API)
+POST   /api/v1/quizAttempts                  ← submit quiz answers
+```
+
+### Reviewer
+```
+GET    /api/v1/reviewer/articles/pending     ← list pending articles
+PATCH  /api/v1/reviewer/articles/:id/approve ← Pending → Published
+PATCH  /api/v1/reviewer/articles/:id/reject  ← Pending → Rejected + feedback
+```
+
+### User Management & Profile
+```
+GET    /api/v1/users/me                      ← own profile
+PATCH  /api/v1/users/me                      ← update profile
+GET    /api/v1/admin/users                   ← admin: list all users
+PATCH  /api/v1/admin/users/:id/role          ← admin: change role
+PATCH  /api/v1/admin/users/:id/status        ← admin: activate/deactivate
+```
+
+### Notifications
+```
+GET    /api/v1/notifications                 ← list notifications (auth user)
+PATCH  /api/v1/notifications/:id/read        ← mark read
+```
+
+### Tech Talks
+```
+GET    /api/v1/techTalks                    ← list published (sort, search)
+GET    /api/v1/techTalks/:id                ← detail
+POST   /api/v1/techTalks                    ← admin: create
+PATCH  /api/v1/techTalks/:id                ← admin: edit
+POST   /api/v1/techTalks/:id/publish        ← admin: publish
+PATCH  /api/v1/techTalks/:id/republish      ← admin: republish after edit
+DELETE /api/v1/techTalks/:id                ← admin: delete
+```
+
+### Admin Dashboard
+```
+GET    /api/v1/admin/dashboard               ← summary stats
+GET    /api/v1/admin/users                   ← all users with roles
+```
+
+## Query Parameters (standardized)
+```
+?sort=created_at|title|event_date            ← sort field
+?order=asc|desc                              ← sort direction (default: desc)
+?search=keyword                              ← title search
+?status=Draft|Pending|Published|Rejected     ← filter by status
+?page=1&limit=20                             ← pagination
+```
+
+## Request Validation
+- Use `express-validator` or Zod for all request bodies
+- Validate in middleware before reaching the controller
+- Return `400` with field-level errors on validation failure
+
+```typescript
+// src/middleware/validate.middleware.ts
+export const validate = (schema: ZodSchema) => 
+  (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(errorResponse(result.error.message));
+    }
+    req.body = result.data;
+    next();
+  };
+```
+
+## HTTP Status Codes
+| Situation | Code |
+|-----------|------|
+| Success (with data) | 200 |
+| Created | 201 |
+| No content | 204 |
+| Bad request / validation | 400 |
+| Unauthenticated | 401 |
+| Forbidden (role) | 403 |
+| Not found | 404 |
+| Conflict (duplicate) | 409 |
+| Server error | 500 |
