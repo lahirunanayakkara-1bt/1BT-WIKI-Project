@@ -45,9 +45,11 @@ const findById = async (id: string): Promise<Article | null> => {
   return result ? (result as unknown as Article) : null;
 };
 
+type ArticleBody = { title: string; body: JSONContent; tags: string[]; status: ArticleStatus };
+
 const update = async (
   id: string,
-  fields: Partial<{ title: string; body: JSONContent; tags: string[]; status: ArticleStatus }>
+  fields: Partial<ArticleBody>
 ): Promise<Article> => {
   // Prisma will update updatedAt automatically via @updatedAt
   
