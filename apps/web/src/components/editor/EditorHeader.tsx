@@ -8,6 +8,8 @@ import { useEditorDraft } from './EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
+import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
+import { SaveDraftToast } from './SaveDraftToast';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -17,6 +19,7 @@ interface EditorHeaderProps {
 export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
   const { saveStatus, lastSavedAt, lastError, saveDraft } = useEditorDraft();
   const statusDotRef = useRef<HTMLDivElement>(null);
+  const { isVisible: isToastVisible, message: toastMessage, showToast } = useAutoDismissToast();
 
   // Animate the status dot based on save state
   useGSAP(() => {
@@ -52,13 +55,15 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
   const handleSaveDraft = async () => {
     try {
       await saveDraft();
+      showToast(DRAFT_SAVED_MESSAGE);
     } catch {
       // Error state is already set in context
     }
   };
 
   return (
-    <header className="flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] bg-white px-6 shrink-0 relative z-20 shadow-sm">
+    <>
+      <header className="flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] bg-white px-6 shrink-0 relative z-20 shadow-sm">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-4 border-r border-[#E5E7EB] pr-6">
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -138,6 +143,8 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
           Publish Article
         </button>
       </div>
-    </header>
+      </header>
+      <SaveDraftToast visible={isToastVisible} message={toastMessage} />
+    </>
   );
 }
