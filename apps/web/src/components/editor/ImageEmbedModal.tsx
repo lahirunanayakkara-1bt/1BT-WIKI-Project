@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { X, Image as ImageIcon, UploadCloud, Link as LinkIcon, Search, Loader2 } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
+import { cn } from '@/lib/utils';
 
 interface ImageEmbedModalProps {
   isOpen: boolean;
@@ -78,11 +79,12 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
   }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`flex flex-1 items-center justify-center gap-2 border-b-2 py-4 text-sm font-semibold transition-colors ${
+      className={cn(
+        'flex flex-1 items-center justify-center gap-2 border-b-2 py-4 text-sm font-semibold transition-colors',
         activeTab === id
           ? 'border-[#CC0000] text-[#CC0000]'
           : 'border-transparent text-[#6B7280] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]'
-      }`}
+      )}
     >
       <Icon className="h-4 w-4" />
       {label}
@@ -131,10 +133,11 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
                     key={i}
                     className="group relative aspect-video cursor-pointer overflow-hidden rounded-lg bg-gray-200"
                   >
-                    <div className={`absolute inset-0 transition-transform duration-500 group-hover:scale-110 bg-gradient-to-br ${
+                    <div className={cn(
+                      'absolute inset-0 transition-transform duration-500 group-hover:scale-110 bg-gradient-to-br',
                       i % 3 === 0 ? 'from-blue-400 to-purple-500' :
                       i % 2 === 0 ? 'from-orange-400 to-pink-500' : 'from-green-400 to-teal-500'
-                    }`} />
+                    )} />
                     <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
                   </div>
                 ))}

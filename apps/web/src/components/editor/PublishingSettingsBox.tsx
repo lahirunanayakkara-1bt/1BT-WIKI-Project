@@ -3,6 +3,7 @@
 import React from 'react';
 import { Clock, FileText, Hash } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
+import { cn } from '@/lib/utils';
 
 export function PublishingSettingsBox() {
   const { wordCount, charCount, lastSavedAt, articleId } = useEditorDraft();
@@ -27,9 +28,10 @@ export function PublishingSettingsBox() {
       <div className="mb-8 rounded-lg bg-[#F5F5F5] p-5 border border-[#E5E7EB]">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">Draft Status</span>
-          <span className={`text-sm font-bold ${
+          <span className={cn(
+            'text-sm font-bold',
             articleId ? 'text-[#22C55E]' : 'text-[#9CA3AF]'
-          }`}>
+          )}>
             {articleId ? 'Saved' : 'New'}
           </span>
         </div>

@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { cn } from '@/lib/utils';
 
 gsap.registerPlugin(useGSAP);
 
@@ -70,8 +71,8 @@ export function BanModal({ userName, isBanned, onConfirm, onCancel }: BanModalPr
         data-testid="ban-modal"
       >
         {/* Header */}
-        <div className={`px-6 py-4 border-b border-brand-border flex items-center gap-3 ${isBanned ? 'bg-green-50' : 'bg-brand-red/5'}`}>
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${isBanned ? 'bg-green-100' : 'bg-brand-red/10'}`}>
+        <div className={cn('px-6 py-4 border-b border-brand-border flex items-center gap-3', isBanned ? 'bg-green-50' : 'bg-brand-red/5')}>
+          <div className={cn('w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0', isBanned ? 'bg-green-100' : 'bg-brand-red/10')}>
             {isBanned ? (
               <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -137,11 +138,12 @@ export function BanModal({ userName, isBanned, onConfirm, onCancel }: BanModalPr
             onClick={handleConfirm}
             data-testid="ban-modal-confirm"
             disabled={isSubmitting}
-            className={`px-4 py-2 text-sm font-medium text-white rounded transition-colors disabled:opacity-50 ${
+            className={cn(
+              'px-4 py-2 text-sm font-medium text-white rounded transition-colors disabled:opacity-50',
               isBanned
                 ? 'bg-green-600 hover:bg-green-700'
                 : 'bg-brand-red hover:bg-brand-red-hover'
-            }`}
+            )}
           >
             {isSubmitting
               ? (isBanned ? 'Reactivating...' : 'Deactivating...')

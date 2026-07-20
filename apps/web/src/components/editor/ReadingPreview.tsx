@@ -11,6 +11,7 @@ import {
   MOCK_AUTHOR_META,
   MOCK_CONTENT_HTML,
 } from './mock';
+import { cn } from '@/lib/utils';
 
 export function ReadingPreview() {
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -38,25 +39,28 @@ export function ReadingPreview() {
         <div className="flex rounded-lg border border-[#E5E7EB] bg-[#F5F5F5] p-1">
           <button
             onClick={() => setViewport('desktop')}
-            className={`flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
               viewport === 'desktop' ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#6B7280] hover:text-[#1A1A1A]'
-            }`}
+            )}
           >
             <Monitor className="h-4 w-4" /> Desktop
           </button>
           <button
             onClick={() => setViewport('tablet')}
-            className={`flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
               viewport === 'tablet' ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#6B7280] hover:text-[#1A1A1A]'
-            }`}
+            )}
           >
             <Tablet className="h-4 w-4" /> Tablet
           </button>
           <button
             onClick={() => setViewport('mobile')}
-            className={`flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
               viewport === 'mobile' ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#6B7280] hover:text-[#1A1A1A]'
-            }`}
+            )}
           >
             <Smartphone className="h-4 w-4" /> Mobile
           </button>
@@ -66,7 +70,10 @@ export function ReadingPreview() {
       {/* Simulator Canvas */}
       <div className="flex-1 overflow-y-auto py-10 px-4 flex justify-center preview-container">
         <article
-          className={`w-full ${getViewportWidth()} rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden transition-all duration-500 ease-out`}
+          className={cn(
+            'w-full rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden transition-all duration-500 ease-out',
+            getViewportWidth()
+          )}
         >
           {/* Header Image */}
           <div className="w-full h-64 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600" />

@@ -9,6 +9,7 @@ import { isE2E } from '@/lib/e2e';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
+import { cn } from '@/lib/utils';
 
 gsap.registerPlugin(useGSAP);
 
@@ -164,7 +165,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
       )}
 
       {!isEditorRoute && <Sidebar />}
-      <div ref={mainWrapperRef} className={`flex flex-col flex-1 ${!isEditorRoute ? 'ml-60' : ''}`}>
+      <div ref={mainWrapperRef} className={cn('flex flex-col flex-1', !isEditorRoute && 'ml-60')}>
         {!isEditorRoute && (
           <Navbar
             notificationCount={3}
@@ -174,7 +175,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
             onToggleSidebar={toggleSidebar}
           />
         )}
-        <main className={`flex-1 overflow-y-auto bg-[#F5F5F5] ${!isEditorRoute ? 'pt-16' : ''}`} data-testid="main-content">
+        <main className={cn('flex-1 overflow-y-auto bg-[#F5F5F5]', !isEditorRoute && 'pt-16')} data-testid="main-content">
           {children}
         </main>
       </div>

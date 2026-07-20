@@ -7,6 +7,7 @@ import { ChevronLeft, Save } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
+import { cn } from '@/lib/utils';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -78,7 +79,7 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
         </button>
 
         <div className="flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#F5F5F5] px-3 py-1">
-          <div ref={statusDotRef} className={`h-2 w-2 rounded-full ${getStatusDotColor(saveStatus)}`} />
+          <div ref={statusDotRef} className={cn('h-2 w-2 rounded-full', getStatusDotColor(saveStatus))} />
           <span
             className="text-xs font-medium text-[#6B7280] max-w-[200px] truncate"
             title={saveStatus === 'error' && lastError ? lastError : undefined}
@@ -93,11 +94,12 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
         <div className="flex rounded-lg border border-[#E5E7EB] bg-white p-1 shadow-sm">
           <button
             onClick={() => setMode('compose')}
-            className={`flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
               mode === 'compose'
                 ? 'bg-red-50 text-[#CC0000]'
                 : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]'
-            }`}
+            )}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 20h9" />
@@ -107,11 +109,12 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
           </button>
           <button
             onClick={() => setMode('preview')}
-            className={`flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
               mode === 'preview'
                 ? 'bg-gray-100 text-[#1A1A1A]'
                 : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]'
-            }`}
+            )}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />

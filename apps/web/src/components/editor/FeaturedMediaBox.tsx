@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
+import { cn } from '@/lib/utils';
 
 export function FeaturedMediaBox() {
   const { uploadImage, featuredImageUrl, setFeaturedImageUrl } = useEditorDraft();
@@ -19,9 +20,12 @@ export function FeaturedMediaBox() {
     <label className="flex items-center justify-between cursor-pointer group">
       <span className="text-sm font-medium text-[#1A1A1A] group-hover:text-[#CC0000] transition-colors">{label}</span>
       <div 
-        className={`w-5 h-5 rounded flex items-center justify-center transition-colors border ${
-          checked ? 'bg-[#CC0000] border-[#CC0000]' : 'bg-white border-[#E5E7EB] group-hover:border-[#CC0000]/50'
-        }`}
+        className={cn(
+          'w-5 h-5 rounded flex items-center justify-center transition-colors border',
+          checked
+            ? 'bg-[#CC0000] border-[#CC0000]'
+            : 'bg-white border-[#E5E7EB] group-hover:border-[#CC0000]/50'
+        )}
       >
         {checked && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
       </div>

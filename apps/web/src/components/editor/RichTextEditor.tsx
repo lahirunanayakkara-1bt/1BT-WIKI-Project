@@ -7,6 +7,7 @@ import Image from '@tiptap/extension-image';
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Image as ImageIcon, Undo, Redo, X } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
 import { POPULAR_TAGS } from './data';
+import { cn } from '@/lib/utils';
 
 interface RichTextEditorProps {
   onOpenImageEmbed: () => void;
@@ -24,11 +25,13 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`p-2 rounded transition-colors ${
+      className={cn(
+        'p-2 rounded transition-colors',
         isActive
           ? 'bg-[#CC0000]/10 text-[#CC0000]'
-          : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]',
+        disabled && 'opacity-50 cursor-not-allowed'
+      )}
     >
       {children}
     </button>
@@ -193,11 +196,12 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
                 key={tag}
                 onClick={() => addTag(tag)}
                 disabled={isSelected}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                className={cn(
+                  'rounded-full px-3 py-1 text-xs font-medium transition-colors',
                   isSelected
                     ? 'bg-[#CC0000] text-white opacity-50 cursor-not-allowed'
                     : 'border border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#CC0000] hover:text-[#CC0000]'
-                }`}
+                )}
               >
                 {tag}
               </button>

@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ChevronLeft, ChevronRight, Search, Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DraftManagerSidebarProps {
   isOpen: boolean;
@@ -88,11 +89,12 @@ export function DraftManagerSidebar({ isOpen, toggleSidebar }: DraftManagerSideb
           {['All Tags', '#Design', '#Craftsmanship', '#Writing'].map((tag, i) => (
             <button
               key={tag}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+              className={cn(
+                'shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors',
                 i === 0
                   ? 'bg-[#CC0000] text-white'
                   : 'border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-[#F0F0F0]'
-              }`}
+              )}
             >
               {tag}
             </button>
@@ -107,11 +109,12 @@ export function DraftManagerSidebar({ isOpen, toggleSidebar }: DraftManagerSideb
             {mockDrafts.map((draft, i) => (
               <div
                 key={draft.id}
-                className={`group relative cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md ${
+                className={cn(
+                  'group relative cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md',
                   i === 0
                     ? 'border-[#CC0000] bg-white shadow-sm'
                     : 'border-[#E5E7EB] bg-white hover:border-[#CC0000]/50'
-                }`}
+                )}
               >
                 <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
                   <button className="rounded p-1 text-[#6B7280] hover:bg-[#F5F5F5] hover:text-[#CC0000]">
@@ -125,11 +128,12 @@ export function DraftManagerSidebar({ isOpen, toggleSidebar }: DraftManagerSideb
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                      className={cn(
+                        'rounded px-1.5 py-0.5 text-[10px] font-bold',
                         draft.status === 'LIVE'
                           ? 'bg-[#22C55E]/10 text-[#22C55E]'
                           : 'bg-[#F5F5F5] text-[#6B7280]'
-                      }`}
+                      )}
                     >
                       {draft.status}
                     </span>
