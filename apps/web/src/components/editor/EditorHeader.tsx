@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ChevronLeft, Save } from 'lucide-react';
 import { useEditorDraft } from './EditorDraftContext';
+import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -45,35 +46,6 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
     }
   }, [saveStatus]);
 
-  const getStatusDotColor = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return 'bg-[#EAB308]';
-      case 'saved':
-        return 'bg-[#22C55E]';
-      case 'error':
-        return 'bg-[#EF4444]';
-      default:
-        return 'bg-[#9CA3AF]';
-    }
-  };
-
-  const getStatusText = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return 'Saving...';
-      case 'saved': {
-        if (lastSavedAt) {
-          return `Draft saved at ${lastSavedAt.toLocaleTimeString()}`;
-        }
-        return 'Draft saved';
-      }
-      case 'error':
-        return 'Save failed';
-      default:
-        return 'Unsaved';
-    }
-  };
 
   const handleSaveDraft = async () => {
     try {
@@ -105,12 +77,12 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
         </button>
 
         <div className="flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#F5F5F5] px-3 py-1">
-          <div ref={statusDotRef} className={`h-2 w-2 rounded-full ${getStatusDotColor()}`} />
+          <div ref={statusDotRef} className={`h-2 w-2 rounded-full ${getStatusDotColor(saveStatus)}`} />
           <span
             className="text-xs font-medium text-[#6B7280] max-w-[200px] truncate"
             title={saveStatus === 'error' && lastError ? lastError : undefined}
           >
-            {getStatusText()}
+            {getStatusText(saveStatus, lastSavedAt)}
           </span>
         </div>
       </div>
