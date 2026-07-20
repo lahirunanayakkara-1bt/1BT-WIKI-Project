@@ -1,10 +1,14 @@
 import crypto from 'node:crypto';
+import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
+import type { article } from '@repo/db/generated/prisma/index.js';
 import ArticleRepository from '../repositories/articleRepository.js';
 import ArticleAttachmentRepository from '../repositories/articleAttachmentRepository.js';
 import ArticleReviewRepository from '../repositories/articleReviewRepository.js';
 import b2Client from '../lib/b2Client.js';
 import { AppError } from '../../errors/AppError.js';
 import type { Article, CreateArticleInput, UpdateArticleInput, ArticleAttachment, JSONContent } from '../types/article.types.js';
+
+type ArticleUpdateFields = Partial<Pick<article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
 
 const validateImages = (images: Express.Multer.File[]) => {
   if (images.length > 10) {
@@ -156,12 +160,12 @@ const updateArticle = async (
   let updatedArticle = article;
   
   if (hasUpdates || resetToDraft) {
-    const updateFields: Partial<{ title: string; body: JSONContent; tags: string[]; status: string }> = {};
+    const updateFields: ArticleUpdateFields = {};
 
     if (input.title !== undefined) updateFields.title = validateTitle(input.title);
     if (input.body !== undefined) updateFields.body = validateBody(input.body);
     if (input.tags !== undefined) updateFields.tags = input.tags;
-    if (resetToDraft) updateFields.status = 'Draft';
+    if (resetToDraft) updateFields.status = ArticleStatus.Draft;
 
     updatedArticle = await ArticleRepository.update(id, updateFields);
   }
@@ -208,7 +212,7 @@ const submitForReview = async (articleId: string, userId: string): Promise<Artic
   
   assertTransition(article.status, 'Pending');
   
-  return ArticleRepository.updateStatus(articleId, 'Pending');
+  return ArticleRepository.updateStatus(articleId, ArticleStatus.Pending);
 };
 
 export default { createArticle, updateArticle, submitForReview };
