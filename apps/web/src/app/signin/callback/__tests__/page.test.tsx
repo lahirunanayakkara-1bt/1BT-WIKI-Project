@@ -8,7 +8,7 @@ jest.mock('@/lib/auth/client', () => ({
   },
 }));
 
-import SignInCallbackPageImpl from '../page';
+import SignInCallbackPageImpl from '@/app/signin/callback/page';
 
 // SignInCallbackPage has no return statement (implicit `void`) since it never
 // renders anything of its own — it only redirects via a side effect. Cast it

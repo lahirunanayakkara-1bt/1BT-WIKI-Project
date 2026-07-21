@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
-import { useEditorDraft } from './EditorDraftContext';
+import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { cn } from '@/lib/utils';
 
 export function FeaturedMediaBox() {

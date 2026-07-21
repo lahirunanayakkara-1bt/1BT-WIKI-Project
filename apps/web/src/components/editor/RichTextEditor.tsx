@@ -5,8 +5,8 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Image as ImageIcon, Undo, Redo, X } from 'lucide-react';
-import { useEditorDraft } from './EditorDraftContext';
-import { POPULAR_TAGS } from './data';
+import { useEditorDraft } from '@/components/editor/EditorDraftContext';
+import { POPULAR_TAGS } from '@/components/editor/data';
 import { cn } from '@/lib/utils';
 
 interface RichTextEditorProps {

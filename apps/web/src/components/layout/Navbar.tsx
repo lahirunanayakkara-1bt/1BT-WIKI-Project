@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { UserAvatar } from '../UserAvatar';
+import { UserAvatar } from '@/components/UserAvatar';
 import { isE2E } from '@/lib/e2e';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 

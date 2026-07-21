@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { authClient } from '@/lib/auth/client';
-import { UserAvatar } from '../UserAvatar';
+import { UserAvatar } from '@/components/UserAvatar';
 import { useUser } from '@/lib/hooks/useUser';
 import { isE2E } from '@/lib/e2e';
 
