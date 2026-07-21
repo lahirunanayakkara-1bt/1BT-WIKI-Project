@@ -34,27 +34,33 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // Mock Repositories
+const MockArticleRepository = {
+  create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+  update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findPublished: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+};
+
 await jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-    update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    findPublished: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
+  ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
-await jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
-}));
+await jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => {
+  const mockCreate = jest.fn<() => Promise<unknown>>().mockResolvedValue({});
+  return {
+    default: { create: mockCreate },
+    ArticleAttachmentRepository: jest.fn().mockImplementation(() => ({ create: mockCreate }))
+  };
+});
 
-await jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => ({
-  default: {
-    findLatestByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-  },
-}));
+await jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => {
+  const mockFindLatest = jest.fn<() => Promise<unknown>>().mockResolvedValue(null);
+  return {
+    default: { findLatestByArticleId: mockFindLatest },
+    ArticleReviewRepository: jest.fn().mockImplementation(() => ({ findLatestByArticleId: mockFindLatest }))
+  };
+});
 
 // Mock B2 Client
 await jest.unstable_mockModule('../../lib/b2Client.js', () => ({
@@ -65,13 +71,12 @@ await jest.unstable_mockModule('../../lib/b2Client.js', () => ({
 
 const { default: app } = await import('../../../app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
 const { default: ArticleReviewRepository } = await import('../../repositories/articleReviewRepository.js');
 
-const mockFindById = ArticleRepository.findById as jest.Mock<any>;
-const mockUpdate = ArticleRepository.update as jest.Mock<any>;
-const mockUpdateStatus = ArticleRepository.updateStatus as jest.Mock<any>;
-const mockFindPublished = ArticleRepository.findPublished as jest.Mock<any>;
+const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
+const mockUpdate = MockArticleRepository.update as jest.Mock<any>;
+const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
+const mockFindPublished = MockArticleRepository.findPublished as jest.Mock<any>;
 const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
 
 const userHeaders = {
@@ -187,6 +192,48 @@ describe('Articles API Integration', () => {
       expect(response.body.data.limit).toBe(5);
       
       expect(mockFindPublished).toHaveBeenCalledWith(3, 5);
+    });
+  });
+
+  describe('GET /api/v1/articles/:id', () => {
+    const articleId = 'article-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).get(`/api/v1/articles/${articleId}`);
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 if article not found', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if article is not Published', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, status: 'Draft' });
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 200 and the article if Published', async () => {
+      const mockArticle = { id: articleId, title: 'Test Article', status: 'Published' };
+      mockFindById.mockResolvedValueOnce(mockArticle);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe('Test Article');
     });
   });
 

@@ -1,99 +1,100 @@
 import type { Request, Response, NextFunction } from 'express';
-import ArticleService from '../services/articleService.js';
+import { ArticleService } from '../services/articleService.js';
 import { successResponse } from '../types/article.types.js';
 import type { CreateArticleInput } from '../types/article.types.js';
 import { AppError } from '../../errors/AppError.js';
 
-const create = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    if (!req.body.data) {
-      throw new AppError('The "data" field is required', 400);
-    }
-    
-    let input: CreateArticleInput;
+export class ArticleController {
+  constructor(private service: ArticleService = new ArticleService()) {}
+
+  create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      input = JSON.parse(req.body.data) as CreateArticleInput;
-    } catch (e) {
-      throw new AppError('Invalid JSON in "data" field', 400);
-    }
-    
-    // req.user is guaranteed to exist because of authenticate middleware
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const authorId = req.user!.userId;
-    const images = (req.files as Express.Multer.File[]) ?? [];
+      if (!req.body.data) {
+        throw new AppError('The "data" field is required', 400);
+      }
 
-    const article = await ArticleService.createArticle(input, authorId, images);
-
-    res.status(201).json(successResponse(article, 'Article created successfully'));
-  } catch (error) {
-    next(error);
-  }
-};
-
-const update = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const authorId = req.user!.userId;
-    
-    let input = {};
-    if (req.body.data) {
+      let input: CreateArticleInput;
       try {
-        input = JSON.parse(req.body.data);
+        input = JSON.parse(req.body.data) as CreateArticleInput;
       } catch (e) {
         throw new AppError('Invalid JSON in "data" field', 400);
       }
+
+      // req.user is guaranteed to exist because of authenticate middleware
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const authorId = req.user!.userId;
+      const images = (req.files as Express.Multer.File[]) ?? [];
+
+      const article = await this.service.createArticle(input, authorId, images);
+
+      res.status(201).json(successResponse(article, 'Article created successfully'));
+    } catch (error) {
+      next(error);
     }
-    
-    const images = (req.files as Express.Multer.File[]) ?? [];
+  };
 
-    const article = await ArticleService.updateArticle(id, input, authorId, images);
+  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const authorId = req.user!.userId;
 
-    res.status(200).json(successResponse(article, 'Article updated successfully'));
-  } catch (error) {
-    next(error);
-  }
-};
+      let input = {};
+      if (req.body.data) {
+        try {
+          input = JSON.parse(req.body.data);
+        } catch (e) {
+          throw new AppError('Invalid JSON in "data" field', 400);
+        }
+      }
 
-const submitForReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const authorId = req.user!.userId;
-    
-    const article = await ArticleService.submitForReview(id, authorId);
-    
-    res.status(200).json(successResponse(article, 'Article submitted for review'));
-  } catch (error) {
-    next(error);
-  }
-};
+      const images = (req.files as Express.Multer.File[]) ?? [];
 
-const listPublished = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 20;
+      const article = await this.service.updateArticle(id, input, authorId, images);
 
-    const result = await ArticleService.listPublished(page, limit);
+      res.status(200).json(successResponse(article, 'Article updated successfully'));
+    } catch (error) {
+      next(error);
+    }
+  };
 
-    res.status(200).json(successResponse(result, 'Articles retrieved successfully'));
-  } catch (error) {
-    next(error);
-  }
-};
+  submitForReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const authorId = req.user!.userId;
 
-export default { create, update, submitForReview, listPublished };
+      const article = await this.service.submitForReview(id, authorId);
+
+      res.status(200).json(successResponse(article, 'Article submitted for review'));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listPublished = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 20;
+
+      const result = await this.service.listPublished(page, limit);
+
+      res.status(200).json(successResponse(result, 'Articles retrieved successfully'));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const article = await this.service.getPublishedById(id);
+
+      res.status(200).json(successResponse(article, 'Article retrieved successfully'));
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+export default new ArticleController();
+
