@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Clock, FileText, Hash } from 'lucide-react';
-import { useEditorDraft } from './EditorDraftContext';
+import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { cn } from '@/lib/utils';
 
 export function PublishingSettingsBox() {

@@ -18,7 +18,7 @@ jest.mock('@/lib/auth/client', () => ({
   },
 }));
 
-import SignInPage from '../page';
+import SignInPage from '@/app/signin/page';
 
 describe('SignInPage', () => {
   beforeEach(() => {

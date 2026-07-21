@@ -6,7 +6,7 @@ jest.mock('@/lib/hooks/useUser', () => ({
   useUser: () => mockUseUser(),
 }));
 
-import { RoleGuard } from '../RoleGuard';
+import { RoleGuard } from '@/components/auth/RoleGuard';
 
 describe('RoleGuard', () => {
   beforeEach(() => {

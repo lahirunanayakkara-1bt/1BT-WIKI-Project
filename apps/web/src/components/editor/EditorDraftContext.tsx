@@ -50,6 +50,7 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 interface EditorDraftContextValue {
   // State
   articleId: string | null;
+  articleStatus: string | null;
   title: string;
   tags: string[];
   saveStatus: SaveStatus;
@@ -72,6 +73,7 @@ interface EditorDraftContextValue {
   ensureDraftExists: () => Promise<string>;
   saveDraft: () => Promise<void>;
   uploadImage: (file: File) => Promise<string>;
+  submitForReview: () => Promise<void>;
 
   // Editor helpers
   insertEditorImage: (src: string) => void;
@@ -98,6 +100,7 @@ export function useEditorDraft(): EditorDraftContextValue {
 export function EditorDraftProvider({ children }: { children: ReactNode }) {
   // ── Reactive state ──
   const [articleId, setArticleId] = useState<string | null>(null);
+  const [articleStatus, setArticleStatus] = useState<string | null>(null);
   const [title, setTitleState] = useState('');
   const [tags, setTagsState] = useState<string[]>([]);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -231,6 +234,7 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
           const id = result.data!.id;
           articleIdRef.current = id;
           setArticleId(id);
+          setArticleStatus(result.data!.status);
 
           const returnedAttachments = result.data!.attachments ?? [];
           setAttachmentsState(returnedAttachments);
@@ -300,6 +304,10 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
           method: 'PATCH',
           body: formData,
         });
+
+        if (result.data?.status) {
+          setArticleStatus(result.data.status);
+        }
 
         // Only update attachments if the response includes them
         // (PATCH without images returns attachments: undefined)
@@ -372,6 +380,10 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
             { method: 'PATCH', body: formData },
           );
 
+          if (result.data?.status) {
+            setArticleStatus(result.data.status);
+          }
+
           const returnedAttachments = result.data?.attachments ?? [];
 
           // Merge into state (handles both full-list and new-only responses)
@@ -422,6 +434,42 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
     },
     [ensureDraftExists, withRequestLock],
   );
+
+  // ── submitForReview ───────────────────────────────────────────────────
+  //
+  // Submits the draft for review (transitions status from Draft to Pending).
+
+  const submitForReview = useCallback(async (): Promise<void> => {
+    if (!articleIdRef.current) {
+      await ensureDraftExists();
+    }
+
+    const id = articleIdRef.current;
+    if (!id) return;
+
+    await withRequestLock(async () => {
+      setSaveStatus('saving');
+
+      try {
+        const result = await apiFetch<ArticleResponse>(`/articles/${id}/submit`, {
+          method: 'POST',
+        });
+
+        if (result.data?.status) {
+          setArticleStatus(result.data.status);
+        }
+
+        setLastSavedAt(new Date());
+        setSaveStatus('saved');
+        setLastError(null);
+      } catch (error) {
+        setSaveStatus('error');
+        const msg = error instanceof Error ? error.message : String(error);
+        setLastError(msg);
+        throw error;
+      }
+    });
+  }, [ensureDraftExists, withRequestLock]);
 
   // ── handleTitleBlur (trigger a) ───────────────────────────────────────
 
@@ -477,6 +525,7 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
   const value: EditorDraftContextValue = useMemo(
     () => ({
       articleId,
+      articleStatus,
       title,
       tags,
       saveStatus,
@@ -493,12 +542,14 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
       ensureDraftExists,
       saveDraft,
       uploadImage,
+      submitForReview,
       insertEditorImage,
       handleTitleBlur,
       notifyContentChanged,
     }),
     [
       articleId,
+      articleStatus,
       title,
       tags,
       saveStatus,
@@ -515,6 +566,7 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
       ensureDraftExists,
       saveDraft,
       uploadImage,
+      submitForReview,
       insertEditorImage,
       handleTitleBlur,
       notifyContentChanged,
