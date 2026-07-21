@@ -8,20 +8,20 @@
 //   real DB calls with controllable fakes (ESM hoisting requirement).
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { User, CreateUserInput } from '../../../types/userTypes.js';
+import type { User, CreateUserInput } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // ESM mock — must be registered BEFORE any dynamic imports
 // ---------------------------------------------------------------------------
 
-await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/adminRepository.js', () => ({
   default: {
     getAllUsers: jest.fn(),
     createAdminUser: jest.fn(),
   },
 }));
 
-await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
     findByEmail: jest.fn(),
   },
@@ -32,8 +32,8 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 // ---------------------------------------------------------------------------
 
 const { default: AdminService }    = await import('../adminService.js');
-const { default: AdminRepository } = await import('../../repositories/adminRepository.js');
-const { default: UserRepository }  = await import('../../repositories/userRepository.js');
+const { default: AdminRepository } = await import('@repositories/adminRepository.js');
+const { default: UserRepository }  = await import('@repositories/userRepository.js');
 
 const mockedRepo     = AdminRepository as jest.Mocked<typeof AdminRepository>;
 const mockedUserRepo = UserRepository  as jest.Mocked<typeof UserRepository>;

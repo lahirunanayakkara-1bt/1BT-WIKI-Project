@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { ArticleReview } from '../types/article.types.js';
+import type { ArticleReview } from '@models/article.types.js';
 
 const ARTICLE_REVIEW_SELECT = {
   id: true,

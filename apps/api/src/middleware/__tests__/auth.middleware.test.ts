@@ -12,7 +12,7 @@ import type { JWTVerifyResult, JWTPayload, JWK } from 'jose';
 
 // ── 0. Mock dependencies ───────────
 const mockFindById = jest.fn<(id: string) => Promise<{ id?: string, email?: string, role?: string, banned?: boolean } | null>>();
-jest.unstable_mockModule('../../v1/repositories/userRepository.js', () => ({
+jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
     findById: mockFindById,
   },

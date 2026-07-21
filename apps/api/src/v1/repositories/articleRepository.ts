@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { Article, CreateArticleInput, JSONContent } from '../types/article.types.js';
+import type { Article, CreateArticleInput, JSONContent } from '@models/article.types.js';
 import type { Prisma } from '@repo/db';
 import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
 

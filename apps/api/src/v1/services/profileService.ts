@@ -1,9 +1,9 @@
 // apps/api/src/services/profileService.ts
 
-import UserRepository from '../repositories/userRepository.js';
-import { AppError } from '../../errors/AppError.js';
-import { capitalizeRole } from '../../types/userTypes.js';
-import type { UserProfile, ProfileUpdateInput, User } from '../../types/userTypes.js';
+import UserRepository from '@repositories/userRepository.js';
+import { AppError } from '@errors/AppError.js';
+import { capitalizeRole } from '@/types/userTypes.js';
+import type { UserProfile, ProfileUpdateInput, User } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

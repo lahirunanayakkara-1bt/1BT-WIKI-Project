@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { ArticleAttachment, CreateAttachmentInput } from '../types/article.types.js';
+import type { ArticleAttachment, CreateAttachmentInput } from '@models/article.types.js';
 
 const ARTICLE_ATTACHMENT_SELECT = {
   id: true,

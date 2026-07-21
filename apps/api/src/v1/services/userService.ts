@@ -1,11 +1,11 @@
-import UserRepository from '../repositories/userRepository.js';
-import { AppError } from '../../errors/AppError.js';
+import UserRepository from '@repositories/userRepository.js';
+import { AppError } from '@errors/AppError.js';
 import type {
   User,
   CreateUserInput,
   UserRole,
   UpdateUserBanInput,
-} from '../../types/userTypes.js';
+} from '@/types/userTypes.js';
 
 // Accepted role values
 const VALID_ROLES: UserRole[] = ['Admin', 'Reviewer', 'User'];

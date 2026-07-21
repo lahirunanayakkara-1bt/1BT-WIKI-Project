@@ -1,5 +1,5 @@
 import B2 from 'backblaze-b2';
-import { AppError } from '../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
 const b2 = new B2({
   applicationKeyId: process.env.B2_APPLICATION_KEY_ID ?? '',

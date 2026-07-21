@@ -8,7 +8,7 @@ import type { Request, Response, NextFunction } from 'express';
 const mockList = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockMarkAsRead = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
-await jest.unstable_mockModule('../../services/notificationService.js', () => ({
+await jest.unstable_mockModule('@services/notificationService.js', () => ({
   default: { list: mockList, markAsRead: mockMarkAsRead },
 }));
 

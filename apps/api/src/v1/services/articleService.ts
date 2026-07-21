@@ -1,11 +1,11 @@
 import crypto from 'node:crypto';
-import { ArticleRepository } from '../repositories/articleRepository.js';
-import { ArticleAttachmentRepository } from '../repositories/articleAttachmentRepository.js';
-import { ArticleReviewRepository } from '../repositories/articleReviewRepository.js';
-import b2Client from '../lib/b2Client.js';
-import { AppError } from '../../errors/AppError.js';
-import type { UserRole } from '../../types/userTypes.js';
-import { UserRoleValue } from '../../types/userTypes.js';
+import { ArticleRepository } from '@repositories/articleRepository.js';
+import { ArticleAttachmentRepository } from '@repositories/articleAttachmentRepository.js';
+import { ArticleReviewRepository } from '@repositories/articleReviewRepository.js';
+import b2Client from '@v1/lib/b2Client.js';
+import { AppError } from '@errors/AppError.js';
+import type { UserRole } from '@/types/userTypes.js';
+import { UserRoleValue } from '@/types/userTypes.js';
 import type {
   Article,
   ArticleStatus,
@@ -14,8 +14,8 @@ import type {
   ArticleAttachment,
   JSONContent,
   ArticleListItem,
-} from '../types/article.types.js';
-import { ArticleStatusValue } from '../types/article.types.js';
+} from '@models/article.types.js';
+import { ArticleStatusValue } from '@models/article.types.js';
 
 // Derives update-field shapes from the app-level Article interface — no Prisma types cross into the service layer.
 type ArticleUpdateFields = Partial<Pick<Article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
@@ -306,4 +306,4 @@ export class ArticleService {
   }
 }
 
-export default new ArticleService();
+export default ArticleService;
