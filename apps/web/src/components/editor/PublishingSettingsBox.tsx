@@ -16,26 +16,26 @@ export function PublishingSettingsBox() {
   };
 
   return (
-    <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-brand-border bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[#6B7280]">Publishing Settings</h3>
-        <span className="rounded border border-[#6B7280]/30 bg-[#F5F5F5] px-2 py-0.5 text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-brand-text-secondary">Publishing Settings</h3>
+        <span className="rounded border border-brand-text-secondary/30 bg-brand-bg px-2 py-0.5 text-[10px] font-bold text-brand-text-secondary uppercase tracking-wider">
           Draft
         </span>
       </div>
 
       {/* Draft Status Box */}
-      <div className="mb-8 rounded-lg bg-[#F5F5F5] p-5 border border-[#E5E7EB]">
+      <div className="mb-8 rounded-lg bg-brand-bg p-5 border border-brand-border">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">Draft Status</span>
+          <span className="text-xs font-bold text-brand-text-primary uppercase tracking-wider">Draft Status</span>
           <span className={cn(
             'text-sm font-bold',
-            articleId ? 'text-[#22C55E]' : 'text-[#9CA3AF]'
+            articleId ? 'text-green-500' : 'text-gray-400'
           )}>
             {articleId ? 'Saved' : 'New'}
           </span>
         </div>
-        <p className="text-xs text-[#6B7280] leading-relaxed mt-2">
+        <p className="text-xs text-brand-text-secondary leading-relaxed mt-2">
           {articleId
             ? 'Your draft has been saved to the server. Changes are auto-saved after 3 seconds of inactivity.'
             : 'Start writing to create a new draft. The draft will be saved when you set a title or upload an image.'
@@ -46,32 +46,32 @@ export function PublishingSettingsBox() {
       {/* Stats List */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#6B7280]">
+          <div className="flex items-center gap-2 text-brand-text-secondary">
             <FileText className="h-4 w-4" />
             <span className="text-sm font-medium">Words count</span>
           </div>
-          <span className="text-sm font-bold text-[#1A1A1A]">{wordCount}</span>
+          <span className="text-sm font-bold text-brand-text-primary">{wordCount}</span>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#6B7280]">
+          <div className="flex items-center gap-2 text-brand-text-secondary">
             <Hash className="h-4 w-4" />
             <span className="text-sm font-medium">Characters count</span>
           </div>
-          <span className="text-sm font-bold text-[#1A1A1A]">{charCount}</span>
+          <span className="text-sm font-bold text-brand-text-primary">{charCount}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#6B7280]">
-            <Clock className="h-4 w-4 text-[#CC0000]" />
+          <div className="flex items-center gap-2 text-brand-text-secondary">
+            <Clock className="h-4 w-4 text-brand-red" />
             <span className="text-sm font-medium">Estimated Read Time</span>
           </div>
-          <span className="text-sm font-bold text-[#1A1A1A]">{readTime} min</span>
+          <span className="text-sm font-bold text-brand-text-primary">{readTime} min</span>
         </div>
 
-        <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
-          <span className="text-sm font-medium text-[#6B7280]">Last Modified</span>
-          <span className="text-sm font-bold text-[#1A1A1A]">{formatLastModified()}</span>
+        <div className="pt-4 border-t border-brand-border flex items-center justify-between">
+          <span className="text-sm font-medium text-brand-text-secondary">Last Modified</span>
+          <span className="text-sm font-bold text-brand-text-primary">{formatLastModified()}</span>
         </div>
       </div>
     </div>

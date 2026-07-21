@@ -82,7 +82,7 @@ export default function ArticlesPage(): React.JSX.Element {
   return (
     <div className="max-w-7xl mx-auto p-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold text-[#1A1A1A]">
+        <h1 className="text-3xl font-bold text-brand-text-primary">
           Articles
         </h1>
         
@@ -95,9 +95,9 @@ export default function ArticlesPage(): React.JSX.Element {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               data-testid="search-input"
-              className="w-full md:w-72 pl-10 pr-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-transparent"
+              className="w-full md:w-72 pl-10 pr-4 py-2 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-transparent"
             />
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[#9CA3AF]">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
               <SearchIcon width="18" height="18" />
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function ArticlesPage(): React.JSX.Element {
           <select 
             disabled
             data-testid="sort-select"
-            className="px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-[#4B5563] cursor-not-allowed opacity-70"
+            className="px-4 py-2 bg-gray-50 border border-brand-border rounded-lg text-gray-600 cursor-not-allowed opacity-70"
             title="Sort options coming soon"
           >
             <option value="newest">Newest</option>
@@ -125,29 +125,29 @@ export default function ArticlesPage(): React.JSX.Element {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-testid="loading-skeleton">
           {[...Array(limit)].map((_, i) => (
-            <div key={i} className="flex flex-col gap-4 p-6 bg-white border border-[#E5E7EB] rounded-lg animate-pulse">
-              <div className="h-6 bg-[#E5E7EB] rounded w-3/4"></div>
-              <div className="h-4 bg-[#E5E7EB] rounded w-1/2"></div>
+            <div key={i} className="flex flex-col gap-4 p-6 bg-white border border-brand-border rounded-lg animate-pulse">
+              <div className="h-6 bg-brand-border rounded w-3/4"></div>
+              <div className="h-4 bg-brand-border rounded w-1/2"></div>
               <div className="flex gap-2 mt-4">
-                <div className="h-6 w-16 bg-[#F3F4F6] rounded-full"></div>
-                <div className="h-6 w-16 bg-[#F3F4F6] rounded-full"></div>
+                <div className="h-6 w-16 bg-gray-100 rounded-full"></div>
+                <div className="h-6 w-16 bg-gray-100 rounded-full"></div>
               </div>
               <div className="flex justify-between items-center mt-6">
                 <div className="flex gap-4">
-                  <div className="h-4 w-8 bg-[#E5E7EB] rounded"></div>
-                  <div className="h-4 w-8 bg-[#E5E7EB] rounded"></div>
-                  <div className="h-4 w-8 bg-[#E5E7EB] rounded"></div>
+                  <div className="h-4 w-8 bg-brand-border rounded"></div>
+                  <div className="h-4 w-8 bg-brand-border rounded"></div>
+                  <div className="h-4 w-8 bg-brand-border rounded"></div>
                 </div>
-                <div className="h-4 w-20 bg-[#E5E7EB] rounded"></div>
+                <div className="h-4 w-20 bg-brand-border rounded"></div>
               </div>
             </div>
           ))}
         </div>
       ) : filteredArticles.length === 0 ? (
-        <div className="text-center py-20 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] border-dashed" data-testid="empty-state">
-          <FileIcon className="mx-auto h-12 w-12 text-[#9CA3AF] mb-4" strokeWidth="1" />
-          <h3 className="text-lg font-medium text-[#1A1A1A]">No articles found</h3>
-          <p className="text-[#6B7280] mt-1">Check back later or try adjusting your search.</p>
+        <div className="text-center py-20 bg-gray-50 rounded-lg border border-brand-border border-dashed" data-testid="empty-state">
+          <FileIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" strokeWidth="1" />
+          <h3 className="text-lg font-medium text-brand-text-primary">No articles found</h3>
+          <p className="text-brand-text-secondary mt-1">Check back later or try adjusting your search.</p>
         </div>
       ) : (
         <>
@@ -170,18 +170,18 @@ export default function ArticlesPage(): React.JSX.Element {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 border border-[#E5E7EB] rounded-lg text-[#4B5563] hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="px-4 py-2 border border-brand-border rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 data-testid="pagination-prev"
               >
                 Previous
               </button>
-              <span className="text-[#6B7280] text-sm font-medium">
+              <span className="text-brand-text-secondary text-sm font-medium">
                 Page {page} of {totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 border border-[#E5E7EB] rounded-lg text-[#4B5563] hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="px-4 py-2 border border-brand-border rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 data-testid="pagination-next"
               >
                 Next

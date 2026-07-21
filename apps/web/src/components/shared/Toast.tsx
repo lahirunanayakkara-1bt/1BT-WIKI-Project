@@ -54,7 +54,7 @@ export function Toast({ visible, message, type = 'success' }: ToastProps) {
     >
       <div className={cn(
         "flex h-5 w-5 items-center justify-center rounded-full",
-        type === 'success' && "bg-[#22C55E]/20 text-[#22C55E]",
+        type === 'success' && "bg-green-500/20 text-green-500",
         type === 'error' && "bg-red-500/20 text-red-500",
         type === 'info' && "bg-blue-500/20 text-blue-500"
       )}>

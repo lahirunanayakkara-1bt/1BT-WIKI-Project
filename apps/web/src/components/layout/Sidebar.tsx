@@ -50,8 +50,8 @@ export function Sidebar(): React.JSX.Element {
 
   const itemClasses = (href: string): string =>
     isActive(href)
-      ? 'sidebar-item sidebar-active relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#CC0000] bg-white/10'
-      : 'sidebar-item relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-[#9CA3AF] hover:bg-white/5 hover:text-white';
+      ? 'sidebar-item sidebar-active relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-brand-red bg-white/10'
+      : 'sidebar-item relative flex items-center gap-4 pr-4 h-11 rounded cursor-pointer transition-colors text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white';
 
   useGSAP(() => {
     if (isE2E()) return;
@@ -85,9 +85,9 @@ export function Sidebar(): React.JSX.Element {
   }
 
   return (
-    <aside ref={sidebarRef} className="fixed left-0 top-0 h-screen min-h-screen w-60 bg-[#1A1A1A] flex flex-col z-20" data-testid="sidebar">
+    <aside ref={sidebarRef} className="fixed left-0 top-0 h-screen min-h-screen w-60 bg-brand-dark flex flex-col z-20" data-testid="sidebar">
       <div className="pr-4 pt-6 pb-2 sidebar-item" style={{ paddingLeft: '36px' }}>
-        <span className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">Menu</span>
+        <span className="text-xs font-semibold uppercase tracking-widest text-brand-text-secondary">Menu</span>
       </div>
       <nav className="flex flex-col px-4 gap-1">
         {mainNavItems.map((item) => (
@@ -96,12 +96,12 @@ export function Sidebar(): React.JSX.Element {
             style={{ paddingLeft: '20px' }}
             data-testid={item.testId}>
             {isActive(item.href) && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-[#CC0000] active-indicator rounded-r-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-brand-red active-indicator rounded-r-full" />
             )}
             {item.icon}
             <span className="relative z-10">{item.label}</span>
             {item.showLiveBadge && (
-              <span className="relative z-10 ml-auto text-[10px] font-bold bg-[#22C55E] text-white px-1.5 py-0.5 rounded-full">
+              <span className="relative z-10 ml-auto text-[10px] font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-full">
                 LIVE
               </span>
             )}
@@ -116,7 +116,7 @@ export function Sidebar(): React.JSX.Element {
             style={{ paddingLeft: '20px' }}
             data-testid={item.testId}>
             {isActive(item.href) && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-[#CC0000] active-indicator rounded-r-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-brand-red active-indicator rounded-r-full" />
             )}
             {item.icon}
             <span className="relative z-10">{item.label}</span>
@@ -127,7 +127,7 @@ export function Sidebar(): React.JSX.Element {
         <>
           <div className="border-t border-white/10 my-2 mx-4 sidebar-item" />
           <div className="pr-4 pb-1 sidebar-item" style={{ paddingLeft: '36px' }}>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#CC0000]/60">Admin</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-brand-red/60">Admin</span>
           </div>
           <nav className="flex flex-col px-4 gap-1">
             <Link
@@ -137,7 +137,7 @@ export function Sidebar(): React.JSX.Element {
               data-testid="nav-admin-users"
             >
               {isActive('/admin/users') && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-[#CC0000] active-indicator rounded-r-full" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 bg-brand-red active-indicator rounded-r-full" />
               )}
               <UsersIcon className="w-4 h-4 relative z-10" />
               <span className="relative z-10">User Management</span>
@@ -150,7 +150,7 @@ export function Sidebar(): React.JSX.Element {
         <UserAvatar format='expanded' />
         <button type="submit"
           onClick={handleSignOut}
-          className="text-[#6B7280] hover:text-white transition-colors flex-shrink-0"
+          className="text-brand-text-secondary hover:text-white transition-colors flex-shrink-0"
           data-testid="logout-btn" aria-label="Logout">
           <LogoutIcon className="h-4 w-4" />
         </button>

@@ -5,13 +5,13 @@ export type { SaveStatus };
 export const getStatusDotColor = (status: SaveStatus): string => {
   switch (status) {
     case 'saving':
-      return 'bg-[#EAB308]';
+      return 'bg-yellow-500';
     case 'saved':
-      return 'bg-[#22C55E]';
+      return 'bg-green-500';
     case 'error':
-      return 'bg-[#EF4444]';
+      return 'bg-red-500';
     default:
-      return 'bg-[#9CA3AF]';
+      return 'bg-gray-400';
   }
 };
 

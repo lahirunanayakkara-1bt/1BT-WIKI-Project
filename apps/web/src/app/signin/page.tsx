@@ -129,7 +129,7 @@ function SignInContent() {
                   setIsLoading(false);
                 }}
                 disabled={isLoading}
-                className="mt-10 inline-flex w-full items-center justify-center rounded-2xl bg-[var(--color-brand-red)] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-brand-red-hover)] disabled:cursor-not-allowed disabled:bg-[#d34d4d]"
+                className="mt-10 inline-flex w-full items-center justify-center rounded-2xl bg-[var(--color-brand-red)] px-5 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-brand-red-hover)] disabled:cursor-not-allowed disabled:bg-brand-red-disabled"
               >
                 {isLoading ? 'Signing in...' : 'Sign in with Google'}
               </button>

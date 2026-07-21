@@ -150,17 +150,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
 
   return (
     <UserProvider>
-    <div ref={containerRef} className="flex h-screen overflow-hidden bg-[#F5F5F5]">
+    <div ref={containerRef} className="flex h-screen overflow-hidden bg-brand-bg">
       {/* Initial App Load Splash Screen */}
       {isAppLoading && (
-        <div className="preloader fixed inset-0 bg-[#1A1A1A] z-[9999] flex flex-col items-center justify-center">
-          <div className="preloader-logo h-16 w-16 bg-[#CC0000] rounded-xl flex items-center justify-center shadow-2xl shadow-[#CC0000]/15 border border-white/5">
+        <div className="preloader fixed inset-0 bg-brand-dark z-[9999] flex flex-col items-center justify-center">
+          <div className="preloader-logo h-16 w-16 bg-brand-red rounded-xl flex items-center justify-center shadow-2xl shadow-brand-red/15 border border-white/5">
             <span className="text-white text-lg font-black leading-none tracking-tight">{BRAND_NAME}</span>
           </div>
           <div className="preloader-text mt-4 text-white/90 font-bold tracking-[0.25em] text-xs uppercase opacity-0">
             {BRAND_SUB_NAME}
           </div>
-          <div className="preloader-spinner mt-8 w-5 h-5 border-2 border-white/10 border-t-[#CC0000] rounded-full animate-spin"></div>
+          <div className="preloader-spinner mt-8 w-5 h-5 border-2 border-white/10 border-t-brand-red rounded-full animate-spin"></div>
         </div>
       )}
 
@@ -175,7 +175,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
             onToggleSidebar={toggleSidebar}
           />
         )}
-        <main className={cn('flex-1 overflow-y-auto bg-[#F5F5F5]', !isEditorRoute && 'pt-16')} data-testid="main-content">
+        <main className={cn('flex-1 overflow-y-auto bg-brand-bg', !isEditorRoute && 'pt-16')} data-testid="main-content">
           {children}
         </main>
       </div>

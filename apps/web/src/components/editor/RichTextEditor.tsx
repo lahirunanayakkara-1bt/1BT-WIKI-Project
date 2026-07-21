@@ -28,8 +28,8 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
       className={cn(
         'p-2 rounded transition-colors',
         isActive
-          ? 'bg-[#CC0000]/10 text-[#CC0000]'
-          : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]',
+          ? 'bg-brand-red/10 text-brand-red'
+          : 'text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
     >
@@ -38,7 +38,7 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
   );
 
   return (
-    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b border-[#E5E7EB] bg-white p-2">
+    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b border-brand-border bg-white p-2">
       <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')}>
         <Bold className="h-4 w-4" />
       </ToolbarButton>
@@ -52,7 +52,7 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
         <Code className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-2 h-6 w-px bg-[#E5E7EB]" />
+      <div className="mx-2 h-6 w-px bg-brand-border" />
 
       <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive('heading', { level: 1 })}>
         <Heading1 className="h-4 w-4" />
@@ -64,7 +64,7 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
         <Heading3 className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-2 h-6 w-px bg-[#E5E7EB]" />
+      <div className="mx-2 h-6 w-px bg-brand-border" />
 
       <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={editor.isActive('bulletList')}>
         <List className="h-4 w-4" />
@@ -76,17 +76,17 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
         <Quote className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-2 h-6 w-px bg-[#E5E7EB]" />
+      <div className="mx-2 h-6 w-px bg-brand-border" />
 
       <button
         onClick={onOpenImageEmbed}
-        className="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium text-[#1A1A1A] hover:bg-[#F0F0F0] transition-colors"
+        className="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium text-brand-text-primary hover:bg-brand-hover transition-colors"
       >
-        <ImageIcon className="h-4 w-4 text-[#CC0000]" />
+        <ImageIcon className="h-4 w-4 text-brand-red" />
         Embed Image
       </button>
 
-      <div className="mx-2 h-6 w-px bg-[#E5E7EB]" />
+      <div className="mx-2 h-6 w-px bg-brand-border" />
 
       <div className="ml-auto flex items-center gap-1">
         <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
@@ -151,25 +151,25 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
   };
 
   return (
-    <div className="flex flex-col rounded-xl bg-white shadow-sm border border-[#E5E7EB] overflow-hidden">
+    <div className="flex flex-col rounded-xl bg-white shadow-sm border border-brand-border overflow-hidden">
       <div className="p-8 pb-4">
-        <p className="text-xs font-bold tracking-widest text-[#6B7280] uppercase mb-2">Article Title</p>
+        <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase mb-2">Article Title</p>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
           placeholder="Enter an inspiring title..."
-          className="w-full bg-transparent text-4xl font-bold font-display text-[#1A1A1A] outline-none placeholder:text-[#9CA3AF] mb-8"
+          className="w-full bg-transparent text-4xl font-bold font-display text-brand-text-primary outline-none placeholder:text-gray-400 mb-8"
         />
 
-        <p className="text-xs font-bold tracking-widest text-[#6B7280] uppercase mb-3">Tags & Classification</p>
+        <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase mb-3">Tags & Classification</p>
         
-        <div className="flex flex-wrap items-center gap-2 mb-4 p-2 bg-[#F5F5F5] rounded-lg border border-[#E5E7EB]">
+        <div className="flex flex-wrap items-center gap-2 mb-4 p-2 bg-brand-bg rounded-lg border border-brand-border">
           {tags.map(tag => (
-            <div key={tag} className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-medium border border-[#E5E7EB] shadow-sm">
-              <span className="text-[#CC0000]">#</span> {tag}
-              <button onClick={() => removeTag(tag)} className="ml-1 text-[#9CA3AF] hover:text-[#CC0000]">
+            <div key={tag} className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-medium border border-brand-border shadow-sm">
+              <span className="text-brand-red">#</span> {tag}
+              <button onClick={() => removeTag(tag)} className="ml-1 text-gray-400 hover:text-brand-red">
                 <X className="h-3 w-3" />
               </button>
             </div>
@@ -177,7 +177,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
           <input 
             type="text" 
             placeholder="Add tag..." 
-            className="bg-transparent text-sm outline-none px-2 text-[#1A1A1A] placeholder:text-[#9CA3AF] flex-1 min-w-[100px]"
+            className="bg-transparent text-sm outline-none px-2 text-brand-text-primary placeholder:text-gray-400 flex-1 min-w-[100px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && e.currentTarget.value.trim() !== '') {
                 addTag(e.currentTarget.value.trim());
@@ -188,7 +188,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mr-2">Popular Suggestions:</span>
+          <span className="text-xs font-semibold text-brand-text-secondary uppercase tracking-wide mr-2">Popular Suggestions:</span>
           {POPULAR_TAGS.map(tag => {
             const isSelected = tags.includes(tag);
             return (
@@ -199,8 +199,8 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
                 className={cn(
                   'rounded-full px-3 py-1 text-xs font-medium transition-colors',
                   isSelected
-                    ? 'bg-[#CC0000] text-white opacity-50 cursor-not-allowed'
-                    : 'border border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#CC0000] hover:text-[#CC0000]'
+                    ? 'bg-brand-red text-white opacity-50 cursor-not-allowed'
+                    : 'border border-brand-border bg-white text-brand-text-secondary hover:border-brand-red hover:text-brand-red'
                 )}
               >
                 {tag}
@@ -210,9 +210,9 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col border-t border-[#E5E7EB]">
-        <div className="px-8 py-3 bg-[#F5F5F5] border-b border-[#E5E7EB]">
-          <p className="text-xs font-bold tracking-widest text-[#6B7280] uppercase">Rich Story Content</p>
+      <div className="mt-4 flex flex-col border-t border-brand-border">
+        <div className="px-8 py-3 bg-brand-bg border-b border-brand-border">
+          <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase">Rich Story Content</p>
         </div>
         <MenuBar editor={editor} onOpenImageEmbed={onOpenImageEmbed} />
         <div className="bg-white">

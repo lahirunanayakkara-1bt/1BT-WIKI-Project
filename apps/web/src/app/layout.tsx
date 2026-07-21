@@ -18,7 +18,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-[#F5F5F5]">
+      <body className="font-sans antialiased bg-brand-bg">
         {children}
       </body>
     </html>
