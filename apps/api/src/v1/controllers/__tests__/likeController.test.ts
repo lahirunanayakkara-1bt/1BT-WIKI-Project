@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from 'express';
-import { AppError } from '../../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
-jest.unstable_mockModule('../../services/likeService.js', () => ({
+jest.unstable_mockModule('@services/likeService.js', () => ({
   default: {
     likeArticle: jest.fn(),
     unlikeArticle: jest.fn(),
@@ -10,7 +10,7 @@ jest.unstable_mockModule('../../services/likeService.js', () => ({
 }));
 
 const { default: controller } = await import('../likeController.js');
-const { default: mockLikeService } = await import('../../services/likeService.js');
+const { default: mockLikeService } = await import('@services/likeService.js');
 
 describe('LikeController.like', () => {
   let req: Partial<Request>;

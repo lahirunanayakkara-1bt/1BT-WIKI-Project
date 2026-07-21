@@ -12,7 +12,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
 }));
 
 // Mock Auth Middleware
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -35,7 +35,7 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // Mock Repositories
-await jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
@@ -43,7 +43,7 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
   },
 }));
 
-await jest.unstable_mockModule('../../repositories/commentRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/commentRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     findByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue([]),
@@ -53,17 +53,17 @@ await jest.unstable_mockModule('../../repositories/commentRepository.js', () => 
   },
 }));
 
-await jest.unstable_mockModule('../../repositories/notificationRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
-const { default: app } = await import('../../../app.js');
+const { default: app } = await import('@/app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
-const { default: CommentRepository } = await import('../../repositories/commentRepository.js');
-const { default: NotificationRepository } = await import('../../repositories/notificationRepository.js');
+const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+const { default: CommentRepository } = await import('@repositories/commentRepository.js');
+const { default: NotificationRepository } = await import('@repositories/notificationRepository.js');
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockCreateComment = CommentRepository.create as jest.Mock<any>;

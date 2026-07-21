@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import LikeService from '../services/likeService.js';
-import { successResponse } from '../types/article.types.js';
+import LikeService from '@services/likeService.js';
+import { successResponse } from '@models/article.types.js';
 
 const like = async (
   req: Request,

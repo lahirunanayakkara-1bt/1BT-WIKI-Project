@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
-import ArticleService from '../services/articleService.js';
-import { successResponse } from '../types/article.types.js';
-import type { CreateArticleInput } from '../types/article.types.js';
-import { AppError } from '../../errors/AppError.js';
+import ArticleService from '@services/articleService.js';
+import { successResponse } from '@models/article.types.js';
+import type { CreateArticleInput } from '@models/article.types.js';
+import { AppError } from '@errors/AppError.js';
 
 const create = async (
   req: Request,

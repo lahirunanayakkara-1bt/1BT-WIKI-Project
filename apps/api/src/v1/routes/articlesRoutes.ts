@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
-import ArticleController from '../controllers/articleController.js';
-import LikeController from '../controllers/likeController.js';
+import ArticleController from '@controllers/articleController.js';
+import LikeController from '@controllers/likeController.js';
 import commentsRoutes from './commentsRoutes.js';
-import { authenticate } from '../../middleware/auth.middleware.js';
+import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });

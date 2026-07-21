@@ -51,6 +51,14 @@ const getArticle = (id: any): any => { ... }
 | Cypress tests | `[feature].cy.ts` | `article-lifecycle.cy.ts` |
 | DB migrations | `[timestamp]_[desc].sql` | `20260601_create_articles.sql` |
 
+## Import Path Standards
+- Avoid long relative imports such as `../../` or `../../../`.
+- Prefer alias-based imports configured in project path mappings or package-level aliases instead of deep folder traversal.
+- Use clear aliases such as `@/`, `@app/`, `@shared/`, or workspace package imports for cross-package code.
+- Example:
+  - ✅ `import { ArticleCard } from '@/components/articles/ArticleCard'`
+  - ❌ `import { ArticleCard } from '../../../../components/articles/ArticleCard'`
+
 ## Async / Error Handling
 - Always use `async/await` — never callbacks or raw `.then()` chains
 - All async functions must be wrapped in try/catch or use centralized error middleware

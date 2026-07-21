@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import CommentService from '../services/commentService.js';
-import { successResponse } from '../types/article.types.js';
+import CommentService from '@services/commentService.js';
+import { successResponse } from '@models/article.types.js';
 
 const create = async (
   req: Request,

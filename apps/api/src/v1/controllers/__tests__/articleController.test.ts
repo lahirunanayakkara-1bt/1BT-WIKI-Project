@@ -1,11 +1,9 @@
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from 'express';
-import ArticleController from '../articleController.js';
-import ArticleService from '../../services/articleService.js';
-import { AppError } from '../../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
 // Mock the ArticleService
-jest.unstable_mockModule('../../services/articleService.js', () => ({
+jest.unstable_mockModule('@services/articleService.js', () => ({
   default: {
     createArticle: jest.fn(),
     updateArticle: jest.fn(),
@@ -14,8 +12,8 @@ jest.unstable_mockModule('../../services/articleService.js', () => ({
 }));
 
 // We need to re-import the controller after mocking its dependencies
-const { default: controller } = await import('../articleController.js');
-const { default: mockArticleService } = await import('../../services/articleService.js');
+const { default: controller } = await import('@controllers/articleController.js');
+const { default: mockArticleService } = await import('@services/articleService.js');
 
 describe('ArticleController.create', () => {
   let req: Partial<Request>;

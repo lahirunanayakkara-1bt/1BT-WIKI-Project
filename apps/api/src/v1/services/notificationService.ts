@@ -1,8 +1,8 @@
 // apps/api/src/services/notificationService.ts
 
-import NotificationRepository from '../repositories/notificationRepository.js';
-import type { CreateNotificationInput, Notification } from '../types/notificationTypes.js';
-import { AppError } from '../../errors/AppError.js';
+import NotificationRepository from '@repositories/notificationRepository.js';
+import type { CreateNotificationInput, Notification } from '@models/notificationTypes.js';
+import { AppError } from '@errors/AppError.js';
 
 
 // ---------------------------------------------------------------------------

@@ -1,9 +1,9 @@
 // apps/api/src/middleware/auth.middleware.ts
 
 import type { Request, Response, NextFunction } from 'express';
-import type { AuthenticatedUser, UserRole } from '../types/userTypes.js';
-import { errorResponse, capitalizeRole } from '../types/userTypes.js';
-import UserRepository from '../v1/repositories/userRepository.js';
+import type { AuthenticatedUser, UserRole } from '@/types/userTypes.js';
+import { errorResponse, capitalizeRole } from '@/types/userTypes.js';
+import UserRepository from '@repositories/userRepository.js';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 // ── NEON AUTH CONFIG ─────────────────────────────────────────────────────────

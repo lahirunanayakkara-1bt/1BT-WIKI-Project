@@ -1,12 +1,12 @@
 import crypto from 'node:crypto';
 import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
 import type { article } from '@repo/db/generated/prisma/index.js';
-import ArticleRepository from '../repositories/articleRepository.js';
-import ArticleAttachmentRepository from '../repositories/articleAttachmentRepository.js';
-import ArticleReviewRepository from '../repositories/articleReviewRepository.js';
-import b2Client from '../lib/b2Client.js';
-import { AppError } from '../../errors/AppError.js';
-import type { Article, CreateArticleInput, UpdateArticleInput, ArticleAttachment, JSONContent, ArticleListItem } from '../types/article.types.js';
+import ArticleRepository from '@repositories/articleRepository.js';
+import ArticleAttachmentRepository from '@repositories/articleAttachmentRepository.js';
+import ArticleReviewRepository from '@repositories/articleReviewRepository.js';
+import b2Client from '@v1/lib/b2Client.js';
+import { AppError } from '@errors/AppError.js';
+import type { Article, CreateArticleInput, UpdateArticleInput, ArticleAttachment, JSONContent, ArticleListItem } from '@models/article.types.js';
 
 type ArticleUpdateFields = Partial<Pick<article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
 

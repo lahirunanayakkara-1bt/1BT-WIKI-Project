@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 import crypto from 'node:crypto';
-import { AppError } from '../../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
 // Mock dependencies
-jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: {
     create: jest.fn(),
     findById: jest.fn(),
@@ -13,29 +13,29 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
   },
 }));
 
-jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => ({
+jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
   default: {
     findLatestByArticleId: jest.fn(),
   },
 }));
 
-jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => ({
+jest.unstable_mockModule('@repositories/articleAttachmentRepository.js', () => ({
   default: {
     create: jest.fn(),
   },
 }));
 
-jest.unstable_mockModule('../../lib/b2Client.js', () => ({
+jest.unstable_mockModule('@v1/lib/b2Client.js', () => ({
   default: {
     uploadFile: jest.fn(),
   },
 }));
 
 const { default: ArticleService } = await import('../articleService.js');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
-const { default: ArticleAttachmentRepository } = await import('../../repositories/articleAttachmentRepository.js');
-const { default: ArticleReviewRepository } = await import('../../repositories/articleReviewRepository.js');
-const { default: b2Client } = await import('../../lib/b2Client.js');
+const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+const { default: ArticleAttachmentRepository } = await import('@repositories/articleAttachmentRepository.js');
+const { default: ArticleReviewRepository } = await import('@repositories/articleReviewRepository.js');
+const { default: b2Client } = await import('@v1/lib/b2Client.js');
 
 describe('ArticleService.createArticle', () => {
   const authorId = 'user-123';

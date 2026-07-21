@@ -15,7 +15,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   },
 }));
 
-await jest.unstable_mockModule('../../../db/index.js', () => ({
+await jest.unstable_mockModule('@/db/index.js', () => ({
   default: {
     query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
@@ -29,7 +29,7 @@ await jest.unstable_mockModule('../../../db/index.js', () => ({
 }));
 
 // Mock auth middleware — honours X-Test-User-* headers
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -52,7 +52,7 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // Mock userRepository — controls all DB calls made by the service layer
-await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
     findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
@@ -64,7 +64,7 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 }));
 
 // Mock adminRepository — controls DB calls made by adminService
-await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/adminRepository.js', () => ({
   default: {
     getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
@@ -72,7 +72,7 @@ await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
 }));
 
 // Mock rbac middleware — passthrough for any role (role assertions tested separately)
-await jest.unstable_mockModule('../../../middleware/rbac.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/rbac.middleware.js', () => ({
   requireRole: (_role: string) =>
     async (
       _req: import('express').Request,
@@ -82,10 +82,10 @@ await jest.unstable_mockModule('../../../middleware/rbac.middleware.js', () => (
 }));
 
 // Import AFTER all mocks are registered
-const { default: app, appReady }          = await import('../../../app.js');
+const { default: app, appReady }          = await import('@/app.js');
 const { default: request }                = await import('supertest');
-const { default: UserRepository }         = await import('../../repositories/userRepository.js');
-const { default: AdminRepository }        = await import('../../repositories/adminRepository.js');
+const { default: UserRepository }         = await import('@repositories/userRepository.js');
+const { default: AdminRepository }        = await import('@repositories/adminRepository.js');
 
 // Typed mock helpers
 const mockGetAll          = AdminRepository.getAllUsers as jest.Mock<() => Promise<unknown[]>>;

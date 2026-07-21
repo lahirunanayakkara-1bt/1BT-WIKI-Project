@@ -11,7 +11,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
 }));
 
 // Mock Auth Middleware
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -34,7 +34,7 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // Mock Repositories
-await jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
@@ -44,29 +44,29 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
   },
 }));
 
-await jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/articleAttachmentRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
-await jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
   default: {
     findLatestByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
   },
 }));
 
 // Mock B2 Client
-await jest.unstable_mockModule('../../lib/b2Client.js', () => ({
+await jest.unstable_mockModule('@v1/lib/b2Client.js', () => ({
   default: {
     uploadFile: jest.fn<() => Promise<{ fileId: string; fileUrl: string }>>().mockResolvedValue({ fileId: 'test', fileUrl: 'test' }),
   },
 }));
 
-const { default: app } = await import('../../../app.js');
+const { default: app } = await import('@/app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
-const { default: ArticleReviewRepository } = await import('../../repositories/articleReviewRepository.js');
+const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+const { default: ArticleReviewRepository } = await import('@repositories/articleReviewRepository.js');
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockUpdate = ArticleRepository.update as jest.Mock<any>;

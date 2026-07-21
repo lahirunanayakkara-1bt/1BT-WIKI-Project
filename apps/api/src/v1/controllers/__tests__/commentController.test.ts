@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from 'express';
-import { AppError } from '../../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
-jest.unstable_mockModule('../../services/commentService.js', () => ({
+jest.unstable_mockModule('@services/commentService.js', () => ({
   default: {
     addComment: jest.fn(),
     listComments: jest.fn(),
@@ -12,7 +12,7 @@ jest.unstable_mockModule('../../services/commentService.js', () => ({
 }));
 
 const { default: controller } = await import('../commentController.js');
-const { default: mockCommentService } = await import('../../services/commentService.js');
+const { default: mockCommentService } = await import('@services/commentService.js');
 
 describe('CommentController.create', () => {
   let req: Partial<Request>;

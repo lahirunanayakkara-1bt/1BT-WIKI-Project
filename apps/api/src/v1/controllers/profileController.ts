@@ -1,8 +1,8 @@
 // apps/api/src/controllers/profileController.ts
 
 import type { Request, Response, NextFunction } from 'express';
-import ProfileService from '../services/profileService.js';
-import { successResponse } from '../../types/userTypes.js';
+import ProfileService from '@services/profileService.js';
+import { successResponse } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/users/me
