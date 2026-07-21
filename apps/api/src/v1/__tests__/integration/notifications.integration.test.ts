@@ -34,7 +34,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
 }));
 
 // ── 2. Mock the DB pool — must come before app import ──────────────────────
-await jest.unstable_mockModule('../../../db/index.js', () => ({
+await jest.unstable_mockModule('@/db/index.js', () => ({
   default: {
     query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
@@ -50,7 +50,7 @@ await jest.unstable_mockModule('../../../db/index.js', () => ({
 // ── 2. Mock auth middleware — controls req.user injection ──────────────────
 //    The mock reads X-Test-User-* headers (same contract as the stub) so that
 //    tests can drive authentication state without touching JWT logic.
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -73,7 +73,7 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // ── 3. Mock notificationRepository so we control DB responses ─────────────
-await jest.unstable_mockModule('../../repositories/notificationRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
   default: {
     create:   jest.fn(),
     findById: jest.fn(),
@@ -85,14 +85,14 @@ await jest.unstable_mockModule('../../repositories/notificationRepository.js', (
 //    devDependencies. Without this mock the Promise.all in app.ts rejects
 //    and no routes are mounted at all.
 const { Router } = await import('express');
-await jest.unstable_mockModule('../../routes/articlesRoutes.js', () => ({
+await jest.unstable_mockModule('@routes/articlesRoutes.js', () => ({
   default: Router(),
 }));
 
 // ── Import app AFTER all mocks are registered ─────────────────────────────
-const { default: app, appReady } = await import('../../../app.js');
+const { default: app, appReady } = await import('@/app.js');
 const { default: request }       = await import('supertest');
-const { default: NotificationRepository } = await import('../../repositories/notificationRepository.js');
+const { default: NotificationRepository } = await import('@repositories/notificationRepository.js');
 
 const mockedList = NotificationRepository.list as jest.Mock<(...args: unknown[]) => Promise<unknown[]>>;
 

@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals';
 import crypto from 'node:crypto';
-import { AppError } from '../../../errors/AppError.js';
-import type { ArticleRepository } from '../../repositories/articleRepository.js';
+import { AppError } from '@errors/AppError.js';
+import type { ArticleRepository } from '@repositories/articleRepository.js';
 
 // Side-effect dependencies that aren't injected — still mock via module system
-jest.unstable_mockModule('../../repositories/articleRepository.js', () => {
+jest.unstable_mockModule('@repositories/articleRepository.js', () => {
   const mockCreate = jest.fn();
   const mockFindById = jest.fn();
   const mockUpdate = jest.fn();
@@ -35,7 +35,7 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => {
   };
 });
 
-jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => {
+jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => {
   const mockFindLatest = jest.fn();
   return {
     default: { findLatestByArticleId: mockFindLatest },
@@ -43,7 +43,7 @@ jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => 
   };
 });
 
-jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => {
+jest.unstable_mockModule('@repositories/articleAttachmentRepository.js', () => {
   const mockCreate = jest.fn();
   return {
     default: { create: mockCreate },
@@ -51,16 +51,17 @@ jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', ()
   };
 });
 
-jest.unstable_mockModule('../../lib/b2Client.js', () => ({
+jest.unstable_mockModule('@v1/lib/b2Client.js', () => ({
   default: {
     uploadFile: jest.fn(),
   },
 }));
 
-const { ArticleService } = await import('../articleService.js');
-const { default: ArticleAttachmentRepository } = await import('../../repositories/articleAttachmentRepository.js');
-const { default: ArticleReviewRepository } = await import('../../repositories/articleReviewRepository.js');
-const { default: b2Client } = await import('../../lib/b2Client.js');
+const { default: ArticleService } = await import('@services/articleService.js');
+await import('@repositories/articleRepository.js');
+const { default: ArticleAttachmentRepository } = await import('@repositories/articleAttachmentRepository.js');
+const { default: ArticleReviewRepository } = await import('@repositories/articleReviewRepository.js');
+const { default: b2Client } = await import('@v1/lib/b2Client.js');
 
 // Build a typed mock repository object — injected directly into the service.
 const makeRepo = (): jest.Mocked<Pick<ArticleRepository, 'create' | 'findById' | 'update' | 'updateStatus' | 'findPublished' | 'softDelete' | 'hardDelete'>> => ({

@@ -3,8 +3,8 @@
 import express from 'express';
 import cors from 'cors';
 import type { Request, Response, NextFunction } from 'express';
-import { AppError } from './errors/AppError.js';
-import { errorResponse } from './types/userTypes.js';
+import { AppError } from '@errors/AppError.js';
+import { errorResponse } from '@/types/userTypes.js';
 
 const app = express();
 
@@ -18,7 +18,7 @@ app.get('/api/v1/health', (_req, res) => {
 
 export const appReady: Promise<void> = (async () => {
   try {
-    const { default: v1Router } = await import('./v1/routes/index.js');
+    const { default: v1Router } = await import('@routes/index.js');
     
     // Mount all v1 routes under /api/v1
     app.use('/api/v1', v1Router);

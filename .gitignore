@@ -41,3 +41,7 @@ yarn-error.log*
 .vercel
 .env*
 .scannerwork
+
+CLAUDE.local.md
+.claude/rules/
+.claude/

@@ -1,8 +1,8 @@
 // apps/api/src/middleware/rbac.middleware.ts
 
 import type { Request, Response, NextFunction } from 'express';
-import type { UserRole } from '../types/userTypes.js';
-import { errorResponse } from '../types/userTypes.js';
+import type { UserRole } from '@/types/userTypes.js';
+import { errorResponse } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // RBAC middleware factory

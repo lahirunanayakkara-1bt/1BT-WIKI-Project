@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { Article, CreateArticleInput, JSONContent } from '../types/article.types.js';
+import type { Article, CreateArticleInput, JSONContent } from '@models/article.types.js';
 import type { Prisma } from '@repo/db';
 import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
 
@@ -98,8 +98,15 @@ export class ArticleRepository {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-        include: { _count: { select: { likes: true, comments: true } } },
-      }),
+        include: {
+        _count: {
+          select: {
+            likes: true,
+            comments: { where: { deletedAt: null } },
+            },
+        },
+      },
+    }),
       prisma.article.count({ where }),
     ]);
     return { articles, total };

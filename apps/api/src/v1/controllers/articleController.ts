@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
-import { ArticleService } from '../services/articleService.js';
-import { successResponse } from '../types/article.types.js';
-import type { CreateArticleInput } from '../types/article.types.js';
-import type { UserRole } from '../../types/userTypes.js';
-import { AppError } from '../../errors/AppError.js';
+import { ArticleService } from '@services/articleService.js';
+import { successResponse } from '@models/article.types.js';
+import type { CreateArticleInput } from '@models/article.types.js';
+import type { UserRole } from '@/types/userTypes.js';
+import { AppError } from '@errors/AppError.js';
 
 export class ArticleController {
   constructor(private service: ArticleService = new ArticleService()) {}
@@ -110,5 +110,5 @@ export class ArticleController {
   };
 }
 
-export default new ArticleController();
+export default ArticleController;
 

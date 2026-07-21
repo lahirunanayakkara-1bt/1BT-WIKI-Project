@@ -1,11 +1,11 @@
 // apps/api/src/repositories/notificationRepository.ts
 
 import { prisma } from '@repo/db';
-import { AppError } from '../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 import type {
   Notification,
   CreateNotificationInput,
-} from '../types/notificationTypes.js';
+} from '@models/notificationTypes.js';
 
 // ---------------------------------------------------------------------------
 // Prisma select and mapper

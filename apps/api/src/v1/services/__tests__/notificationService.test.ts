@@ -1,7 +1,7 @@
 // apps/api/src/services/__tests__/notificationService.test.ts
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { CreateNotificationInput, Notification } from '../../types/notificationTypes.js';
+import type { CreateNotificationInput, Notification } from '@models/notificationTypes.js';
 
 // ── ESM mock registration — must be before any import of the service ────────
 
@@ -9,7 +9,7 @@ const mockCreate = jest.fn<any>();
 const mockList = jest.fn<any>();
 const mockMarkAsRead = jest.fn<any>();
 
-await jest.unstable_mockModule('../../repositories/notificationRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
   default: { create: mockCreate, list: mockList, markAsRead: mockMarkAsRead },
 }));
 

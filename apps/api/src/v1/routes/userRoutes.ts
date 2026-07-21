@@ -3,11 +3,11 @@
 // Mounted at: /api/v1/users  (see app.ts)
 
 import { Router } from 'express';
-import UserController from '../controllers/userController.js';
-import ProfileController from '../controllers/profileController.js';
+import UserController from '@controllers/userController.js';
+import ProfileController from '@controllers/profileController.js';
 // authenticate is Lahiru's middleware (src/middleware/auth.middleware.ts).
 // A stub exists at that path until his PR lands — do NOT modify that file.
-import { authenticate } from '../../middleware/auth.middleware.js';
+import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 

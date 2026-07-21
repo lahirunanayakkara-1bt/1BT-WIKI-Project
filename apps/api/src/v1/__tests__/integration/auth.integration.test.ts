@@ -22,7 +22,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   },
 }));
 
-await jest.unstable_mockModule('../../../db/index.js', () => ({
+await jest.unstable_mockModule('@/db/index.js', () => ({
   default: {
     query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
@@ -36,7 +36,7 @@ await jest.unstable_mockModule('../../../db/index.js', () => ({
 }));
 
 // ── 2. Mock auth middleware — X-Test-User-* header contract ───────────────
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -59,7 +59,7 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // ── 3. Mock userRepository ────────────────────────────────────────────────
-await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
     getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
@@ -71,7 +71,7 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 }));
 
 // ── 4. Mock adminRepository ───────────────────────────────────────────────
-await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/adminRepository.js', () => ({
   default: {
     getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
@@ -79,9 +79,9 @@ await jest.unstable_mockModule('../../repositories/adminRepository.js', () => ({
 }));
 
 // ── Import app and supertest AFTER all mocks are registered ───────────────
-const { default: app, appReady } = await import('../../../app.js');
+const { default: app, appReady } = await import('@/app.js');
 const { default: request }       = await import('supertest');
-const { default: AdminRepository } = await import('../../repositories/adminRepository.js');
+const { default: AdminRepository } = await import('@repositories/adminRepository.js');
 
 // ── Auth header helpers ───────────────────────────────────────────────────
 
@@ -148,7 +148,7 @@ describe('Integration — A-05: auth + RBAC on POST /api/v1/admin/createUsers', 
 
   it('Admin role with valid payload → 201', async () => {
     // findByEmail returns null (no duplicate), createAdminUser returns the new user
-    const { default: UserRepository } = await import('../../repositories/userRepository.js');
+    const { default: UserRepository } = await import('@repositories/userRepository.js');
     (UserRepository.findByEmail as jest.Mock<() => Promise<null>>).mockResolvedValueOnce(null);
     (AdminRepository.createAdminUser as jest.Mock<() => Promise<unknown>>).mockResolvedValueOnce({
       id: 'new-1',
@@ -191,7 +191,7 @@ describe('Integration — A-05: auth + RBAC on PATCH /api/v1/admin/users/:userId
   });
 
   it('Admin role with valid payload → 200', async () => {
-    const { default: UserRepository } = await import('../../repositories/userRepository.js');
+    const { default: UserRepository } = await import('@repositories/userRepository.js');
     (UserRepository.findById as jest.Mock<() => Promise<unknown>>).mockResolvedValueOnce({
       id: 'user-1', role: 'User',
     });
@@ -233,7 +233,7 @@ describe('Integration — A-05: auth + RBAC on PATCH /api/v1/admin/users/:userId
   });
 
   it('Admin role → 200 (ban)', async () => {
-    const { default: UserRepository } = await import('../../repositories/userRepository.js');
+    const { default: UserRepository } = await import('@repositories/userRepository.js');
     const existing = { id: 'user-1', banned: false, banReason: null };
     const updated  = { id: 'user-1', banned: true,  banReason: 'spam' };
     (UserRepository.findById     as jest.Mock<() => Promise<unknown>>).mockResolvedValueOnce(existing);

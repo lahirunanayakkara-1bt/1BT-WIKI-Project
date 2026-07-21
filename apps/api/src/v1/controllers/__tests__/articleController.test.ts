@@ -238,6 +238,24 @@ describe('ArticleController', () => {
       expect(mockService.listPublished).toHaveBeenCalledWith(3, 5);
       expect(res.status).toHaveBeenCalledWith(200);
     });
+
+    it('should include likeCount and commentCount in the response payload', async () => {
+      const mockResult = {
+        articles: [
+          { id: 'article-1', title: 'Title 1', likeCount: 5, commentCount: 2 },
+        ],
+        total: 1,
+        page: 1,
+        limit: 20,
+      };
+      mockService.listPublished.mockResolvedValue(mockResult as never);
+
+      await controller.listPublished(req as Request, res as Response, next);
+
+      const jsonCall = (res.json as jest.Mock<any>).mock.calls[0][0] as any;
+      expect(jsonCall.data.articles[0].likeCount).toBe(5);
+      expect(jsonCall.data.articles[0].commentCount).toBe(2);
+    });
   });
 
   describe('getById', () => {

@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { User, CreateUserInput } from '../../types/userTypes.js';
+import type { User, CreateUserInput } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // Prisma select
