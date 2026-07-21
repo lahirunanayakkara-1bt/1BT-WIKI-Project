@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { apiFetch } from '@/lib/api/client';
-import { UserManagementTable } from './UserManagementTable';
-import { BanModal } from './BanModal';
+import { UserManagementTable } from '@/app/(dashboard)/admin/users/UserManagementTable';
+import { BanModal } from '@/app/(dashboard)/admin/users/BanModal';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import type { AdminUser, UserRole } from './UserManagementTable';
+import type { AdminUser, UserRole } from '@/app/(dashboard)/admin/users/UserManagementTable';
 import { cn } from '@/lib/utils';
 
 gsap.registerPlugin(useGSAP);

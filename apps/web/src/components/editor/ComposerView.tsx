@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { RichTextEditor } from './RichTextEditor';
-import { PublishingSettingsBox } from './PublishingSettingsBox';
-import { FeaturedMediaBox } from './FeaturedMediaBox';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
+import { PublishingSettingsBox } from '@/components/editor/PublishingSettingsBox';
+import { FeaturedMediaBox } from '@/components/editor/FeaturedMediaBox';
 
 interface ComposerViewProps {
   onOpenImageEmbed: () => void;

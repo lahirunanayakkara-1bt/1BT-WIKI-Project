@@ -34,27 +34,35 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // Mock Repositories
+const MockArticleRepository = {
+  create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+  update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findPublished: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  softDelete: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  hardDelete: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+};
+
 await jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-    update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    findPublished: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
+  ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
-await jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
-}));
+await jest.unstable_mockModule('../../repositories/articleAttachmentRepository.js', () => {
+  const mockCreate = jest.fn<() => Promise<unknown>>().mockResolvedValue({});
+  return {
+    default: { create: mockCreate },
+    ArticleAttachmentRepository: jest.fn().mockImplementation(() => ({ create: mockCreate }))
+  };
+});
 
-await jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => ({
-  default: {
-    findLatestByArticleId: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-  },
-}));
+await jest.unstable_mockModule('../../repositories/articleReviewRepository.js', () => {
+  const mockFindLatest = jest.fn<() => Promise<unknown>>().mockResolvedValue(null);
+  return {
+    default: { findLatestByArticleId: mockFindLatest },
+    ArticleReviewRepository: jest.fn().mockImplementation(() => ({ findLatestByArticleId: mockFindLatest }))
+  };
+});
 
 // Mock B2 Client
 await jest.unstable_mockModule('../../lib/b2Client.js', () => ({
@@ -65,19 +73,26 @@ await jest.unstable_mockModule('../../lib/b2Client.js', () => ({
 
 const { default: app } = await import('../../../app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
 const { default: ArticleReviewRepository } = await import('../../repositories/articleReviewRepository.js');
 
-const mockFindById = ArticleRepository.findById as jest.Mock<any>;
-const mockUpdate = ArticleRepository.update as jest.Mock<any>;
-const mockUpdateStatus = ArticleRepository.updateStatus as jest.Mock<any>;
-const mockFindPublished = ArticleRepository.findPublished as jest.Mock<any>;
+const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
+const mockUpdate = MockArticleRepository.update as jest.Mock<any>;
+const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
+const mockFindPublished = MockArticleRepository.findPublished as jest.Mock<any>;
+const mockSoftDelete = MockArticleRepository.softDelete as jest.Mock<any>;
+const mockHardDelete = MockArticleRepository.hardDelete as jest.Mock<any>;
 const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
 
 const userHeaders = {
   'x-test-user-id':    'user-123',
   'x-test-user-email': 'user@example.com',
   'x-test-user-role':  'User',
+};
+
+const adminHeaders = {
+  'x-test-user-id':    'admin-1',
+  'x-test-user-email': 'admin@example.com',
+  'x-test-user-role':  'Admin',
 };
 
 describe('Articles API Integration', () => {
@@ -190,6 +205,48 @@ describe('Articles API Integration', () => {
     });
   });
 
+  describe('GET /api/v1/articles/:id', () => {
+    const articleId = 'article-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).get(`/api/v1/articles/${articleId}`);
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 if article not found', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 403 if article is not Published', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, status: 'Draft' });
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 200 and the article if Published', async () => {
+      const mockArticle = { id: articleId, title: 'Test Article', status: 'Published' };
+      mockFindById.mockResolvedValueOnce(mockArticle);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe('Test Article');
+    });
+  });
+
   describe('POST /api/v1/articles/:id/submit', () => {
     const articleId = 'article-123';
     
@@ -244,6 +301,77 @@ describe('Articles API Integration', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.status).toBe('Pending');
       expect(mockUpdateStatus).toHaveBeenCalledWith(articleId, 'Pending');
+    });
+  });
+
+  describe('DELETE /api/v1/articles/:id', () => {
+    const articleId = 'article-123';
+
+    it('should soft-delete own Draft as author (deletedAt set, row retained)', async () => {
+      const existingArticle = { id: articleId, authorId: 'user-123', status: 'Draft', title: 'Draft Article' };
+      const deletedAt = new Date();
+      const softDeletedArticle = { ...existingArticle, deletedAt };
+
+      mockFindById.mockResolvedValueOnce(existingArticle);
+      mockSoftDelete.mockResolvedValueOnce(softDeletedArticle);
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeNull();
+      expect(response.body.message).toBe('Article deleted successfully');
+      expect(mockSoftDelete).toHaveBeenCalledWith(articleId);
+      expect(mockHardDelete).not.toHaveBeenCalled();
+      expect(softDeletedArticle.deletedAt).toBeInstanceOf(Date);
+    });
+
+    it('should return 400 when author tries to delete own Published article', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'user-123', status: 'Published' });
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Only Draft articles can be deleted');
+      expect(mockSoftDelete).not.toHaveBeenCalled();
+      expect(mockHardDelete).not.toHaveBeenCalled();
+    });
+
+    it('should return 403 when non-author non-admin attempts delete', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Not authorized');
+      expect(mockSoftDelete).not.toHaveBeenCalled();
+      expect(mockHardDelete).not.toHaveBeenCalled();
+    });
+
+    it('should hard-delete as Admin with ?hard=true (row removed from DB)', async () => {
+      const existingArticle = { id: articleId, authorId: 'other-user', status: 'Published', title: 'Published Article' };
+
+      mockFindById.mockResolvedValueOnce(existingArticle);
+      mockHardDelete.mockResolvedValueOnce(undefined);
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .delete(`/api/v1/articles/${articleId}?hard=true`)
+        .set(adminHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(mockHardDelete).toHaveBeenCalledWith(articleId);
+      expect(mockSoftDelete).not.toHaveBeenCalled();
+
+      const afterDelete = await mockFindById(articleId);
+      expect(afterDelete).toBeNull();
     });
   });
 });

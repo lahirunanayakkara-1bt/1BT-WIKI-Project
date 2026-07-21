@@ -10,7 +10,7 @@ import {
   MOCK_AUTHOR_NAME,
   MOCK_AUTHOR_META,
   MOCK_CONTENT_HTML,
-} from './mock';
+} from '@/components/editor/mock';
 import { cn } from '@/lib/utils';
 
 export function ReadingPreview() {

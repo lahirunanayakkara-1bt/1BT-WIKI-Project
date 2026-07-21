@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { X, Image as ImageIcon, UploadCloud, Link as LinkIcon, Search, Loader2 } from 'lucide-react';
-import { useEditorDraft } from './EditorDraftContext';
+import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { cn } from '@/lib/utils';
 
 interface ImageEmbedModalProps {
