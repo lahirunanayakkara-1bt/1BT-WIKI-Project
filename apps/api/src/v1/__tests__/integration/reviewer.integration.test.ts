@@ -39,6 +39,11 @@ await jest.unstable_mockModule('../../repositories/articleRepository.js', () => 
   ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
+await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
+  ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
+  default: jest.fn().mockImplementation(() => MockArticleRepository),
+}));
+
 const { default: app, appReady } = await import('../../../app.js');
 const { default: request } = await import('supertest');
 
