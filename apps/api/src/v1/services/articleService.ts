@@ -5,6 +5,7 @@ import { ArticleReviewRepository } from '../repositories/articleReviewRepository
 import b2Client from '../lib/b2Client.js';
 import { AppError } from '../../errors/AppError.js';
 import type { UserRole } from '../../types/userTypes.js';
+import { UserRoleValue } from '../../types/userTypes.js';
 import type {
   Article,
   ArticleStatus,
@@ -14,6 +15,7 @@ import type {
   JSONContent,
   ArticleListItem,
 } from '../types/article.types.js';
+import { ArticleStatusValue } from '../types/article.types.js';
 
 // Derives update-field shapes from the app-level Article interface — no Prisma types cross into the service layer.
 type ArticleUpdateFields = Partial<Pick<Article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
@@ -68,7 +70,7 @@ const validateBody = (body: JSONContent | undefined): JSONContent => {
 };
 
 const assertTransition = (currentStatus: ArticleStatus, targetStatus: ArticleStatus): void => {
-  if (currentStatus === 'Draft' && targetStatus === 'Pending') {
+  if (currentStatus === ArticleStatusValue.Draft && targetStatus === ArticleStatusValue.Pending) {
     return;
   }
 
@@ -169,7 +171,7 @@ export class ArticleService {
     let isEditable = false;
     let resetToDraft = false;
 
-    if (article.status === 'Draft') {
+    if (article.status === ArticleStatusValue.Draft) {
       isEditable = true;
     } else {
       const latestReview = await this.reviewRepository.findLatestByArticleId(id);
@@ -192,7 +194,7 @@ export class ArticleService {
       if (input.title !== undefined) updateFields.title = validateTitle(input.title);
       if (input.body !== undefined) updateFields.body = validateBody(input.body);
       if (input.tags !== undefined) updateFields.tags = input.tags;
-      if (resetToDraft) updateFields.status = 'Draft';
+      if (resetToDraft) updateFields.status = ArticleStatusValue.Draft;
 
       updatedArticle = await this.repository.update(id, updateFields);
     }
@@ -215,9 +217,9 @@ export class ArticleService {
   async submitForReview(articleId: string, userId: string): Promise<Article> {
     const article = await this.findOwned(articleId, userId);
 
-    assertTransition(article.status, 'Pending');
+    assertTransition(article.status, ArticleStatusValue.Pending);
 
-    return this.repository.updateStatus(articleId, 'Pending' as ArticleStatus);
+    return this.repository.updateStatus(articleId, ArticleStatusValue.Pending);
   }
 
   async listPublished(
@@ -250,14 +252,14 @@ export class ArticleService {
     const article = await this.repository.findById(articleId);
     if (!article) throw new AppError('Article not found', 404);
 
-    const isAdmin = role === 'Admin';
+    const isAdmin = role === UserRoleValue.Admin;
     const isAuthor = article.authorId === userId;
 
     if (!isAdmin && !isAuthor) {
       throw new AppError('Not authorized', 403);
     }
 
-    if (!isAdmin && article.status !== 'Draft') {
+    if (!isAdmin && article.status !== ArticleStatusValue.Draft) {
       throw new AppError('Only Draft articles can be deleted', 400);
     }
 
@@ -277,7 +279,7 @@ export class ArticleService {
     if (!article) {
       throw new AppError('Article not found', 404);
     }
-    if (article.status !== 'Published') {
+    if (article.status !== ArticleStatusValue.Published) {
       throw new AppError('Article not available', 403);
     }
     return article;

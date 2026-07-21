@@ -5,6 +5,13 @@
 
 export type ArticleStatus = 'Draft' | 'Pending' | 'Published' | 'Unpublished';
 
+export const ArticleStatusValue = {
+  Draft: 'Draft',
+  Pending: 'Pending',
+  Published: 'Published',
+  Unpublished: 'Unpublished',
+} as const satisfies Record<ArticleStatus, ArticleStatus>;
+
 export interface JSONContent {
   type?: string;
   [key: string]: unknown;
