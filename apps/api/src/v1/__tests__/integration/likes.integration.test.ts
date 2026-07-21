@@ -89,6 +89,7 @@ describe('Likes API Integration', () => {
         .post(`/api/v1/articles/${articleId}/like`);
 
       expect(response.status).toBe(401);
+      expect(response.body).toEqual({ success: false, error: 'Authentication required' });
     });
 
     it('should return 404 if article not found', async () => {
@@ -99,6 +100,7 @@ describe('Likes API Integration', () => {
         .set(userHeaders);
 
       expect(response.status).toBe(404);
+      expect(response.body).toEqual({ success: false, error: 'Article not found' });
     });
 
     it('should return 403 if article is not Published', async () => {
@@ -109,6 +111,7 @@ describe('Likes API Integration', () => {
         .set(userHeaders);
 
       expect(response.status).toBe(403);
+      expect(response.body).toEqual({ success: false, error: 'Cannot like this article' });
     });
 
     it('should like the article and notify the article author on a Published article', async () => {
@@ -154,6 +157,8 @@ describe('Likes API Integration', () => {
 
       expect(first.status).toBe(200);
       expect(second.status).toBe(200);
+      expect(first.body.message).toBe('Article liked successfully');
+      expect(second.body.message).toBe('Article liked successfully');
       expect(mockUpsertLike).toHaveBeenCalledTimes(2);
     });
   });
@@ -166,6 +171,7 @@ describe('Likes API Integration', () => {
         .delete(`/api/v1/articles/${articleId}/like`);
 
       expect(response.status).toBe(401);
+      expect(response.body).toEqual({ success: false, error: 'Authentication required' });
     });
 
     it('should return 404 if article not found', async () => {
@@ -176,6 +182,7 @@ describe('Likes API Integration', () => {
         .set(userHeaders);
 
       expect(response.status).toBe(404);
+      expect(response.body).toEqual({ success: false, error: 'Article not found' });
     });
 
     it('should unlike the article', async () => {
@@ -213,6 +220,8 @@ describe('Likes API Integration', () => {
 
       expect(first.status).toBe(200);
       expect(second.status).toBe(200);
+      expect(first.body.message).toBe('Article unliked successfully');
+      expect(second.body.message).toBe('Article unliked successfully');
       expect(mockRemoveLike).toHaveBeenCalledTimes(2);
     });
   });
