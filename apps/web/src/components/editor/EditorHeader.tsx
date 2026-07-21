@@ -79,6 +79,9 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
     }
   };
 
+  const isSaving = saveStatus === 'saving';
+  const isPublished = articleStatus !== null && articleStatus !== 'Draft';
+
   return (
     <>
       <header className="flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] bg-white px-6 shrink-0 relative z-20 shadow-sm">
@@ -159,7 +162,7 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
 
         <button
           onClick={() => setIsConfirmModalOpen(true)}
-          disabled={saveStatus === 'saving' || (articleStatus !== null && articleStatus !== 'Draft')}
+          disabled={isSaving || isPublished}
           className="rounded-lg bg-[#CC0000] px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors"
         >
           Submit for Review
