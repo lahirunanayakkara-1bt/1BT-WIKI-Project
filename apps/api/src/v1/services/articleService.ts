@@ -312,7 +312,7 @@ export class ArticleService {
   ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
     const { articles, total } = await this.repository.findByAuthor(authorId, page, limit);
 
-    const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
+    const mappedArticles: ArticleListItem[] = articles.map((article) => ({
       id: article.id,
       title: article.title,
       authorId: article.authorId,
