@@ -83,7 +83,7 @@ const mainNavItems: NavItem[] = [
   { label: 'Forum', href: '/forum', icon: <ForumIcon />, testId: 'nav-forum' },
 ];
 const secondaryNavItems: NavItem[] = [
-  { label: 'My Articles', href: '/profile', icon: <MyArticlesIcon />, testId: 'nav-my-articles' },
+  { label: 'My Articles', href: '/my-articles', icon: <MyArticlesIcon />, testId: 'nav-my-articles' },
   { label: 'Settings', href: '/settings', icon: <SettingsIcon />, testId: 'nav-settings' },
 ];
 
