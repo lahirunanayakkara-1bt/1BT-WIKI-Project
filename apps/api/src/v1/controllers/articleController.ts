@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { ArticleService } from '../services/articleService.js';
 import { successResponse } from '../types/article.types.js';
 import type { CreateArticleInput } from '../types/article.types.js';
+import type { UserRole } from '../../types/userTypes.js';
 import { AppError } from '../../errors/AppError.js';
 
 export class ArticleController {
@@ -90,6 +91,19 @@ export class ArticleController {
       const article = await this.service.getPublishedById(id);
 
       res.status(200).json(successResponse(article, 'Article retrieved successfully'));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  remove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.userId;
+      const role = req.user!.role as UserRole;
+      const hard = req.query.hard === 'true';
+      await this.service.deleteArticle(id, userId, role, hard);
+      res.status(200).json({ success: true, data: null, message: 'Article deleted successfully' });
     } catch (error) {
       next(error);
     }

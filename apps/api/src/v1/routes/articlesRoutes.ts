@@ -6,7 +6,7 @@ import { authenticate } from '../../middleware/auth.middleware.js';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 const articleController = new ArticleController();
-const { create, listPublished, getById, update, submitForReview } = articleController;
+const { create, listPublished, getById, update, submitForReview, remove } = articleController;
 
 // POST /api/v1/articles — Create a new article as Draft
 router.post('/', authenticate, upload.array('images'), create);
@@ -22,6 +22,9 @@ router.patch('/:id', authenticate, upload.array('images'), update);
 
 // POST /api/v1/articles/:id/submit — Submit article for review (Draft -> Pending)
 router.post('/:id/submit', authenticate, submitForReview);
+
+// DELETE /api/v1/articles/:id — Soft or hard delete an article
+router.delete('/:id', authenticate, remove);
 
 export default router;
 

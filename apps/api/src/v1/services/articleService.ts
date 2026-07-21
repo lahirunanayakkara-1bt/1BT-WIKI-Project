@@ -4,6 +4,7 @@ import { ArticleAttachmentRepository } from '../repositories/articleAttachmentRe
 import { ArticleReviewRepository } from '../repositories/articleReviewRepository.js';
 import b2Client from '../lib/b2Client.js';
 import { AppError } from '../../errors/AppError.js';
+import type { UserRole } from '../../types/userTypes.js';
 import type {
   Article,
   ArticleStatus,
@@ -238,6 +239,37 @@ export class ArticleService {
     }));
 
     return { articles: mappedArticles, total, page, limit };
+  }
+
+  async deleteArticle(
+    articleId: string,
+    userId: string,
+    role: UserRole,
+    hard: boolean = false
+  ): Promise<void> {
+    const article = await this.repository.findById(articleId);
+    if (!article) throw new AppError('Article not found', 404);
+
+    const isAdmin = role === 'Admin';
+    const isAuthor = article.authorId === userId;
+
+    if (!isAdmin && !isAuthor) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    if (!isAdmin && article.status !== 'Draft') {
+      throw new AppError('Only Draft articles can be deleted', 400);
+    }
+
+    if (hard && !isAdmin) {
+      throw new AppError('Only Admins can permanently delete articles', 403);
+    }
+
+    if (hard) {
+      await this.repository.hardDelete(articleId);
+    } else {
+      await this.repository.softDelete(articleId);
+    }
   }
 
   async getPublishedById(id: string): Promise<Article> {

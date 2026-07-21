@@ -76,6 +76,20 @@ export class ArticleRepository {
     return result as unknown as Article;
   }
 
+  async softDelete(id: string): Promise<Article> {
+    const result = await prisma.article.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+      select: ARTICLE_SELECT,
+    });
+
+    return result as unknown as Article;
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    await prisma.article.delete({ where: { id } });
+  }
+
   async findPublished(page: number, limit: number) {
     const where = { status: ArticleStatus.Published, deletedAt: null };
     const [articles, total] = await Promise.all([
