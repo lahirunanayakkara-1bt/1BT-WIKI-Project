@@ -9,7 +9,7 @@ import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
 import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
-import { SuccessToast } from '@/components/shared/SuccessToast';
+import { Toast } from '@/components/shared/Toast';
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 
 interface EditorHeaderProps {
@@ -169,7 +169,7 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
         </button>
       </div>
       </header>
-      <SuccessToast visible={isToastVisible} message={toastMessage} />
+      <Toast visible={isToastVisible} message={toastMessage} type="success" />
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         title="Submit for Review"

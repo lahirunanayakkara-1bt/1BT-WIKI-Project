@@ -3,15 +3,18 @@
 import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { Check } from 'lucide-react';
+import { Check, X, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface SuccessToastProps {
+export type ToastType = 'success' | 'error' | 'info';
+
+interface ToastProps {
   visible: boolean;
   message: string;
+  type?: ToastType;
 }
 
-export function SuccessToast({ visible, message }: SuccessToastProps) {
+export function Toast({ visible, message, type = 'success' }: ToastProps) {
   const toastRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -39,7 +42,7 @@ export function SuccessToast({ visible, message }: SuccessToastProps) {
   return (
     <div
       ref={toastRef}
-      data-testid="success-toast"
+      data-testid={`${type}-toast`}
       className={cn(
         'fixed bottom-6 right-6 z-50 flex items-center gap-3',
         'rounded-lg bg-brand-dark px-4 py-3 text-white shadow-xl',
@@ -49,8 +52,15 @@ export function SuccessToast({ visible, message }: SuccessToastProps) {
       // Initial state before GSAP takes over
       style={{ opacity: 0 }}
     >
-      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E]/20 text-[#22C55E]">
-        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+      <div className={cn(
+        "flex h-5 w-5 items-center justify-center rounded-full",
+        type === 'success' && "bg-[#22C55E]/20 text-[#22C55E]",
+        type === 'error' && "bg-red-500/20 text-red-500",
+        type === 'info' && "bg-blue-500/20 text-blue-500"
+      )}>
+        {type === 'success' && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+        {type === 'error' && <X className="h-3.5 w-3.5" strokeWidth={3} />}
+        {type === 'info' && <Info className="h-3.5 w-3.5" strokeWidth={3} />}
       </div>
       <span className="text-sm font-semibold tracking-wide">{message}</span>
     </div>
