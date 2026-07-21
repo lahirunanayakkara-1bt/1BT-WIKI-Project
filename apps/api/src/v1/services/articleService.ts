@@ -20,8 +20,9 @@ import { ArticleStatusValue } from '@models/article.types.js';
 // Derives update-field shapes from the app-level Article interface — no Prisma types cross into the service layer.
 type ArticleUpdateFields = Partial<Pick<Article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
 
-// Infer the concrete row type that findPublished returns, to avoid any in the map callback.
-type PublishedArticleRow = Awaited<ReturnType<ArticleRepository['findPublished']>>['articles'][number];
+type PublishedArticleRow = Article & {
+  _count?: { likes: number; comments: number };
+};
 
 const validateImages = (images: Express.Multer.File[]) => {
   if (images.length > 10) {
@@ -226,7 +227,12 @@ export class ArticleService {
     page: number = 1,
     limit: number = 20
   ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
-    const { articles, total } = await this.repository.findPublished(page, limit);
+    const { articles, total } = await this.repository.findByStatus(
+      ArticleStatusValue.Published,
+      page,
+      limit,
+      { includeCounts: true }
+    );
 
     const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
       id: article.id,

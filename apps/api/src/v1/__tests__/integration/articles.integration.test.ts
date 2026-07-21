@@ -39,7 +39,7 @@ const MockArticleRepository = {
   findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
   update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  findPublished: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findByStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   softDelete: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   hardDelete: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 };
@@ -80,7 +80,7 @@ const { default: ArticleReviewRepository } = await import('@repositories/article
 const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
 const mockUpdate = MockArticleRepository.update as jest.Mock<any>;
 const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
-const mockFindPublished = MockArticleRepository.findPublished as jest.Mock<any>;
+const mockFindByStatus = MockArticleRepository.findByStatus as jest.Mock<any>;
 const mockSoftDelete = MockArticleRepository.softDelete as jest.Mock<any>;
 const mockHardDelete = MockArticleRepository.hardDelete as jest.Mock<any>;
 const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
@@ -174,7 +174,7 @@ describe('Articles API Integration', () => {
         }
       ];
 
-      mockFindPublished.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
+      mockFindByStatus.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
 
       const response = await request(app)
         .get('/api/v1/articles')
@@ -189,11 +189,11 @@ describe('Articles API Integration', () => {
       expect(response.body.data.page).toBe(1);
       expect(response.body.data.limit).toBe(20);
       
-      expect(mockFindPublished).toHaveBeenCalledWith(1, 20);
+      expect(mockFindByStatus).toHaveBeenCalledWith('Published', 1, 20, { includeCounts: true });
     });
 
     it('should respect custom page and limit query params', async () => {
-      mockFindPublished.mockResolvedValueOnce({ articles: [], total: 0 });
+      mockFindByStatus.mockResolvedValueOnce({ articles: [], total: 0 });
 
       const response = await request(app)
         .get('/api/v1/articles?page=3&limit=5')
@@ -203,7 +203,7 @@ describe('Articles API Integration', () => {
       expect(response.body.data.page).toBe(3);
       expect(response.body.data.limit).toBe(5);
       
-      expect(mockFindPublished).toHaveBeenCalledWith(3, 5);
+      expect(mockFindByStatus).toHaveBeenCalledWith('Published', 3, 5, { includeCounts: true });
     });
   });
 

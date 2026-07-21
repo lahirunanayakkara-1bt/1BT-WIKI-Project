@@ -9,7 +9,7 @@ jest.unstable_mockModule('@repositories/articleRepository.js', () => {
   const mockFindById = jest.fn();
   const mockUpdate = jest.fn();
   const mockUpdateStatus = jest.fn();
-  const mockFindPublished = jest.fn();
+  const mockFindByStatus = jest.fn();
   const mockSoftDelete = jest.fn();
   const mockHardDelete = jest.fn();
 
@@ -19,7 +19,7 @@ jest.unstable_mockModule('@repositories/articleRepository.js', () => {
       findById: mockFindById,
       update: mockUpdate,
       updateStatus: mockUpdateStatus,
-      findPublished: mockFindPublished,
+      findByStatus: mockFindByStatus,
       softDelete: mockSoftDelete,
       hardDelete: mockHardDelete,
     },
@@ -28,7 +28,7 @@ jest.unstable_mockModule('@repositories/articleRepository.js', () => {
       findById: mockFindById,
       update: mockUpdate,
       updateStatus: mockUpdateStatus,
-      findPublished: mockFindPublished,
+      findByStatus: mockFindByStatus,
       softDelete: mockSoftDelete,
       hardDelete: mockHardDelete,
     })),
@@ -64,12 +64,12 @@ const { default: ArticleReviewRepository } = await import('@repositories/article
 const { default: b2Client } = await import('@v1/lib/b2Client.js');
 
 // Build a typed mock repository object — injected directly into the service.
-const makeRepo = (): jest.Mocked<Pick<ArticleRepository, 'create' | 'findById' | 'update' | 'updateStatus' | 'findPublished' | 'softDelete' | 'hardDelete'>> => ({
+const makeRepo = (): jest.Mocked<Pick<ArticleRepository, 'create' | 'findById' | 'update' | 'updateStatus' | 'findByStatus' | 'softDelete' | 'hardDelete'>> => ({
   create: jest.fn(),
   findById: jest.fn(),
   update: jest.fn(),
   updateStatus: jest.fn(),
-  findPublished: jest.fn(),
+  findByStatus: jest.fn(),
   softDelete: jest.fn(),
   hardDelete: jest.fn(),
 });
@@ -433,11 +433,11 @@ describe('ArticleService.listPublished', () => {
       }
     ];
 
-    mockRepo.findPublished.mockResolvedValue({ articles: mockArticles, total: 2 } as never);
+    mockRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 2 } as never);
 
     const result = await service.listPublished(1, 10);
 
-    expect(mockRepo.findPublished).toHaveBeenCalledWith(1, 10);
+    expect(mockRepo.findByStatus).toHaveBeenCalledWith('Published', 1, 10, { includeCounts: true });
     expect(result).toEqual({
       articles: [
         {
@@ -482,7 +482,7 @@ describe('ArticleService.listPublished', () => {
       }
     ];
 
-    mockRepo.findPublished.mockResolvedValue({ articles: mockArticles, total: 1 } as never);
+    mockRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 1 } as never);
 
     const result = await service.listPublished(1, 10);
 
