@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ChevronLeft, ChevronRight, Search, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UserIcon } from '@/components/shared/icons/UserIcon';
 
 interface DraftManagerSidebarProps {
   isOpen: boolean;
@@ -149,10 +150,7 @@ export function DraftManagerSidebar({ isOpen, toggleSidebar }: DraftManagerSideb
         <div className="mt-4 flex items-center justify-between border-t border-[#E5E7EB] pt-4">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#CC0000] text-xs font-bold text-[#CC0000]">
-              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+              <UserIcon className="h-3 w-3" />
             </div>
             <span className="text-xs font-medium text-[#6B7280]">malinduyasanjith2001</span>
           </div>

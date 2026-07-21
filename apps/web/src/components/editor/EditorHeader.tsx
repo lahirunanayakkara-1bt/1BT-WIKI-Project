@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
 import { Toast } from '@/components/shared/Toast';
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
+import { EditIcon } from '@/components/shared/icons/EditIcon';
+import { EyeIcon } from '@/components/shared/icons/EyeIcon';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -127,10 +129,7 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
                 : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]'
             )}
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
+            <EditIcon className="h-4 w-4" />
             Compose
           </button>
           <button
@@ -142,10 +141,7 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
                 : 'text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A]'
             )}
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
+            <EyeIcon className="h-4 w-4" />
             Preview
           </button>
         </div>

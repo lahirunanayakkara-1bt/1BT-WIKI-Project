@@ -6,6 +6,9 @@ import { useGSAP } from '@gsap/react';
 import { UserAvatar } from '@/components/UserAvatar';
 import { isE2E } from '@/lib/e2e';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
+import { SearchIcon } from '@/components/shared/icons/SearchIcon';
+import { BellIcon } from '@/components/shared/icons/BellIcon';
+import { ChevronDownIcon } from '@/components/shared/icons/ChevronDownIcon';
 
 interface NavbarProps {
   notificationCount?: number;
@@ -95,17 +98,10 @@ export function Navbar({
 
       <div className="flex-1 px-4">
         <div className="relative max-w-xl mx-auto">
-          <svg
+          <SearchIcon
             className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
             aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
+          />
           <input
             type="text"
             placeholder="Search articles, tech talks..."
@@ -126,10 +122,7 @@ export function Navbar({
           data-testid="notification-bell"
           aria-label="Notifications"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
-          </svg>
+          <BellIcon className="h-5 w-5" />
           {notificationCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 bg-[#CC0000] text-white text-[10px] font-bold
                              rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
@@ -146,10 +139,7 @@ export function Navbar({
           data-testid="user-avatar"
         >
           <UserAvatar format="collapsed" />
-          <svg className="h-3 w-3 text-[#6B7280] ml-1" fill="none" stroke="currentColor"
-            strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDownIcon className="h-3 w-3 text-[#6B7280] ml-1" />
         </button>
       </div>
     </header>

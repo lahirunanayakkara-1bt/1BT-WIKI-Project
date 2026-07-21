@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { cn } from '@/lib/utils';
+import { PlusIcon } from '@/components/shared/icons/PlusIcon';
 
 export function FeaturedMediaBox() {
   const { uploadImage, featuredImageUrl, setFeaturedImageUrl } = useEditorDraft();
@@ -94,9 +95,7 @@ export function FeaturedMediaBox() {
       ) : (
         <label className="relative mb-6 flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E5E7EB] bg-[#F9FAFB] transition-colors hover:border-[#CC0000]/50 hover:bg-[#F3F4F6] group">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm mb-2 group-hover:scale-110 transition-transform">
-            <svg className="h-4 w-4 text-[#6B7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="h-4 w-4 text-[#6B7280]" />
           </div>
           <span className="text-xs font-medium text-[#6B7280]">Upload Image</span>
           <input
