@@ -3,9 +3,9 @@
 // Mounted at: /api/v1/notifications  (see app.ts)
 
 import { Router } from 'express';
-import NotificationController from '../controllers/notificationController.js';
+import NotificationController from '@controllers/notificationController.js';
 // authenticate is Lahiru's middleware (src/middleware/auth.middleware.ts).
-import { authenticate } from '../../middleware/auth.middleware.js';
+import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import adminService from '../services/adminService.js';
-import { successResponse } from '../../types/userTypes.js';
-import type { UserRole } from '../../types/userTypes.js';
+import adminService from '@services/adminService.js';
+import { successResponse } from '@/types/userTypes.js';
+import type { UserRole } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/users

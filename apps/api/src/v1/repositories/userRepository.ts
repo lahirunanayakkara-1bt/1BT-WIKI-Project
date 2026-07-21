@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { User } from '../../types/userTypes.js';
+import type { User } from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // Prisma select — mirrors the exact columns the service layer expects.

@@ -20,6 +20,14 @@
       ".ts"
     ],
     "moduleNameMapper": {
+      "^@v1/(.*)\\.js$": "<rootDir>/src/v1/$1",
+      "^@errors/(.*)\\.js$": "<rootDir>/src/errors/$1",
+      "^@repositories/(.*)\\.js$": "<rootDir>/src/v1/repositories/$1",
+      "^@controllers/(.*)\\.js$": "<rootDir>/src/v1/controllers/$1",
+      "^@routes/(.*)\\.js$": "<rootDir>/src/v1/routes/$1",
+      "^@services/(.*)\\.js$": "<rootDir>/src/v1/services/$1",
+      "^@models/(.*)\\.js$": "<rootDir>/src/v1/types/$1",
+      "^@/(.*)\\.js$": "<rootDir>/src/$1",
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "transform": {

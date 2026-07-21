@@ -1,8 +1,8 @@
-import ArticleRepository from '../repositories/articleRepository.js';
-import CommentRepository from '../repositories/commentRepository.js';
+import ArticleRepository from '@repositories/articleRepository.js';
+import CommentRepository from '@repositories/commentRepository.js';
 import NotificationService from './notificationService.js';
-import { AppError } from '../../errors/AppError.js';
-import type { Comment, CommentWithAuthor } from '../types/comment.types.js';
+import { AppError } from '@errors/AppError.js';
+import type { Comment, CommentWithAuthor } from '@models/comment.types.js';
 
 const validateBody = (body: string | undefined): string => {
   if (!body || body.trim() === '') {

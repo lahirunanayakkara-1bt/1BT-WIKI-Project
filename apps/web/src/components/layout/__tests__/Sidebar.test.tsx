@@ -31,7 +31,7 @@ jest.mock('@/lib/hooks/useUser', () => ({
   }),
 }));
 
-import { Sidebar } from '../Sidebar';
+import { Sidebar } from '@/components/layout/Sidebar';
 
 describe('Sidebar sign-out', () => {
   beforeEach(() => {

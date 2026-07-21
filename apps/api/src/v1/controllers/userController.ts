@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import UserService from '../services/userService.js';
-import { successResponse } from '../../types/userTypes.js';
-import type { UserRole } from '../../types/userTypes.js';
+import UserService from '@services/userService.js';
+import { successResponse } from '@/types/userTypes.js';
+import type { UserRole } from '@/types/userTypes.js';
 
 
 const updateUserRole = async (

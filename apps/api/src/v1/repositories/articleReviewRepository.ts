@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { ArticleReview } from '../types/article.types.js';
+import type { ArticleReview } from '@models/article.types.js';
 
 const ARTICLE_REVIEW_SELECT = {
   id: true,
@@ -11,7 +11,8 @@ const ARTICLE_REVIEW_SELECT = {
   updatedAt: true,
 } as const;
 
-const findLatestByArticleId = async (articleId: string): Promise<ArticleReview | null> => {
+export class ArticleReviewRepository {
+  async findLatestByArticleId(articleId: string): Promise<ArticleReview | null> {
   const result = await prisma.articleReview.findFirst({
     where: { articleId },
     orderBy: { createdAt: 'desc' },
@@ -31,6 +32,7 @@ const findLatestByArticleId = async (articleId: string): Promise<ArticleReview |
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
   };
-};
+  }
+}
 
-export default { findLatestByArticleId };
+export default new ArticleReviewRepository();

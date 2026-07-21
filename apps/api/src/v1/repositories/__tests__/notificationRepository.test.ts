@@ -4,7 +4,7 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import type {
   Notification,
   CreateNotificationInput,
-} from '../../types/notificationTypes.js';
+} from '@models/notificationTypes.js';
 
 // ── ESM mock registration — must be before any import of the repository ─────
 

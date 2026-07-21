@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { Article, CreateArticleInput, JSONContent } from '../types/article.types.js';
+import type { Article, CreateArticleInput, JSONContent } from '@models/article.types.js';
 import type { Prisma } from '@repo/db';
 import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
 
@@ -14,113 +14,125 @@ const ARTICLE_SELECT = {
   updatedAt: true,
 } as const;
 
-const create = async (data: CreateArticleInput & { authorId: string }): Promise<Article> => {
-  const { title, body, tags, authorId } = data;
-  
-  // Default values
-  const defaultBody = body ?? {};
-  const defaultTags = tags ?? [];
-  const status = 'Draft';
-
-  const result = await prisma.article.create({
-    data: {
-      title,
-      body: defaultBody as Prisma.InputJsonValue,
-      status,
-      authorId,
-      tags: defaultTags,
-    },
-    select: ARTICLE_SELECT,
-  });
-
-  return result as unknown as Article;
-};
-
-const findById = async (id: string): Promise<Article | null> => {
-  const result = await prisma.article.findFirst({
-    where: { id, deletedAt: null },
-    select: ARTICLE_SELECT,
-  });
-
-  return result ? (result as unknown as Article) : null;
-};
-
 type ArticleBody = { title: string; body: JSONContent; tags: string[]; status: ArticleStatus };
 
-const update = async (
-  id: string,
-  fields: Partial<ArticleBody>
-): Promise<Article> => {
-  // Prisma will update updatedAt automatically via @updatedAt
-  
-  const updateData: Prisma.articleUpdateInput = {
-    ...(fields.title !== undefined && { title: fields.title }),
-    ...(fields.body !== undefined && { body: fields.body as Prisma.InputJsonValue }),
-    ...(fields.tags !== undefined && { tags: fields.tags }),
-    ...(fields.status !== undefined && { status: fields.status }),
-  };
+export class ArticleRepository {
+  async create(data: CreateArticleInput & { authorId: string }): Promise<Article> {
+    const { title, body, tags, authorId } = data;
 
-  const result = await prisma.article.update({
-    where: { id },
-    data: updateData,
-    select: ARTICLE_SELECT,
-  });
+    // Default values
+    const defaultBody = body ?? {};
+    const defaultTags = tags ?? [];
+    const status = 'Draft';
 
-  return result as unknown as Article;
-};
+    const result = await prisma.article.create({
+      data: {
+        title,
+        body: defaultBody as Prisma.InputJsonValue,
+        status,
+        authorId,
+        tags: defaultTags,
+      },
+      select: ARTICLE_SELECT,
+    });
 
-const updateStatus = async (id: string, status: ArticleStatus): Promise<Article> => {
-  const result = await prisma.article.update({
-    where: { id },
-    data: { status },
-    select: ARTICLE_SELECT,
-  });
+    return result as unknown as Article;
+  }
 
-  return result as unknown as Article;
-};
+  async findById(id: string): Promise<Article | null> {
+    const result = await prisma.article.findFirst({
+      where: { id, deletedAt: null },
+      select: ARTICLE_SELECT,
+    });
 
-const findPublished = async (page: number, limit: number): Promise<{ articles: any[]; total: number }> => {
-  const where = { status: 'Published' as const, deletedAt: null };
-  const [articles, total] = await Promise.all([
-    prisma.article.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
+    return result ? (result as unknown as Article) : null;
+  }
+
+  async update(id: string, fields: Partial<ArticleBody>): Promise<Article> {
+    // Prisma will update updatedAt automatically via @updatedAt
+    const updateData: Prisma.articleUpdateInput = {
+      ...(fields.title !== undefined && { title: fields.title }),
+      ...(fields.body !== undefined && { body: fields.body as Prisma.InputJsonValue }),
+      ...(fields.tags !== undefined && { tags: fields.tags }),
+      ...(fields.status !== undefined && { status: fields.status }),
+    };
+
+    const result = await prisma.article.update({
+      where: { id },
+      data: updateData,
+      select: ARTICLE_SELECT,
+    });
+
+    return result as unknown as Article;
+  }
+
+  async updateStatus(id: string, status: ArticleStatus): Promise<Article> {
+    const result = await prisma.article.update({
+      where: { id },
+      data: { status },
+      select: ARTICLE_SELECT,
+    });
+
+    return result as unknown as Article;
+  }
+
+  async softDelete(id: string): Promise<Article> {
+    const result = await prisma.article.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+      select: ARTICLE_SELECT,
+    });
+
+    return result as unknown as Article;
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    await prisma.article.delete({ where: { id } });
+  }
+
+  async findPublished(page: number, limit: number) {
+    const where = { status: ArticleStatus.Published, deletedAt: null };
+    const [articles, total] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
         _count: {
           select: {
             likes: true,
             comments: { where: { deletedAt: null } },
-          },
+            },
         },
       },
     }),
-    prisma.article.count({ where }),
-  ]);
-  return { articles, total };
-};
+      prisma.article.count({ where }),
+    ]);
+    return { articles, total };
+  }
 
-const findByAuthor = async (authorId: string, page: number, limit: number): Promise<{ articles: any[]; total: number }> => {
-  const where = { authorId, deletedAt: null };
-  const [articles, total] = await Promise.all([
-    prisma.article.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        _count: {
-          select: {
-            likes: true,
-            comments: { where: { deletedAt: null } },
+  async findByAuthor(authorId: string, page: number, limit: number) {
+    const where = { authorId, deletedAt: null };
+    const [articles, total] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          _count: {
+            select: {
+              likes: true,
+              comments: { where: { deletedAt: null } },
+            },
           },
         },
-      },
-    }),
-    prisma.article.count({ where }),
-  ]);
-  return { articles, total };
-};
+      }),
+      prisma.article.count({ where }),
+    ]);
+    return { articles, total };
+  }
+}
 
-export default { create, findById, update, updateStatus, findPublished, findByAuthor };
+export default new ArticleRepository();

@@ -12,7 +12,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
 }));
 
 // Mock Auth Middleware
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -35,32 +35,35 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // Mock Repositories
-await jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-    update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
+const MockArticleRepository = {
+  create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+  update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+};
+
+await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
+  default: MockArticleRepository,
+  ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
-await jest.unstable_mockModule('../../repositories/likeRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/likeRepository.js', () => ({
   default: {
     upsert: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     remove: jest.fn<() => Promise<unknown>>().mockResolvedValue(undefined),
   },
 }));
 
-await jest.unstable_mockModule('../../repositories/notificationRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
   default: {
     create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
-const { default: app } = await import('../../../app.js');
+const { default: app } = await import('@/app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
-const { default: LikeRepository } = await import('../../repositories/likeRepository.js');
-const { default: NotificationRepository } = await import('../../repositories/notificationRepository.js');
+const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+const { default: LikeRepository } = await import('@repositories/likeRepository.js');
+const { default: NotificationRepository } = await import('@repositories/notificationRepository.js');
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockUpsertLike = LikeRepository.upsert as jest.Mock<any>;
@@ -86,6 +89,7 @@ describe('Likes API Integration', () => {
         .post(`/api/v1/articles/${articleId}/like`);
 
       expect(response.status).toBe(401);
+      expect(response.body).toEqual({ success: false, error: 'Authentication required' });
     });
 
     it('should return 404 if article not found', async () => {
@@ -96,6 +100,7 @@ describe('Likes API Integration', () => {
         .set(userHeaders);
 
       expect(response.status).toBe(404);
+      expect(response.body).toEqual({ success: false, error: 'Article not found' });
     });
 
     it('should return 403 if article is not Published', async () => {
@@ -106,6 +111,7 @@ describe('Likes API Integration', () => {
         .set(userHeaders);
 
       expect(response.status).toBe(403);
+      expect(response.body).toEqual({ success: false, error: 'Cannot like this article' });
     });
 
     it('should like the article and notify the article author on a Published article', async () => {
@@ -151,6 +157,8 @@ describe('Likes API Integration', () => {
 
       expect(first.status).toBe(200);
       expect(second.status).toBe(200);
+      expect(first.body.message).toBe('Article liked successfully');
+      expect(second.body.message).toBe('Article liked successfully');
       expect(mockUpsertLike).toHaveBeenCalledTimes(2);
     });
   });
@@ -163,6 +171,7 @@ describe('Likes API Integration', () => {
         .delete(`/api/v1/articles/${articleId}/like`);
 
       expect(response.status).toBe(401);
+      expect(response.body).toEqual({ success: false, error: 'Authentication required' });
     });
 
     it('should return 404 if article not found', async () => {
@@ -173,6 +182,7 @@ describe('Likes API Integration', () => {
         .set(userHeaders);
 
       expect(response.status).toBe(404);
+      expect(response.body).toEqual({ success: false, error: 'Article not found' });
     });
 
     it('should unlike the article', async () => {
@@ -210,6 +220,8 @@ describe('Likes API Integration', () => {
 
       expect(first.status).toBe(200);
       expect(second.status).toBe(200);
+      expect(first.body.message).toBe('Article unliked successfully');
+      expect(second.body.message).toBe('Article unliked successfully');
       expect(mockRemoveLike).toHaveBeenCalledTimes(2);
     });
   });

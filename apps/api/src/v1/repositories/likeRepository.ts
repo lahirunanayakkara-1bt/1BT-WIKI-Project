@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { Like } from '../types/like.types.js';
+import type { Like } from '@models/like.types.js';
 
 const upsert = async (articleId: string, userId: string): Promise<Like> => {
   const result = await prisma.like.upsert({

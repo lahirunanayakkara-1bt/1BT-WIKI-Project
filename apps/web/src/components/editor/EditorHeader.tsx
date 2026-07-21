@@ -4,10 +4,13 @@ import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ChevronLeft, Save } from 'lucide-react';
-import { useEditorDraft } from './EditorDraftContext';
+import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
+import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
+import { Toast } from '@/components/shared/Toast';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
@@ -15,8 +18,12 @@ interface EditorHeaderProps {
 }
 
 export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
-  const { saveStatus, lastSavedAt, lastError, saveDraft } = useEditorDraft();
+  const { articleStatus, saveStatus, lastSavedAt, lastError, saveDraft, submitForReview } = useEditorDraft();
   const statusDotRef = useRef<HTMLDivElement>(null);
+  const { isVisible: isToastVisible, message: toastMessage, showToast } = useAutoDismissToast();
+  
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Animate the status dot based on save state
   useGSAP(() => {
@@ -52,13 +59,32 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
   const handleSaveDraft = async () => {
     try {
       await saveDraft();
+      showToast(DRAFT_SAVED_MESSAGE);
     } catch {
       // Error state is already set in context
     }
   };
 
+  const handleSubmitForReview = async () => {
+    setIsSubmitting(true);
+    try {
+      await submitForReview();
+      setIsConfirmModalOpen(false);
+      showToast('Submitted for review');
+    } catch {
+      // Error state is already set in context (status pill handles it)
+      setIsConfirmModalOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isSaving = saveStatus === 'saving';
+  const isPublished = articleStatus !== null && articleStatus !== 'Draft';
+
   return (
-    <header className="flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] bg-white px-6 shrink-0 relative z-20 shadow-sm">
+    <>
+      <header className="flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] bg-white px-6 shrink-0 relative z-20 shadow-sm">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-4 border-r border-[#E5E7EB] pr-6">
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -134,10 +160,25 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
           Save Draft
         </button>
 
-        <button className="rounded-lg bg-[#CC0000] px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors">
-          Publish Article
+        <button
+          onClick={() => setIsConfirmModalOpen(true)}
+          disabled={isSaving || isPublished}
+          className="rounded-lg bg-[#CC0000] px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors"
+        >
+          Submit for Review
         </button>
       </div>
-    </header>
+      </header>
+      <Toast visible={isToastVisible} message={toastMessage} type="success" />
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        title="Submit for Review"
+        message="Are you sure you want to submit this article for review?"
+        confirmText="Submit"
+        onConfirm={handleSubmitForReview}
+        onCancel={() => setIsConfirmModalOpen(false)}
+        isConfirming={isSubmitting}
+      />
+    </>
   );
 }

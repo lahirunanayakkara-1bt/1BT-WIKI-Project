@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { Comment, CommentWithAuthor, CreateCommentInput } from '../types/comment.types.js';
+import type { Comment, CommentWithAuthor, CreateCommentInput } from '@models/comment.types.js';
 
 const COMMENT_SELECT = {
   id: true,

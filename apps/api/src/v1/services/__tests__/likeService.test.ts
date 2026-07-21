@@ -1,13 +1,13 @@
 import { jest } from '@jest/globals';
-import { AppError } from '../../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
-jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: {
     findById: jest.fn(),
   },
 }));
 
-jest.unstable_mockModule('../../repositories/likeRepository.js', () => ({
+jest.unstable_mockModule('@repositories/likeRepository.js', () => ({
   default: {
     upsert: jest.fn(),
     remove: jest.fn(),
@@ -21,8 +21,8 @@ jest.unstable_mockModule('../notificationService.js', () => ({
 }));
 
 const { default: LikeService } = await import('../likeService.js');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
-const { default: LikeRepository } = await import('../../repositories/likeRepository.js');
+const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+const { default: LikeRepository } = await import('@repositories/likeRepository.js');
 const { default: NotificationService } = await import('../notificationService.js');
 
 describe('LikeService.likeArticle', () => {

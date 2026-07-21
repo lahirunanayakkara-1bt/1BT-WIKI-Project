@@ -1,7 +1,7 @@
-import ArticleRepository from '../repositories/articleRepository.js';
-import LikeRepository from '../repositories/likeRepository.js';
-import NotificationService from './notificationService.js';
-import { AppError } from '../../errors/AppError.js';
+import ArticleRepository from '@repositories/articleRepository.js';
+import LikeRepository from '@repositories/likeRepository.js';
+import NotificationService from '@services/notificationService.js';
+import { AppError } from '@/errors/AppError.js';
 
 const likeArticle = async (articleId: string, userId: string): Promise<void> => {
   const article = await ArticleRepository.findById(articleId);

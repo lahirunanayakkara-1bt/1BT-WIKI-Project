@@ -1,13 +1,13 @@
 import { jest } from '@jest/globals';
-import { AppError } from '../../../errors/AppError.js';
+import { AppError } from '@errors/AppError.js';
 
-jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: {
     findById: jest.fn(),
   },
 }));
 
-jest.unstable_mockModule('../../repositories/commentRepository.js', () => ({
+jest.unstable_mockModule('@repositories/commentRepository.js', () => ({
   default: {
     create: jest.fn(),
     findByArticleId: jest.fn(),
@@ -24,8 +24,8 @@ jest.unstable_mockModule('../notificationService.js', () => ({
 }));
 
 const { default: CommentService } = await import('../commentService.js');
-const { default: ArticleRepository } = await import('../../repositories/articleRepository.js');
-const { default: CommentRepository } = await import('../../repositories/commentRepository.js');
+const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+const { default: CommentRepository } = await import('@repositories/commentRepository.js');
 const { default: NotificationService } = await import('../notificationService.js');
 
 describe('CommentService.addComment', () => {

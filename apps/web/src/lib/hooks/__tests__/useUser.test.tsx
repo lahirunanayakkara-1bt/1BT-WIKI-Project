@@ -7,7 +7,7 @@ jest.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => mockApiFetch(...args),
 }));
 
-import { UserProvider, useUser, type UserMeData } from '../useUser';
+import { UserProvider, useUser, type UserMeData } from '@/lib/hooks/useUser';
 
 const mockUser: UserMeData = {
   id: 'u1',

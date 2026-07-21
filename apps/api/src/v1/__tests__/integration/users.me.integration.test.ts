@@ -23,7 +23,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
   },
 }));
 
-await jest.unstable_mockModule('../../../db/index.js', () => ({
+await jest.unstable_mockModule('@/db/index.js', () => ({
   default: {
     query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
@@ -39,7 +39,7 @@ await jest.unstable_mockModule('../../../db/index.js', () => ({
 // ── 2. Mock auth middleware — controls req.user injection ──────────────────
 //    The mock reads X-Test-User-* headers (same contract as the stub) so that
 //    tests can drive authentication state without touching JWT logic.
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -62,7 +62,7 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 }));
 
 // ── 3. Mock userRepository so we control DB responses ─────────────────────
-await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
     getAll:          jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
@@ -73,9 +73,9 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 }));
 
 // ── Import app AFTER all mocks are registered ─────────────────────────────
-const { default: app, appReady } = await import('../../../app.js');
+const { default: app, appReady } = await import('@/app.js');
 const { default: request }       = await import('supertest');
-const { default: UserRepository } = await import('../../repositories/userRepository.js');
+const { default: UserRepository } = await import('@repositories/userRepository.js');
 
 const mockedFindById = UserRepository.findById as jest.Mock<(id: string) => Promise<unknown>>;
 const mockedUpdateById = UserRepository.updateById as jest.Mock<(id: string, updates: any) => Promise<unknown>>;

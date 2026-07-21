@@ -1,10 +1,10 @@
 // apps/api/src/services/__tests__/user.service.test.ts
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { User } from '../../../types/userTypes.js';
+import type { User } from '@/types/userTypes.js';
 
 // ESM mock — must be before any imports
-await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
+await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
     findByEmail: jest.fn(),
     findById: jest.fn(),
@@ -15,7 +15,7 @@ await jest.unstable_mockModule('../../repositories/userRepository.js', () => ({
 
 // Import AFTER mock is registered
 const { default: UserService } = await import('../userService.js');
-const { default: UserRepository } = await import('../../repositories/userRepository.js');
+const { default: UserRepository } = await import('@repositories/userRepository.js');
 
 const mockedRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 

@@ -1,5 +1,5 @@
 import { prisma } from '@repo/db';
-import type { ArticleAttachment, CreateAttachmentInput } from '../types/article.types.js';
+import type { ArticleAttachment, CreateAttachmentInput } from '@models/article.types.js';
 
 const ARTICLE_ATTACHMENT_SELECT = {
   id: true,
@@ -16,9 +16,10 @@ const ARTICLE_ATTACHMENT_SELECT = {
   deletedAt: true,
 } as const;
 
-const create = async (
-  data: CreateAttachmentInput
-): Promise<ArticleAttachment> => {
+export class ArticleAttachmentRepository {
+  async create(
+    data: CreateAttachmentInput
+  ): Promise<ArticleAttachment> {
   const result = await prisma.articleAttachment.create({
     data: {
       articleId: data.articleId,
@@ -35,26 +36,28 @@ const create = async (
   });
 
   return result as ArticleAttachment;
-};
+  }
 
-const findByArticleId = async (
-  articleId: string
-): Promise<ArticleAttachment[]> => {
+  async findByArticleId(
+    articleId: string
+  ): Promise<ArticleAttachment[]> {
   const result = await prisma.articleAttachment.findMany({
     where: { articleId, deletedAt: null },
     select: ARTICLE_ATTACHMENT_SELECT,
   });
 
   return result as ArticleAttachment[];
-};
+  }
 
-const softDelete = async (
-  id: string
-): Promise<void> => {
+  async softDelete(
+    id: string
+  ): Promise<void> {
   await prisma.articleAttachment.update({
     where: { id },
     data: { deletedAt: new Date() },
   });
-};
+  }
 
-export default { create, findByArticleId, softDelete };
+}
+
+export default new ArticleAttachmentRepository();
