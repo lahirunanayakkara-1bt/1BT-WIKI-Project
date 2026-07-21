@@ -90,19 +90,26 @@ export class ArticleRepository {
     await prisma.article.delete({ where: { id } });
   }
 
-  async findPublished(page: number, limit: number) {
-    const where = { status: ArticleStatus.Published, deletedAt: null };
+  async findByStatus(
+    status: ArticleStatus,
+    page: number,
+    limit: number,
+    options?: { includeCounts?: boolean }
+  ): Promise<{ articles: Article[]; total: number }> {
+    const where = { status, deletedAt: null };
     const [articles, total] = await Promise.all([
       prisma.article.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-        include: { _count: { select: { likes: true, comments: true } } },
+        ...(options?.includeCounts && {
+          include: { _count: { select: { likes: true, comments: true } } },
+        }),
       }),
       prisma.article.count({ where }),
     ]);
-    return { articles, total };
+    return { articles: articles as unknown as Article[], total };
   }
 }
 
