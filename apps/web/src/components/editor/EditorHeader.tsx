@@ -71,7 +71,7 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
       await submitForReview();
       setIsConfirmModalOpen(false);
       showToast('Submitted for review');
-    } catch (error) {
+    } catch {
       // Error state is already set in context (status pill handles it)
       setIsConfirmModalOpen(false);
     } finally {

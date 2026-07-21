@@ -4,7 +4,6 @@ import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
