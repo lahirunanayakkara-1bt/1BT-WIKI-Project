@@ -18,7 +18,8 @@ export interface Article {
 
 export interface Comment {
   id: string;
-  author: User;
+  authorName: string;
+  authorImage: string;
   content: string;
   createdAt: string;
 }
@@ -66,13 +67,15 @@ export const mockArticles: Record<string, Article> = {
 export const mockCommentsData: Comment[] = [
   {
     id: 'c1',
-    author: { name: 'John Smith', avatarUrl: 'https://i.pravatar.cc/150?u=john' },
+    authorName: 'John Smith',
+    authorImage: 'https://i.pravatar.cc/150?u=john',
     content: 'Great read! Thanks for sharing.',
     createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
   },
   {
     id: 'c2',
-    author: { name: 'Alice Johnson', avatarUrl: 'https://i.pravatar.cc/150?u=alice' },
+    authorName: 'Alice Johnson',
+    authorImage: 'https://i.pravatar.cc/150?u=alice',
     content: 'I completely agree with the points made here.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
   },

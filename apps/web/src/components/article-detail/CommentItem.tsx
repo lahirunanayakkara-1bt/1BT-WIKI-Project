@@ -25,7 +25,7 @@ function timeAgo(dateStr: string) {
 
 export function CommentItem({ comment, currentUserName, onDelete }: CommentItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const isMine = comment.author.name === currentUserName;
+  const isMine = comment.authorName === currentUserName;
 
   const handleDelete = () => {
     // TODO(backend): replace local delete with DELETE 
@@ -36,11 +36,11 @@ export function CommentItem({ comment, currentUserName, onDelete }: CommentItemP
 
   return (
     <div data-testid="comment-item" className="flex gap-4 py-6 border-b border-brand-border last:border-0">
-      <img src={comment.author.avatarUrl} alt={comment.author.name} className="w-10 h-10 rounded-full bg-brand-border object-cover" />
+      <img src={comment.authorImage} alt={comment.authorName} className="w-10 h-10 rounded-full bg-brand-border object-cover" />
       <div className="flex-1">
         <div className="flex justify-between items-start">
           <div>
-            <span className="font-semibold text-brand-dark">{comment.author.name}</span>
+            <span className="font-semibold text-brand-dark">{comment.authorName}</span>
             <span className="ml-2 text-sm text-brand-text-secondary">{timeAgo(comment.createdAt)}</span>
           </div>
           {isMine && (
