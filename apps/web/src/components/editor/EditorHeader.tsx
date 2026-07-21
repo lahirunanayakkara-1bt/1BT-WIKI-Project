@@ -4,13 +4,13 @@ import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ChevronLeft, Save } from 'lucide-react';
-import { useEditorDraft } from './EditorDraftContext';
+import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
 import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
-import { SuccessToast } from '../shared/SuccessToast';
-import { ConfirmationModal } from '../shared/ConfirmationModal';
+import { SuccessToast } from '@/components/shared/SuccessToast';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 
 interface EditorHeaderProps {
   mode: 'compose' | 'preview';
