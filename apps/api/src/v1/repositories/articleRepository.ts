@@ -87,7 +87,14 @@ const findPublished = async (page: number, limit: number): Promise<{ articles: a
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
-      include: { _count: { select: { likes: true, comments: true } } },
+      include: {
+        _count: {
+          select: {
+            likes: true,
+            comments: { where: { deletedAt: null } },
+          },
+        },
+      },
     }),
     prisma.article.count({ where }),
   ]);

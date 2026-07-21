@@ -9,6 +9,7 @@ jest.unstable_mockModule('../../services/articleService.js', () => ({
   default: {
     createArticle: jest.fn(),
     updateArticle: jest.fn(),
+    listPublished: jest.fn(),
   },
 }));
 
@@ -194,6 +195,77 @@ describe('ArticleController.update', () => {
     (mockArticleService.updateArticle as jest.Mock<any>).mockRejectedValue(error);
 
     await controller.update(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
+});
+
+describe('ArticleController.listPublished', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: jest.Mock<any>;
+
+  beforeEach(() => {
+    req = {
+      query: {},
+    };
+    res = {
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn() as any,
+    };
+    next = jest.fn();
+    jest.clearAllMocks();
+  });
+
+  it('should default to page 1 and limit 20 when no query params are provided', async () => {
+    const result = { articles: [], total: 0, page: 1, limit: 20 };
+    (mockArticleService.listPublished as jest.Mock<any>).mockResolvedValue(result);
+
+    await controller.listPublished(req as Request, res as Response, next);
+
+    expect(mockArticleService.listPublished).toHaveBeenCalledWith(1, 20);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: result,
+      message: 'Articles retrieved successfully',
+    });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should parse custom page and limit query params', async () => {
+    req.query = { page: '3', limit: '5' };
+    const result = { articles: [], total: 0, page: 3, limit: 5 };
+    (mockArticleService.listPublished as jest.Mock<any>).mockResolvedValue(result);
+
+    await controller.listPublished(req as Request, res as Response, next);
+
+    expect(mockArticleService.listPublished).toHaveBeenCalledWith(3, 5);
+  });
+
+  it('should include likeCount and commentCount in the response payload', async () => {
+    const result = {
+      articles: [
+        { id: 'article-1', title: 'Title 1', likeCount: 5, commentCount: 2 },
+      ],
+      total: 1,
+      page: 1,
+      limit: 20,
+    };
+    (mockArticleService.listPublished as jest.Mock<any>).mockResolvedValue(result);
+
+    await controller.listPublished(req as Request, res as Response, next);
+
+    const jsonCall = (res.json as jest.Mock<any>).mock.calls[0][0] as any;
+    expect(jsonCall.data.articles[0].likeCount).toBe(5);
+    expect(jsonCall.data.articles[0].commentCount).toBe(2);
+  });
+
+  it('should pass errors from ArticleService to next', async () => {
+    const error = new Error('Service error');
+    (mockArticleService.listPublished as jest.Mock<any>).mockRejectedValue(error);
+
+    await controller.listPublished(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalledWith(error);
   });
