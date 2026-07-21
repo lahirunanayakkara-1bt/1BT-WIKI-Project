@@ -14,6 +14,9 @@ router.post('/', authenticate, upload.array('images'), ArticleController.create)
 // GET /api/v1/articles — List published articles
 router.get('/', authenticate, ArticleController.listPublished);
 
+// GET /api/v1/articles/mine — List the authenticated user's own articles across all statuses
+router.get('/mine', authenticate, ArticleController.listMine);
+
 // PATCH /api/v1/articles/:id — Update an existing article
 router.patch('/:id', authenticate, upload.array('images'), ArticleController.update);
 

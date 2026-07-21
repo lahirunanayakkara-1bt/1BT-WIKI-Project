@@ -101,4 +101,26 @@ const findPublished = async (page: number, limit: number): Promise<{ articles: a
   return { articles, total };
 };
 
-export default { create, findById, update, updateStatus, findPublished };
+const findByAuthor = async (authorId: string, page: number, limit: number): Promise<{ articles: any[]; total: number }> => {
+  const where = { authorId, deletedAt: null };
+  const [articles, total] = await Promise.all([
+    prisma.article.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        _count: {
+          select: {
+            likes: true,
+            comments: { where: { deletedAt: null } },
+          },
+        },
+      },
+    }),
+    prisma.article.count({ where }),
+  ]);
+  return { articles, total };
+};
+
+export default { create, findById, update, updateStatus, findPublished, findByAuthor };
