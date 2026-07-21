@@ -10,12 +10,13 @@ jest.unstable_mockModule('../../services/articleService.js', () => ({
 const { ArticleController } = await import('../articleController.js');
 
 // Build a typed mock service object — injected directly into the controller.
-const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'getPublishedById'>> => ({
+const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'getPublishedById' | 'deleteArticle'>> => ({
   createArticle: jest.fn(),
   updateArticle: jest.fn(),
   submitForReview: jest.fn(),
   listPublished: jest.fn(),
   getPublishedById: jest.fn(),
+  deleteArticle: jest.fn(),
 });
 
 describe('ArticleController', () => {
@@ -264,6 +265,55 @@ describe('ArticleController', () => {
       mockService.getPublishedById.mockRejectedValue(error as never);
 
       await controller.getById(req as Request, res as Response, next);
+
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('remove', () => {
+    beforeEach(() => {
+      req.params = { id: 'article-123' };
+      req.user = { userId: 'user-123', role: 'User' } as any;
+    });
+
+    it('should call deleteArticle with hard=false by default', async () => {
+      mockService.deleteArticle.mockResolvedValue(undefined as never);
+
+      await controller.remove(req as Request, res as Response, next);
+
+      expect(mockService.deleteArticle).toHaveBeenCalledWith('article-123', 'user-123', 'User', false);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: null,
+        message: 'Article deleted successfully',
+      });
+    });
+
+    it('should parse hard=true query param', async () => {
+      req.query = { hard: 'true' };
+      req.user = { userId: 'admin-1', role: 'Admin' } as any;
+      mockService.deleteArticle.mockResolvedValue(undefined as never);
+
+      await controller.remove(req as Request, res as Response, next);
+
+      expect(mockService.deleteArticle).toHaveBeenCalledWith('article-123', 'admin-1', 'Admin', true);
+    });
+
+    it('should pass req.user.role through to the service', async () => {
+      req.user = { userId: 'user-123', role: 'Reviewer' } as any;
+      mockService.deleteArticle.mockResolvedValue(undefined as never);
+
+      await controller.remove(req as Request, res as Response, next);
+
+      expect(mockService.deleteArticle).toHaveBeenCalledWith('article-123', 'user-123', 'Reviewer', false);
+    });
+
+    it('should pass errors to next', async () => {
+      const error = new AppError('Not authorized', 403);
+      mockService.deleteArticle.mockRejectedValue(error as never);
+
+      await controller.remove(req as Request, res as Response, next);
 
       expect(next).toHaveBeenCalledWith(error);
     });

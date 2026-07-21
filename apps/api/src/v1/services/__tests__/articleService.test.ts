@@ -10,6 +10,8 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => {
   const mockUpdate = jest.fn();
   const mockUpdateStatus = jest.fn();
   const mockFindPublished = jest.fn();
+  const mockSoftDelete = jest.fn();
+  const mockHardDelete = jest.fn();
 
   return {
     default: {
@@ -18,6 +20,8 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => {
       update: mockUpdate,
       updateStatus: mockUpdateStatus,
       findPublished: mockFindPublished,
+      softDelete: mockSoftDelete,
+      hardDelete: mockHardDelete,
     },
     ArticleRepository: jest.fn().mockImplementation(() => ({
       create: mockCreate,
@@ -25,6 +29,8 @@ jest.unstable_mockModule('../../repositories/articleRepository.js', () => {
       update: mockUpdate,
       updateStatus: mockUpdateStatus,
       findPublished: mockFindPublished,
+      softDelete: mockSoftDelete,
+      hardDelete: mockHardDelete,
     })),
   };
 });
@@ -57,12 +63,14 @@ const { default: ArticleReviewRepository } = await import('../../repositories/ar
 const { default: b2Client } = await import('../../lib/b2Client.js');
 
 // Build a typed mock repository object — injected directly into the service.
-const makeRepo = (): jest.Mocked<Pick<ArticleRepository, 'create' | 'findById' | 'update' | 'updateStatus' | 'findPublished'>> => ({
+const makeRepo = (): jest.Mocked<Pick<ArticleRepository, 'create' | 'findById' | 'update' | 'updateStatus' | 'findPublished' | 'softDelete' | 'hardDelete'>> => ({
   create: jest.fn(),
   findById: jest.fn(),
   update: jest.fn(),
   updateStatus: jest.fn(),
   findPublished: jest.fn(),
+  softDelete: jest.fn(),
+  hardDelete: jest.fn(),
 });
 
 describe('ArticleService.createArticle', () => {
@@ -536,4 +544,97 @@ describe('ArticleService.getPublishedById', () => {
   });
 });
 
+describe('ArticleService.deleteArticle', () => {
+  const authorId = 'user-123';
+  const otherUserId = 'user-456';
+  const articleId = 'article-123';
+  let mockRepo: ReturnType<typeof makeRepo>;
+  let service: InstanceType<typeof ArticleService>;
+
+  beforeEach(() => {
+    mockRepo = makeRepo();
+    service = new ArticleService(
+      mockRepo as unknown as ArticleRepository,
+      ArticleReviewRepository as any,
+      ArticleAttachmentRepository as any
+    );
+    jest.clearAllMocks();
+  });
+
+  it('should soft-delete own Draft article as author', async () => {
+    const article = { id: articleId, authorId, status: 'Draft' };
+    mockRepo.findById.mockResolvedValue(article as never);
+    mockRepo.softDelete.mockResolvedValue({ ...article, deletedAt: new Date() } as never);
+
+    await service.deleteArticle(articleId, authorId, 'User');
+
+    expect(mockRepo.softDelete).toHaveBeenCalledWith(articleId);
+    expect(mockRepo.hardDelete).not.toHaveBeenCalled();
+  });
+
+  it.each(['Pending', 'Published', 'Rejected'] as const)(
+    'should throw 400 when author tries to delete own %s article',
+    async (status) => {
+      mockRepo.findById.mockResolvedValue({ id: articleId, authorId, status } as never);
+
+      await expect(service.deleteArticle(articleId, authorId, 'User'))
+        .rejects.toThrow(new AppError('Only Draft articles can be deleted', 400));
+
+      expect(mockRepo.softDelete).not.toHaveBeenCalled();
+      expect(mockRepo.hardDelete).not.toHaveBeenCalled();
+    }
+  );
+
+  it('should throw 403 when author tries to delete another user\'s Draft', async () => {
+    mockRepo.findById.mockResolvedValue({ id: articleId, authorId: otherUserId, status: 'Draft' } as never);
+
+    await expect(service.deleteArticle(articleId, authorId, 'User'))
+      .rejects.toThrow(new AppError('Not authorized', 403));
+
+    expect(mockRepo.softDelete).not.toHaveBeenCalled();
+    expect(mockRepo.hardDelete).not.toHaveBeenCalled();
+  });
+
+  it('should throw 403 when author attempts hard delete', async () => {
+    mockRepo.findById.mockResolvedValue({ id: articleId, authorId, status: 'Draft' } as never);
+
+    await expect(service.deleteArticle(articleId, authorId, 'User', true))
+      .rejects.toThrow(new AppError('Only Admins can permanently delete articles', 403));
+
+    expect(mockRepo.softDelete).not.toHaveBeenCalled();
+    expect(mockRepo.hardDelete).not.toHaveBeenCalled();
+  });
+
+  it('should soft-delete any status article as Admin', async () => {
+    const article = { id: articleId, authorId: otherUserId, status: 'Published' };
+    mockRepo.findById.mockResolvedValue(article as never);
+    mockRepo.softDelete.mockResolvedValue({ ...article, deletedAt: new Date() } as never);
+
+    await service.deleteArticle(articleId, authorId, 'Admin');
+
+    expect(mockRepo.softDelete).toHaveBeenCalledWith(articleId);
+    expect(mockRepo.hardDelete).not.toHaveBeenCalled();
+  });
+
+  it('should hard-delete as Admin when hard=true', async () => {
+    const article = { id: articleId, authorId: otherUserId, status: 'Published' };
+    mockRepo.findById.mockResolvedValue(article as never);
+    mockRepo.hardDelete.mockResolvedValue(undefined);
+
+    await service.deleteArticle(articleId, authorId, 'Admin', true);
+
+    expect(mockRepo.hardDelete).toHaveBeenCalledWith(articleId);
+    expect(mockRepo.softDelete).not.toHaveBeenCalled();
+  });
+
+  it('should throw 404 when article does not exist', async () => {
+    mockRepo.findById.mockResolvedValue(null);
+
+    await expect(service.deleteArticle(articleId, authorId, 'User'))
+      .rejects.toThrow(new AppError('Article not found', 404));
+
+    expect(mockRepo.softDelete).not.toHaveBeenCalled();
+    expect(mockRepo.hardDelete).not.toHaveBeenCalled();
+  });
+});
 
