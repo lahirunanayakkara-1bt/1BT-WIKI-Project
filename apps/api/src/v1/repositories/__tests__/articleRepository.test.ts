@@ -19,7 +19,7 @@ await jest.unstable_mockModule('@repo/db', () => ({
 // Import AFTER mock is registered (ESM requirement)
 const { default: ArticleRepository } = await import('../articleRepository.js');
 
-describe('ArticleRepository.findPublished', () => {
+describe('ArticleRepository.findByStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -28,7 +28,7 @@ describe('ArticleRepository.findPublished', () => {
     mockFindMany.mockResolvedValue([]);
     mockCount.mockResolvedValue(0);
 
-    await ArticleRepository.findPublished(2, 10);
+    await ArticleRepository.findByStatus('Published', 2, 10);
 
     expect(mockFindMany).toHaveBeenCalledTimes(1);
     const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
@@ -43,7 +43,7 @@ describe('ArticleRepository.findPublished', () => {
     mockFindMany.mockResolvedValue([]);
     mockCount.mockResolvedValue(0);
 
-    await ArticleRepository.findPublished(1, 20);
+    await ArticleRepository.findByStatus('Published', 1, 20);
 
     const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
 
@@ -61,7 +61,7 @@ describe('ArticleRepository.findPublished', () => {
     mockFindMany.mockResolvedValue([]);
     mockCount.mockResolvedValue(0);
 
-    await ArticleRepository.findPublished(1, 20);
+    await ArticleRepository.findByStatus('Published', 1, 20);
 
     expect(mockCount).toHaveBeenCalledTimes(1);
     const [countArgs] = mockCount.mock.calls[0] as [any];
@@ -75,7 +75,7 @@ describe('ArticleRepository.findPublished', () => {
     mockFindMany.mockResolvedValue(mockArticles);
     mockCount.mockResolvedValue(1);
 
-    const result = await ArticleRepository.findPublished(1, 20);
+    const result = await ArticleRepository.findByStatus('Published', 1, 20);
 
     expect(result).toEqual({ articles: mockArticles, total: 1 });
   });

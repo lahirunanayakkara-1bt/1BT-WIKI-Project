@@ -18,7 +18,7 @@ export default function EditorWorkspacePage() {
 
   return (
     <EditorDraftProvider>
-      <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F5F5F5]">
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-brand-bg">
         <EditorHeader mode={mode} setMode={setMode} />
         
         <div className="flex flex-1 overflow-hidden">
