@@ -64,6 +64,7 @@ export default async function ArticleDetailPage(props: ArticlePageProps) {
               </div>
             </div>
             <LikeButton 
+              articleId={article.id}
               initialLikeCount={article.likeCount} 
               initialLikedByMe={article.likedByMe} 
             />

@@ -17,7 +17,7 @@ export function CommentsSection() {
 
     // TODO(backend): replace local append with POST /api/v1/articles/:id/comments
     // via apiFetch() once Lahiru's comments endpoint is confirmed.
-    
+
     const comment: Comment = {
       id: `new-${Date.now()}`,
       author: mockUser, // mock current user
@@ -27,7 +27,7 @@ export function CommentsSection() {
 
     setComments([comment, ...comments]);
     setNewComment('');
-    
+
     setToastVisible(true);
     setTimeout(() => setToastVisible(false), 2000);
   };
@@ -41,7 +41,7 @@ export function CommentsSection() {
       <h3 className="text-xl font-display font-bold text-brand-dark mb-6">
         Comments ({comments.length})
       </h3>
-      
+
       <form onSubmit={handlePostComment} className="mb-8 flex gap-4">
         <img src={mockUser.avatarUrl} alt={mockUser.name} className="w-10 h-10 rounded-full bg-brand-border hidden sm:block object-cover" />
         <div className="flex-1 flex flex-col items-end gap-3">
@@ -49,12 +49,14 @@ export function CommentsSection() {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            className="w-full bg-brand-bg border border-brand-border rounded-lg p-4 text-brand-text-primary placeholder:text-brand-text-secondary focus:outline-none focus:border-brand-red resize-none min-h-[100px] transition-colors"
+            className="w-full bg-brand-bg border border-brand-border rounded-lg p-4 text-brand-text-primary 
+            placeholder:text-brand-text-secondary focus:outline-none focus:border-brand-red resize-none min-h-[100px] transition-colors"
           />
           <button
             type="submit"
             disabled={!newComment.trim()}
-            className="px-6 py-2.5 bg-brand-dark text-brand-surface font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-red transition-colors"
+            className="px-6 py-2.5 bg-brand-dark text-brand-surface font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed 
+            hover:bg-brand-red transition-colors"
           >
             Post Comment
           </button>
@@ -75,10 +77,10 @@ export function CommentsSection() {
         )}
       </div>
 
-      <Toast 
-        visible={toastVisible} 
-        message="Comment posted" 
-        type="success" 
+      <Toast
+        visible={toastVisible}
+        message="Comment posted"
+        type="success"
       />
     </div>
   );

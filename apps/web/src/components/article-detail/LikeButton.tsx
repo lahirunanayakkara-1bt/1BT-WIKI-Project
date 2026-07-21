@@ -6,9 +6,11 @@ import { cn } from '@/lib/utils';
 interface LikeButtonProps {
   initialLikeCount: number;
   initialLikedByMe: boolean;
+  articleId: string;
 }
 
-export function LikeButton({ initialLikeCount, initialLikedByMe }: LikeButtonProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function LikeButton({ initialLikeCount, initialLikedByMe, articleId }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLikedByMe);
   const [count, setCount] = useState(initialLikeCount);
 
