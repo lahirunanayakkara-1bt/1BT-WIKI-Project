@@ -82,8 +82,8 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
       className={cn(
         'flex flex-1 items-center justify-center gap-2 border-b-2 py-4 text-sm font-semibold transition-colors',
         activeTab === id
-          ? 'border-[#CC0000] text-[#CC0000]'
-          : 'border-transparent text-[#6B7280] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]'
+          ? 'border-brand-red text-brand-red'
+          : 'border-transparent text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-bg'
       )}
     >
       <Icon className="h-4 w-4" />
@@ -94,23 +94,23 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A1A]/60 backdrop-blur-sm opacity-0 pointer-events-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/60 backdrop-blur-sm opacity-0 pointer-events-none"
     >
       <div
         ref={modalRef}
         className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
-        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4">
-          <h2 className="text-lg font-bold text-[#1A1A1A] font-display">Embed Image</h2>
+        <div className="flex items-center justify-between border-b border-brand-border px-6 py-4">
+          <h2 className="text-lg font-bold text-brand-text-primary font-display">Embed Image</h2>
           <button
             onClick={onClose}
-            className="rounded p-1 text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A] transition-colors"
+            className="rounded p-1 text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex w-full border-b border-[#E5E7EB] bg-[#F5F5F5]/50 px-2">
+        <div className="flex w-full border-b border-brand-border bg-brand-bg/50 px-2">
           <TabButton id="preset" icon={ImageIcon} label="Preset Stock" />
           <TabButton id="upload" icon={UploadCloud} label="Upload File" />
           <TabButton id="url" icon={LinkIcon} label="Web URL" />
@@ -120,11 +120,11 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
           {activeTab === 'preset' && (
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search stock library..."
-                  className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F5F5] py-3 pl-10 pr-4 text-sm text-[#1A1A1A] placeholder-[#9CA3AF] focus:border-[#CC0000] focus:outline-none focus:ring-1 focus:ring-[#CC0000] transition-all"
+                  className="w-full rounded-lg border border-brand-border bg-brand-bg py-3 pl-10 pr-4 text-sm text-brand-text-primary placeholder-gray-400 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red transition-all"
                 />
               </div>
               <div className="grid grid-cols-3 gap-4 h-64 overflow-y-auto pr-2 custom-scrollbar">
@@ -147,16 +147,16 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
 
           {activeTab === 'upload' && (
             isUploading ? (
-              <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#CC0000]/30 bg-red-50">
-                <Loader2 className="mb-4 h-10 w-10 text-[#CC0000] animate-spin" />
-                <p className="text-sm font-bold text-[#CC0000]">Uploading image...</p>
+              <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-red/30 bg-red-50">
+                <Loader2 className="mb-4 h-10 w-10 text-brand-red animate-spin" />
+                <p className="text-sm font-bold text-brand-red">Uploading image...</p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                <label className="relative flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E5E7EB] bg-[#F5F5F5] transition-colors hover:border-[#CC0000] hover:bg-red-50 cursor-pointer">
-                  <UploadCloud className="mb-4 h-10 w-10 text-[#9CA3AF]" />
-                  <p className="mb-1 text-sm font-bold text-[#1A1A1A]">Click to upload or drag and drop</p>
-                  <p className="text-xs text-[#6B7280]">PNG, JPG, WebP or GIF (max. 5MB)</p>
+                <label className="relative flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-border bg-brand-bg transition-colors hover:border-brand-red hover:bg-red-50 cursor-pointer">
+                  <UploadCloud className="mb-4 h-10 w-10 text-gray-400" />
+                  <p className="mb-1 text-sm font-bold text-brand-text-primary">Click to upload or drag and drop</p>
+                  <p className="text-xs text-brand-text-secondary">PNG, JPG, WebP or GIF (max. 5MB)</p>
                   <input
                     type="file"
                     className="sr-only"
@@ -175,13 +175,13 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
 
           {activeTab === 'url' && (
             <div className="flex h-64 flex-col justify-center gap-4">
-              <label className="text-sm font-semibold text-[#1A1A1A]">Image URL</label>
+              <label className="text-sm font-semibold text-brand-text-primary">Image URL</label>
               <input
                 type="text"
                 value={webUrl}
                 onChange={(e) => setWebUrl(e.target.value)}
                 placeholder="https://example.com/image.jpg"
-                className="w-full rounded-lg border border-[#E5E7EB] bg-[#F5F5F5] py-3 px-4 text-sm text-[#1A1A1A] placeholder-[#9CA3AF] focus:border-[#CC0000] focus:outline-none focus:ring-1 focus:ring-[#CC0000] transition-all"
+                className="w-full rounded-lg border border-brand-border bg-brand-bg py-3 px-4 text-sm text-brand-text-primary placeholder-gray-400 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red transition-all"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleEmbedUrl();
                 }}
@@ -189,7 +189,7 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
               <button
                 onClick={handleEmbedUrl}
                 disabled={!webUrl.trim()}
-                className="self-end rounded-lg bg-[#CC0000] px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#A80000] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="self-end rounded-lg bg-brand-red px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-brand-red-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Embed Image
               </button>

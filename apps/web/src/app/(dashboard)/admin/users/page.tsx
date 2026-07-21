@@ -17,36 +17,19 @@ gsap.registerPlugin(useGSAP);
 type SortField = 'name' | 'role' | 'createdAt' | 'status';
 type SortDir   = 'asc' | 'desc';
 
-// ── Icon helpers ──────────────────────────────────────────────────────────────
-
-function RefreshIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg className="w-4 h-4 text-brand-text-secondary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  );
-}
+import { RefreshIcon } from '@/components/shared/icons/RefreshIcon';
+import { SearchIcon } from '@/components/shared/icons/SearchIcon';
+import { ChevronUpIcon } from '@/components/shared/icons/ChevronUpIcon';
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <svg
+    <ChevronUpIcon
       className={cn(
         'w-3.5 h-3.5 transition-transform',
         active ? 'text-brand-red' : 'text-brand-text-secondary/40',
         active && dir === 'desc' && 'rotate-180'
       )}
-      fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-    </svg>
+    />
   );
 }
 
@@ -220,7 +203,7 @@ function UserManagementContent(): React.JSX.Element {
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-brand-border text-brand-text-secondary hover:bg-brand-hover rounded transition-colors disabled:opacity-50 self-start sm:self-auto"
         >
-          <RefreshIcon />
+          <RefreshIcon className="w-4 h-4" />
           Refresh
         </button>
       </div>
@@ -258,7 +241,7 @@ function UserManagementContent(): React.JSX.Element {
           {/* Search */}
           <div className="relative flex-1 max-w-xs">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <SearchIcon />
+              <SearchIcon className="w-4 h-4 text-brand-text-secondary" />
             </span>
             <input
               type="search"

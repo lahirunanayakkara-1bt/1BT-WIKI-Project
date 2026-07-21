@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { cn } from '@/lib/utils';
+import { PlusIcon } from '@/components/shared/icons/PlusIcon';
 
 export function FeaturedMediaBox() {
   const { uploadImage, featuredImageUrl, setFeaturedImageUrl } = useEditorDraft();
@@ -18,13 +19,13 @@ export function FeaturedMediaBox() {
     label: string;
   }) => (
     <label className="flex items-center justify-between cursor-pointer group">
-      <span className="text-sm font-medium text-[#1A1A1A] group-hover:text-[#CC0000] transition-colors">{label}</span>
+      <span className="text-sm font-medium text-brand-text-primary group-hover:text-brand-red transition-colors">{label}</span>
       <div 
         className={cn(
           'w-5 h-5 rounded flex items-center justify-center transition-colors border',
           checked
-            ? 'bg-[#CC0000] border-[#CC0000]'
-            : 'bg-white border-[#E5E7EB] group-hover:border-[#CC0000]/50'
+            ? 'bg-brand-red border-brand-red'
+            : 'bg-white border-brand-border group-hover:border-brand-red/50'
         )}
       >
         {checked && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
@@ -65,21 +66,21 @@ export function FeaturedMediaBox() {
   };
 
   return (
-    <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm mt-6">
+    <div className="rounded-xl border border-brand-border bg-white p-6 shadow-sm mt-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[#6B7280]">Featured Media</h3>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF]">Header Image</span>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-brand-text-secondary">Featured Media</h3>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Header Image</span>
       </div>
 
       {isUploading ? (
-        <div className="relative mb-6 flex h-32 w-full items-center justify-center rounded-lg border-2 border-dashed border-[#CC0000]/30 bg-red-50">
+        <div className="relative mb-6 flex h-32 w-full items-center justify-center rounded-lg border-2 border-dashed border-brand-red/30 bg-red-50">
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-6 w-6 text-[#CC0000] animate-spin" />
-            <span className="text-xs font-medium text-[#CC0000]">Uploading...</span>
+            <Loader2 className="h-6 w-6 text-brand-red animate-spin" />
+            <span className="text-xs font-medium text-brand-red">Uploading...</span>
           </div>
         </div>
       ) : featuredImageUrl ? (
-        <div className="relative mb-6 h-32 w-full overflow-hidden rounded-lg group border border-[#E5E7EB]">
+        <div className="relative mb-6 h-32 w-full overflow-hidden rounded-lg group border border-brand-border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={featuredImageUrl} alt="Featured" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           
@@ -92,13 +93,11 @@ export function FeaturedMediaBox() {
           </button>
         </div>
       ) : (
-        <label className="relative mb-6 flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E5E7EB] bg-[#F9FAFB] transition-colors hover:border-[#CC0000]/50 hover:bg-[#F3F4F6] group">
+        <label className="relative mb-6 flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-brand-border bg-gray-50 transition-colors hover:border-brand-red/50 hover:bg-gray-100 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm mb-2 group-hover:scale-110 transition-transform">
-            <svg className="h-4 w-4 text-[#6B7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="h-4 w-4 text-brand-text-secondary" />
           </div>
-          <span className="text-xs font-medium text-[#6B7280]">Upload Image</span>
+          <span className="text-xs font-medium text-brand-text-secondary">Upload Image</span>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
@@ -115,7 +114,7 @@ export function FeaturedMediaBox() {
       )}
 
       <div className="mb-4">
-        <h4 className="text-xs font-bold uppercase tracking-widest text-[#6B7280]">Distribution Options</h4>
+        <h4 className="text-xs font-bold uppercase tracking-widest text-brand-text-secondary">Distribution Options</h4>
       </div>
 
       <div className="flex flex-col gap-4">

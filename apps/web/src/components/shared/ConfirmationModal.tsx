@@ -48,39 +48,39 @@ export function ConfirmationModal({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A1A]/60 backdrop-blur-sm opacity-0 pointer-events-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/60 backdrop-blur-sm opacity-0 pointer-events-none"
     >
       <div
         ref={modalRef}
         className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
-        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4">
-          <h2 className="text-lg font-bold text-[#1A1A1A] font-display">{title}</h2>
+        <div className="flex items-center justify-between border-b border-brand-border px-6 py-4">
+          <h2 className="text-lg font-bold text-brand-text-primary font-display">{title}</h2>
           <button
             onClick={onCancel}
             disabled={isConfirming}
-            className="rounded p-1 text-[#6B7280] hover:bg-[#F0F0F0] hover:text-[#1A1A1A] transition-colors disabled:opacity-50"
+            className="rounded p-1 text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary transition-colors disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="px-6 py-6 text-sm text-[#4B5563]">
+        <div className="px-6 py-6 text-sm text-gray-600">
           {message}
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-[#E5E7EB] bg-[#F9FAFB] px-6 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-brand-border bg-gray-50 px-6 py-4">
           <button
             onClick={onCancel}
             disabled={isConfirming}
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-[#4B5563] hover:bg-[#E5E7EB] hover:text-[#1A1A1A] transition-colors disabled:opacity-50"
+            className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-brand-border hover:text-brand-text-primary transition-colors disabled:opacity-50"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={isConfirming}
-            className="flex items-center gap-2 rounded-lg bg-[#CC0000] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#A80000] disabled:bg-[#d34d4d] transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-brand-red-hover disabled:bg-brand-red-disabled transition-colors"
           >
             {isConfirming ? (
               <>

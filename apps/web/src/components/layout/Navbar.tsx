@@ -6,6 +6,9 @@ import { useGSAP } from '@gsap/react';
 import { UserAvatar } from '@/components/UserAvatar';
 import { isE2E } from '@/lib/e2e';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
+import { SearchIcon } from '@/components/shared/icons/SearchIcon';
+import { BellIcon } from '@/components/shared/icons/BellIcon';
+import { ChevronDownIcon } from '@/components/shared/icons/ChevronDownIcon';
 
 interface NavbarProps {
   notificationCount?: number;
@@ -64,7 +67,7 @@ export function Navbar({
   return (
     <header
       ref={containerRef}
-      className="fixed top-0 left-60 right-0 h-16 bg-white border-b border-[#E5E7EB] z-10
+      className="fixed top-0 left-60 right-0 h-16 bg-white border-b border-brand-border z-10
                  flex items-center gap-4 px-6"
       data-testid="navbar"
     >
@@ -72,13 +75,13 @@ export function Navbar({
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex flex-col justify-center items-center w-9 h-9 rounded-lg hover:bg-[#F0F0F0] cursor-pointer transition-colors"
+          className="flex flex-col justify-center items-center w-9 h-9 rounded-lg hover:bg-brand-hover cursor-pointer transition-colors"
           data-testid="burger-button"
           aria-label="Toggle Sidebar"
         >
-          <span className="burger-line w-5 h-0.5 bg-[#1A1A1A] my-0.5 origin-center block"></span>
-          <span className="burger-line w-5 h-0.5 bg-[#1A1A1A] my-0.5 origin-center block"></span>
-          <span className="burger-line w-5 h-0.5 bg-[#1A1A1A] my-0.5 origin-center block"></span>
+          <span className="burger-line w-5 h-0.5 bg-brand-dark my-0.5 origin-center block"></span>
+          <span className="burger-line w-5 h-0.5 bg-brand-dark my-0.5 origin-center block"></span>
+          <span className="burger-line w-5 h-0.5 bg-brand-dark my-0.5 origin-center block"></span>
         </button>
       )}
 
@@ -87,32 +90,25 @@ export function Navbar({
         style={{ marginLeft: onToggleSidebar ? '8px' : '24px' }}
         data-testid="logo"
       >
-        <div className="h-10 w-10 bg-[#CC0000] rounded flex items-center justify-center flex-shrink-0">
+        <div className="h-10 w-10 bg-brand-red rounded flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-black leading-none">{BRAND_NAME}</span>
         </div>
-        <span className="text-[#6B7280] font-semibold text-base leading-none tracking-tight">{BRAND_SUB_NAME}</span>
+        <span className="text-brand-text-secondary font-semibold text-base leading-none tracking-tight">{BRAND_SUB_NAME}</span>
       </div>
 
       <div className="flex-1 px-4">
         <div className="relative max-w-xl mx-auto">
-          <svg
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
+          <SearchIcon
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-secondary"
             aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
+          />
           <input
             type="text"
             placeholder="Search articles, tech talks..."
-            className="w-full !pl-10 pr-4 py-2 bg-[#F5F5F5] border border-[#E5E7EB] rounded-full
-                       text-sm text-[#1A1A1A] placeholder:text-[#6B7280]
-                       focus:outline-none focus:ring-2 focus:ring-[#CC0000]/20
-                       focus:border-[#CC0000] transition-colors"
+            className="w-full !pl-10 pr-4 py-2 bg-brand-bg border border-brand-border rounded-full
+                       text-sm text-brand-text-primary placeholder:text-brand-text-secondary
+                       focus:outline-none focus:ring-2 focus:ring-brand-red/20
+                       focus:border-brand-red transition-colors"
             data-testid="search-input"
           />
         </div>
@@ -122,34 +118,28 @@ export function Navbar({
         <button
           ref={bellRef}
           type="button"
-          className="relative text-[#6B7280] hover:text-[#1A1A1A] transition-colors"
+          className="relative text-brand-text-secondary hover:text-brand-text-primary transition-colors"
           data-testid="notification-bell"
           aria-label="Notifications"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9" />
-          </svg>
+          <BellIcon className="h-5 w-5" />
           {notificationCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-[#CC0000] text-white text-[10px] font-bold
+            <span className="absolute -top-1.5 -right-1.5 bg-brand-red text-white text-[10px] font-bold
                              rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
               {notificationCount}
             </span>
           )}
         </button>
 
-        <div className="w-px h-6 bg-[#E5E7EB]" />
+        <div className="w-px h-6 bg-brand-border" />
 
         <button
           type="button"
-          className="flex items-center gap-2 hover:bg-[#F0F0F0] rounded-lg px-2 py-1 transition-colors"
+          className="flex items-center gap-2 hover:bg-brand-hover rounded-lg px-2 py-1 transition-colors"
           data-testid="user-avatar"
         >
           <UserAvatar format="collapsed" />
-          <svg className="h-3 w-3 text-[#6B7280] ml-1" fill="none" stroke="currentColor"
-            strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDownIcon className="h-3 w-3 text-brand-text-secondary ml-1" />
         </button>
       </div>
     </header>

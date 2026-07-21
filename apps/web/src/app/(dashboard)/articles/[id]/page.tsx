@@ -5,6 +5,7 @@ import { mockArticles } from '@/components/article-detail/mock';
 import { ArticleContent } from '@/components/article-detail/ArticleContent';
 import { LikeButton } from '@/components/article-detail/LikeButton';
 import { CommentsSection } from '@/components/article-detail/CommentsSection';
+import { ArrowLeftIcon } from '@/components/shared/icons/ArrowLeftIcon';
 
 // TODO(backend): replace mock lookup with a real GET /api/v1/articles/:id
 // call via apiFetch() from '@/lib/api/client' once the endpoint is
@@ -33,10 +34,7 @@ export default async function ArticleDetailPage(props: ArticlePageProps) {
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24">
       <div className="mb-6">
         <Link href="/articles" className="inline-flex items-center text-sm font-medium text-brand-text-secondary hover:text-brand-red transition-colors">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
+          <ArrowLeftIcon width="16" height="16" className="mr-1" />
           Back to Articles
         </Link>
       </div>

@@ -33,15 +33,15 @@ export function ReadingPreview() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#F5F5F5] pb-20">
+    <div className="flex h-full flex-col bg-brand-bg pb-20">
       {/* Simulator Toolbar */}
-      <div className="sticky top-0 z-10 flex justify-center border-b border-[#E5E7EB] bg-white py-3 shadow-sm">
-        <div className="flex rounded-lg border border-[#E5E7EB] bg-[#F5F5F5] p-1">
+      <div className="sticky top-0 z-10 flex justify-center border-b border-brand-border bg-white py-3 shadow-sm">
+        <div className="flex rounded-lg border border-brand-border bg-brand-bg p-1">
           <button
             onClick={() => setViewport('desktop')}
             className={cn(
               'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-              viewport === 'desktop' ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#6B7280] hover:text-[#1A1A1A]'
+              viewport === 'desktop' ? 'bg-white text-brand-text-primary shadow-sm' : 'text-brand-text-secondary hover:text-brand-text-primary'
             )}
           >
             <Monitor className="h-4 w-4" /> Desktop
@@ -50,7 +50,7 @@ export function ReadingPreview() {
             onClick={() => setViewport('tablet')}
             className={cn(
               'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-              viewport === 'tablet' ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#6B7280] hover:text-[#1A1A1A]'
+              viewport === 'tablet' ? 'bg-white text-brand-text-primary shadow-sm' : 'text-brand-text-secondary hover:text-brand-text-primary'
             )}
           >
             <Tablet className="h-4 w-4" /> Tablet
@@ -59,7 +59,7 @@ export function ReadingPreview() {
             onClick={() => setViewport('mobile')}
             className={cn(
               'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-              viewport === 'mobile' ? 'bg-white text-[#1A1A1A] shadow-sm' : 'text-[#6B7280] hover:text-[#1A1A1A]'
+              viewport === 'mobile' ? 'bg-white text-brand-text-primary shadow-sm' : 'text-brand-text-secondary hover:text-brand-text-primary'
             )}
           >
             <Smartphone className="h-4 w-4" /> Mobile
@@ -71,7 +71,7 @@ export function ReadingPreview() {
       <div className="flex-1 overflow-y-auto py-10 px-4 flex justify-center preview-container">
         <article
           className={cn(
-            'w-full rounded-2xl bg-white shadow-xl border border-[#E5E7EB] overflow-hidden transition-all duration-500 ease-out',
+            'w-full rounded-2xl bg-white shadow-xl border border-brand-border overflow-hidden transition-all duration-500 ease-out',
             getViewportWidth()
           )}
         >
@@ -82,29 +82,29 @@ export function ReadingPreview() {
             {/* Tags */}
             <div className="mb-6 flex gap-2">
               {MOCK_TAGS.map((tag) => (
-                <span key={tag} className="font-bold text-[#CC0000] text-sm">{tag}</span>
+                <span key={tag} className="font-bold text-brand-red text-sm">{tag}</span>
               ))}
             </div>
 
             {/* Title */}
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-[#1A1A1A] leading-tight mb-8">
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-brand-text-primary leading-tight mb-8">
               {MOCK_TITLE}
             </h1>
 
             {/* Author Meta Row */}
-            <div className="flex items-center gap-4 mb-10 border-b border-[#E5E7EB] pb-8">
-              <div className="h-12 w-12 rounded-full bg-[#F0F0F0] border-2 border-white shadow flex items-center justify-center text-[#CC0000] font-bold">
+            <div className="flex items-center gap-4 mb-10 border-b border-brand-border pb-8">
+              <div className="h-12 w-12 rounded-full bg-brand-hover border-2 border-white shadow flex items-center justify-center text-brand-red font-bold">
                 {MOCK_AUTHOR_INITIALS}
               </div>
               <div>
-                <p className="font-bold text-[#1A1A1A]">{MOCK_AUTHOR_NAME}</p>
-                <p className="text-sm text-[#6B7280]">{MOCK_AUTHOR_META}</p>
+                <p className="font-bold text-brand-text-primary">{MOCK_AUTHOR_NAME}</p>
+                <p className="text-sm text-brand-text-secondary">{MOCK_AUTHOR_META}</p>
               </div>
             </div>
 
             {/* Simulated Rich Text Content */}
             <div 
-              className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-[#1A1A1A] prose-p:text-[#1A1A1A] prose-a:text-[#CC0000]"
+              className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-brand-text-primary prose-p:text-brand-text-primary prose-a:text-brand-red"
               dangerouslySetInnerHTML={{ __html: MOCK_CONTENT_HTML }}
             />
           </div>
