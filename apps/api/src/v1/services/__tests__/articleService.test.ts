@@ -58,7 +58,7 @@ jest.unstable_mockModule('@v1/lib/b2Client.js', () => ({
 }));
 
 const { default: ArticleService } = await import('@services/articleService.js');
-const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
+await import('@repositories/articleRepository.js');
 const { default: ArticleAttachmentRepository } = await import('@repositories/articleAttachmentRepository.js');
 const { default: ArticleReviewRepository } = await import('@repositories/articleReviewRepository.js');
 const { default: b2Client } = await import('@v1/lib/b2Client.js');

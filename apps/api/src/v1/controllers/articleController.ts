@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { ArticleService } from '@services/articleService.js';
 import { successResponse } from '@models/article.types.js';
 import type { CreateArticleInput } from '@models/article.types.js';
-import type { UserRole } from '@models/userTypes.js';
+import type { UserRole } from '@/types/userTypes.js';
 import { AppError } from '@errors/AppError.js';
 
 export class ArticleController {
@@ -110,5 +110,5 @@ export class ArticleController {
   };
 }
 
-export default new ArticleController();
+export default ArticleController;
 

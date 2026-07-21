@@ -45,6 +45,7 @@ const MockArticleRepository = {
 };
 
 await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
+  default: MockArticleRepository,
   ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 

@@ -35,12 +35,15 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
 }));
 
 // Mock Repositories
+const MockArticleRepository = {
+  create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+  update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+};
+
 await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-    update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
+  default: MockArticleRepository,
+  ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
 await jest.unstable_mockModule('@repositories/likeRepository.js', () => ({
