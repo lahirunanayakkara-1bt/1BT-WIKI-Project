@@ -10,6 +10,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
+import { useLenisScroll } from '@/lib/hooks/useLenisScroll';
 
 gsap.registerPlugin(useGSAP);
 
@@ -25,6 +26,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
   const [isAppLoading, setIsAppLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainWrapperRef = useRef<HTMLDivElement>(null);
+
+  useLenisScroll(isEditorRoute ? null : 'main-scroll-container');
 
   // Initial App Preloader Animation
   useGSAP(() => {
@@ -175,7 +178,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
             onToggleSidebar={toggleSidebar}
           />
         )}
-        <main className={cn('flex-1 overflow-y-auto bg-brand-bg', !isEditorRoute && 'pt-16')} data-testid="main-content">
+        <main id="main-scroll-container" className={cn('flex-1 overflow-y-auto bg-brand-bg', !isEditorRoute && 'pt-16')} data-testid="main-content">
           {children}
         </main>
       </div>
