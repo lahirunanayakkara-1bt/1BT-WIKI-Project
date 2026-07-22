@@ -74,7 +74,7 @@ export default async function ArticleDetailPage(props: ArticlePageProps) {
         </div>
       </article>
 
-      <CommentsSection />
+      <CommentsSection articleId={params.id} />
     </div>
   );
 }

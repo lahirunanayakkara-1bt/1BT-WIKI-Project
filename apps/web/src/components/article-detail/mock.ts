@@ -16,14 +16,6 @@ export interface Article {
   likedByMe: boolean;
 }
 
-export interface Comment {
-  id: string;
-  authorName: string;
-  authorImage: string;
-  content: string;
-  createdAt: string;
-}
-
 export const mockUser: User = {
   name: 'Jane Doe',
   avatarUrl: 'https://i.pravatar.cc/150?u=jane',
@@ -63,20 +55,3 @@ export const mockArticles: Record<string, Article> = {
     likedByMe: false,
   },
 };
-
-export const mockCommentsData: Comment[] = [
-  {
-    id: 'c1',
-    authorName: 'John Smith',
-    authorImage: 'https://i.pravatar.cc/150?u=john',
-    content: 'Great read! Thanks for sharing.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
-  },
-  {
-    id: 'c2',
-    authorName: 'Alice Johnson',
-    authorImage: 'https://i.pravatar.cc/150?u=alice',
-    content: 'I completely agree with the points made here.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-  },
-];

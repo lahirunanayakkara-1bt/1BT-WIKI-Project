@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from 'express';
 import type { ArticleService } from '../../services/articleService.js';
 import { AppError } from '../../../errors/AppError.js';
+import { makeMockReqResNext } from '../../__tests__/helpers/mockExpress.helpers.js';
 
 // articleController.ts imports ArticleService by its named class export (for the
 // constructor's default-parameter `new ArticleService()`); tests always inject a mock
@@ -31,18 +32,7 @@ describe('ArticleController', () => {
   let controller: InstanceType<typeof ArticleController>;;
 
   beforeEach(() => {
-    req = {
-      body: {},
-      user: { userId: 'user-123' } as any,
-      files: [],
-      params: {},
-      query: {},
-    };
-    res = {
-      status: jest.fn().mockReturnThis() as any,
-      json: jest.fn() as any,
-    };
-    next = jest.fn();
+    ({ req, res, next } = makeMockReqResNext());
     mockService = makeMockService();
     controller = new ArticleController(mockService as unknown as ArticleService);
     jest.clearAllMocks();
