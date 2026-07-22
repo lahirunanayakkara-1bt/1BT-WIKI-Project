@@ -68,6 +68,7 @@ const mockFindByStatus = MockArticleRepository.findByStatus as jest.Mock<any>;
 const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
 const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
 const mockReviewCreate = MockArticleReviewRepository.create as jest.Mock<any>;
+const mockDate = new Date().toISOString();
 
 const reviewerHeaders = {
   'x-test-user-id':    'reviewer-1',
@@ -121,8 +122,8 @@ describe('Reviewer API Integration', () => {
           status: 'Pending',
           authorId: 'user-1',
           tags: ['review'],
-          createdAt: new Date('2023-01-01').toISOString(),
-          updatedAt: new Date('2023-01-01').toISOString(),
+          createdAt: mockDate,
+          updatedAt: mockDate,
         },
       ];
 
@@ -203,8 +204,8 @@ describe('Reviewer API Integration', () => {
         status: 'Pending',
         authorId: 'user-1',
         tags: [],
-        createdAt: new Date('2023-01-01').toISOString(),
-        updatedAt: new Date('2023-01-01').toISOString(),
+        createdAt: mockDate,
+        updatedAt: mockDate,
       };
       const publishedArticle = { ...pendingArticle, status: 'Published' };
 
