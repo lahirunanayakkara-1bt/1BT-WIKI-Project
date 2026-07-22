@@ -238,4 +238,114 @@ describe('Reviewer API Integration', () => {
       );
     });
   });
+
+  describe('PATCH /api/v1/reviewer/articles/:id/reject', () => {
+    const articleId = 'article-123';
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).patch(`/api/v1/reviewer/articles/${articleId}/reject`);
+
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should return 403 for a non-Reviewer non-Admin role', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .set(userHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+      expect(mockFindById).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when feedback is missing or under 10 characters', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .set(reviewerHeaders)
+        .send({ feedback: 'short' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Rejection feedback must be at least 10 characters');
+      expect(mockFindById).not.toHaveBeenCalled();
+    });
+
+    it('should return 404 when article does not exist', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .set(reviewerHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Article not found');
+      expect(mockUpdateStatus).not.toHaveBeenCalled();
+      expect(mockReviewCreate).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when article is not Pending', async () => {
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        title: 'Draft Article',
+        status: 'Draft',
+        authorId: 'user-1',
+      });
+
+      const response = await request(app)
+        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .set(reviewerHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Only Pending articles can be rejected');
+      expect(mockUpdateStatus).not.toHaveBeenCalled();
+      expect(mockReviewCreate).not.toHaveBeenCalled();
+    });
+
+    it('should return 200 and reject a Pending article for a Reviewer', async () => {
+      const pendingArticle = {
+        id: articleId,
+        title: 'Pending Article',
+        body: { type: 'doc' },
+        status: 'Pending',
+        authorId: 'user-1',
+        tags: [],
+        createdAt: mockDate,
+        updatedAt: mockDate,
+      };
+      const rejectedArticle = { ...pendingArticle, status: 'Unpublished' };
+
+      mockFindById.mockResolvedValueOnce(pendingArticle);
+      mockUpdateStatus.mockResolvedValueOnce(rejectedArticle);
+      mockReviewCreate.mockResolvedValueOnce({
+        id: 'review-1',
+        articleId,
+        reviewerId: 'reviewer-1',
+        reviewStatus: 'Rejected',
+      });
+
+      const response = await request(app)
+        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .set(reviewerHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Article rejected');
+      expect(response.body.data.status).toBe('Unpublished');
+      expect(mockUpdateStatus).toHaveBeenCalledWith(articleId, 'Unpublished');
+      expect(mockReviewCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          articleId,
+          reviewerId: 'reviewer-1',
+          status: 'Rejected',
+          feedback: 'this is a valid reject feedback',
+          createdBy: 'reviewer-1',
+        })
+      );
+    });
+  });
 });
+

@@ -44,6 +44,37 @@ export class ReviewerService {
 
     return approved;
   }
+
+  async rejectArticle(
+    articleId: string,
+    reviewerId: string,
+    feedback: string
+  ): Promise<Article> {
+    if (!feedback || feedback.trim().length < 10) {
+      throw new AppError('Rejection feedback must be at least 10 characters', 400);
+    }
+
+    const article = await this.articleRepository.findById(articleId);
+    if (!article) throw new AppError('Article not found', 404);
+    if (article.status !== 'Pending') {
+      throw new AppError('Only Pending articles can be rejected', 400);
+    }
+
+    const rejected = await this.articleRepository.updateStatus(articleId, ArticleStatusValue.Unpublished);
+
+    await this.reviewRepository.create({
+      articleId,
+      reviewerId,
+      status: ReviewStatus.Rejected,
+      feedback: feedback.trim(),
+      createdBy: reviewerId,
+    });
+
+    // TODO: notify author on rejection — pending notification-engineer infra migration
+
+    return rejected;
+  }
 }
 
 export default new ReviewerService();
+

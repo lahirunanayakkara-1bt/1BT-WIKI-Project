@@ -162,3 +162,133 @@ describe('ReviewerService.approveArticle', () => {
     expect(mockReviewRepo.create).not.toHaveBeenCalled();
   });
 });
+
+describe('ReviewerService.rejectArticle', () => {
+  const articleId = 'article-123';
+  const reviewerId = 'reviewer-1';
+  let mockArticleRepo: ReturnType<typeof makeMockArticleRepo>;
+  let mockReviewRepo: ReturnType<typeof makeMockReviewRepo>;
+  let service: InstanceType<typeof ReviewerService>;
+
+  beforeEach(() => {
+    mockArticleRepo = makeMockArticleRepo();
+    mockReviewRepo = makeMockReviewRepo();
+    service = new ReviewerService(
+      mockArticleRepo as unknown as ArticleRepository,
+      mockReviewRepo as unknown as ArticleReviewRepository
+    );
+    jest.clearAllMocks();
+  });
+
+  it('should throw 400 when feedback is missing or empty', async () => {
+    await expect(service.rejectArticle(articleId, reviewerId, ''))
+      .rejects.toThrow(new AppError('Rejection feedback must be at least 10 characters', 400));
+
+    expect(mockArticleRepo.findById).not.toHaveBeenCalled();
+    expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
+    expect(mockReviewRepo.create).not.toHaveBeenCalled();
+  });
+
+  it('should throw 400 when feedback is under 10 characters', async () => {
+    await expect(service.rejectArticle(articleId, reviewerId, 'too short'))
+      .rejects.toThrow(new AppError('Rejection feedback must be at least 10 characters', 400));
+
+    expect(mockArticleRepo.findById).not.toHaveBeenCalled();
+    expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
+    expect(mockReviewRepo.create).not.toHaveBeenCalled();
+  });
+
+  it('should throw 400 when feedback becomes under 10 characters after trimming', async () => {
+    await expect(service.rejectArticle(articleId, reviewerId, '   short   '))
+      .rejects.toThrow(new AppError('Rejection feedback must be at least 10 characters', 400));
+
+    expect(mockArticleRepo.findById).not.toHaveBeenCalled();
+    expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
+    expect(mockReviewRepo.create).not.toHaveBeenCalled();
+  });
+
+  it('should pass validation when feedback is exactly 10 characters', async () => {
+    const pendingArticle = {
+      id: articleId,
+      title: 'Pending Article',
+      status: 'Pending',
+      authorId: 'user-1',
+    };
+    mockArticleRepo.findById.mockResolvedValue(pendingArticle as never);
+    mockArticleRepo.updateStatus.mockResolvedValue({ ...pendingArticle, status: 'Unpublished' } as never);
+
+    await service.rejectArticle(articleId, reviewerId, 'exactlyTen');
+
+    expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
+    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(articleId, 'Unpublished');
+    expect(mockReviewRepo.create).toHaveBeenCalledWith({
+      articleId,
+      reviewerId,
+      status: ReviewStatus.Rejected,
+      feedback: 'exactlyTen',
+      createdBy: reviewerId,
+    });
+  });
+
+  it('should throw 404 when article does not exist', async () => {
+    mockArticleRepo.findById.mockResolvedValue(null);
+
+    await expect(service.rejectArticle(articleId, reviewerId, 'valid feedback text'))
+      .rejects.toThrow(new AppError('Article not found', 404));
+
+    expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
+    expect(mockReviewRepo.create).not.toHaveBeenCalled();
+  });
+
+  it.each(['Draft', 'Published', 'Rejected'] as const)(
+    'should throw 400 when article status is %s',
+    async (status) => {
+      mockArticleRepo.findById.mockResolvedValue({
+        id: articleId,
+        status,
+        authorId: 'user-1',
+      } as never);
+
+      await expect(service.rejectArticle(articleId, reviewerId, 'valid feedback text'))
+        .rejects.toThrow(new AppError('Only Pending articles can be rejected', 400));
+
+      expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
+      expect(mockReviewRepo.create).not.toHaveBeenCalled();
+    }
+  );
+
+  it('should reject a Pending article and create a Rejected review record with trimmed feedback', async () => {
+    const pendingArticle = {
+      id: articleId,
+      title: 'Pending Article',
+      status: 'Pending',
+      authorId: 'user-1',
+    };
+    const rejectedArticle = { ...pendingArticle, status: 'Rejected' };
+
+    mockArticleRepo.findById.mockResolvedValue(pendingArticle as never);
+    mockArticleRepo.updateStatus.mockResolvedValue(rejectedArticle as never);
+    mockReviewRepo.create.mockResolvedValue({
+      id: 'review-1',
+      articleId,
+      reviewerId,
+      reviewStatus: 'Rejected',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as never);
+
+    const result = await service.rejectArticle(articleId, reviewerId, '   valid feedback text longer than 10   ');
+
+    expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
+    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(articleId, 'Unpublished');
+    expect(mockReviewRepo.create).toHaveBeenCalledWith({
+      articleId,
+      reviewerId,
+      status: ReviewStatus.Rejected,
+      feedback: 'valid feedback text longer than 10',
+      createdBy: reviewerId,
+    });
+    expect(result).toEqual(rejectedArticle);
+  });
+});
+

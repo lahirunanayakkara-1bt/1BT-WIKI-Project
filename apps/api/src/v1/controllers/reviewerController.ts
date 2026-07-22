@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { ReviewerService } from '../services/reviewerService.js';
+import { ReviewerService } from '@services/reviewerService.js';
 
 export class ReviewerController {
   constructor(private service: ReviewerService = new ReviewerService()) {}
@@ -21,6 +21,18 @@ export class ReviewerController {
       const reviewerId = req.user!.userId;
       const article = await this.service.approveArticle(id, reviewerId);
       res.status(200).json({ success: true, data: article, message: 'Article approved and published' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  rejectArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { feedback } = req.body as { feedback?: string };
+      const reviewerId = req.user!.userId;
+      const article = await this.service.rejectArticle(id, reviewerId, feedback ?? '');
+      res.status(200).json({ success: true, data: article, message: 'Article rejected' });
     } catch (error) {
       next(error);
     }

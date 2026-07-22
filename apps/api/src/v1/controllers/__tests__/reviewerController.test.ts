@@ -9,9 +9,10 @@ jest.unstable_mockModule('@services/reviewerService.js', () => ({
 
 const { ReviewerController } = await import('../reviewerController.js');
 
-const makeMockService = (): jest.Mocked<Pick<ReviewerService, 'listPending' | 'approveArticle'>> => ({
+const makeMockService = (): jest.Mocked<Pick<ReviewerService, 'listPending' | 'approveArticle' | 'rejectArticle'>> => ({
   listPending: jest.fn(),
   approveArticle: jest.fn(),
+  rejectArticle: jest.fn(),
 });
 
 describe('ReviewerController', () => {
@@ -111,6 +112,58 @@ describe('ReviewerController', () => {
       mockService.approveArticle.mockRejectedValue(error as never);
 
       await controller.approveArticle(req as Request, res as Response, next);
+
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('rejectArticle', () => {
+    beforeEach(() => {
+      req.params = { id: 'article-123' };
+      req.body = { feedback: 'valid feedback text' };
+    });
+
+    it('should call service.rejectArticle with id, req.user.userId, and feedback', async () => {
+      const rejectedArticle = {
+        id: 'article-123',
+        title: 'Rejected Article',
+        status: 'Rejected',
+        authorId: 'user-1',
+      };
+      mockService.rejectArticle.mockResolvedValue(rejectedArticle as never);
+
+      await controller.rejectArticle(req as Request, res as Response, next);
+
+      expect(mockService.rejectArticle).toHaveBeenCalledWith('article-123', 'reviewer-1', 'valid feedback text');
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: rejectedArticle,
+        message: 'Article rejected',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should default feedback to empty string if not provided in body', async () => {
+      req.body = {};
+      const rejectedArticle = {
+        id: 'article-123',
+        title: 'Rejected Article',
+        status: 'Rejected',
+        authorId: 'user-1',
+      };
+      mockService.rejectArticle.mockResolvedValue(rejectedArticle as never);
+
+      await controller.rejectArticle(req as Request, res as Response, next);
+
+      expect(mockService.rejectArticle).toHaveBeenCalledWith('article-123', 'reviewer-1', '');
+    });
+
+    it('should pass errors to next', async () => {
+      const error = new AppError('Only Pending articles can be rejected', 400);
+      mockService.rejectArticle.mockRejectedValue(error as never);
+
+      await controller.rejectArticle(req as Request, res as Response, next);
 
       expect(next).toHaveBeenCalledWith(error);
     });
