@@ -27,6 +27,7 @@
       "^@routes/(.*)\\.js$": "<rootDir>/src/v1/routes/$1",
       "^@services/(.*)\\.js$": "<rootDir>/src/v1/services/$1",
       "^@models/(.*)\\.js$": "<rootDir>/src/v1/types/$1",
+      "^@middleware/(.*)\\.js$": "<rootDir>/src/middleware/$1",
       "^@/(.*)\\.js$": "<rootDir>/src/$1",
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },

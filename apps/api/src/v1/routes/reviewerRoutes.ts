@@ -5,8 +5,9 @@ import { ReviewerController } from '../controllers/reviewerController.js';
 
 const router = Router();
 const reviewerController = new ReviewerController();
-const { listPending } = reviewerController;
+const { listPending, approveArticle } = reviewerController;
 
 router.get('/articles/pending', authenticate, requireRole('Reviewer'), listPending);
+router.patch('/articles/:id/approve', authenticate, requireRole('Reviewer', 'Admin'), approveArticle);
 
 export default router;
