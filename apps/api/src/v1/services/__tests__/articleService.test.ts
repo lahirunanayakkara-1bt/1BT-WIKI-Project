@@ -490,8 +490,9 @@ describe('ArticleService.listPublished', () => {
   });
 });
 
-describe('ArticleService.getPublishedById', () => {
+describe('ArticleService.getArticleById', () => {
   const articleId = 'article-123';
+  const authorId = 'user-123';
   let mockRepo: ReturnType<typeof makeRepo>;
   let service: InstanceType<typeof ArticleService>;
 
@@ -509,7 +510,7 @@ describe('ArticleService.getPublishedById', () => {
     const article = { id: articleId, status: 'Published', title: 'My Article', authorId: 'user-1' };
     mockRepo.findById.mockResolvedValue(article as never);
 
-    const result = await service.getPublishedById(articleId);
+    const result = await service.getArticleById(articleId);
 
     expect(mockRepo.findById).toHaveBeenCalledWith(articleId);
     expect(result).toEqual(article);
@@ -518,28 +519,64 @@ describe('ArticleService.getPublishedById', () => {
   it('should throw 404 if article does not exist', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(service.getPublishedById(articleId))
+    await expect(service.getArticleById(articleId))
       .rejects.toThrow(new AppError('Article not found', 404));
   });
 
-  it('should throw 403 if article is Draft', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Draft' } as never);
+  it('should throw 403 if article is Draft and no requesterId', async () => {
+    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Draft', authorId } as never);
 
-    await expect(service.getPublishedById(articleId))
+    await expect(service.getArticleById(articleId))
       .rejects.toThrow(new AppError('Article not available', 403));
   });
 
-  it('should throw 403 if article is Pending', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Pending' } as never);
+  it('should throw 403 if article is Pending and no requesterId', async () => {
+    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Pending', authorId } as never);
 
-    await expect(service.getPublishedById(articleId))
+    await expect(service.getArticleById(articleId))
       .rejects.toThrow(new AppError('Article not available', 403));
   });
 
-  it('should throw 403 if article is Unpublished', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Unpublished' } as never);
+  it('should throw 403 if article is Unpublished and no requesterId', async () => {
+    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Unpublished', authorId } as never);
 
-    await expect(service.getPublishedById(articleId))
+    await expect(service.getArticleById(articleId))
+      .rejects.toThrow(new AppError('Article not available', 403));
+  });
+
+  it('should return the article when the author requests their own Draft article', async () => {
+    const article = { id: articleId, status: 'Draft', title: 'My Draft', authorId, body: { type: 'doc' }, tags: ['test'] };
+    mockRepo.findById.mockResolvedValue(article as never);
+
+    const result = await service.getArticleById(articleId, authorId);
+
+    expect(mockRepo.findById).toHaveBeenCalledWith(articleId);
+    expect(result).toEqual(article);
+  });
+
+  it('should return the article when the author requests their own Rejected article', async () => {
+    const article = { id: articleId, status: 'Rejected', title: 'My Rejected', authorId, body: { type: 'doc' }, tags: [] };
+    mockRepo.findById.mockResolvedValue(article as never);
+
+    const result = await service.getArticleById(articleId, authorId);
+
+    expect(mockRepo.findById).toHaveBeenCalledWith(articleId);
+    expect(result).toEqual(article);
+  });
+
+  it('should throw 403 when a different user requests someone else\'s Draft article', async () => {
+    const article = { id: articleId, status: 'Draft', title: 'Someone Else Draft', authorId: 'other-author' };
+    mockRepo.findById.mockResolvedValue(article as never);
+
+    await expect(service.getArticleById(articleId, authorId))
+      .rejects.toThrow(new AppError('Article not available', 403));
+  });
+
+  it('should throw 403 when unauthenticated (null requesterId) for a Draft article', async () => {
+    const article = { id: articleId, status: 'Draft', title: 'Draft Article', authorId };
+    mockRepo.findById.mockResolvedValue(article as never);
+
+    await expect(service.getArticleById(articleId, null))
       .rejects.toThrow(new AppError('Article not available', 403));
   });
 });

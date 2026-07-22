@@ -14,13 +14,13 @@ jest.unstable_mockModule('../../services/articleService.js', () => ({
 const { ArticleController } = await import('../articleController.js');
 
 // Build a typed mock service object — injected directly into the controller.
-const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'listMine' | 'getPublishedById' | 'deleteArticle'>> => ({
+const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'listMine' | 'getArticleById' | 'deleteArticle'>> => ({
   createArticle: jest.fn(),
   updateArticle: jest.fn(),
   submitForReview: jest.fn(),
   listPublished: jest.fn(),
   listMine: jest.fn(),
-  getPublishedById: jest.fn(),
+  getArticleById: jest.fn(),
   deleteArticle: jest.fn(),
 });
 
@@ -259,11 +259,11 @@ describe('ArticleController', () => {
 
     it('should return the article', async () => {
       const mockArticle = { id: 'article-123', title: 'Test Article', status: 'Published' };
-      mockService.getPublishedById.mockResolvedValue(mockArticle as never);
+      mockService.getArticleById.mockResolvedValue(mockArticle as never);
 
       await controller.getById(req as Request, res as Response, next);
 
-      expect(mockService.getPublishedById).toHaveBeenCalledWith('article-123');
+      expect(mockService.getArticleById).toHaveBeenCalledWith('article-123', 'user-123');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -274,7 +274,7 @@ describe('ArticleController', () => {
 
     it('should pass service errors to next', async () => {
       const error = new Error('Service error');
-      mockService.getPublishedById.mockRejectedValue(error as never);
+      mockService.getArticleById.mockRejectedValue(error as never);
 
       await controller.getById(req as Request, res as Response, next);
 
