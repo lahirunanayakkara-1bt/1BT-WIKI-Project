@@ -280,15 +280,23 @@ export class ArticleService {
     }
   }
 
-  async getPublishedById(id: string): Promise<Article> {
+  async getArticleById(id: string, requesterId: string | null = null): Promise<Article> {
     const article = await this.repository.findById(id);
     if (!article) {
       throw new AppError('Article not found', 404);
     }
-    if (article.status !== ArticleStatusValue.Published) {
-      throw new AppError('Article not available', 403);
+
+    // Published articles are publicly readable (by any authenticated user).
+    if (article.status === ArticleStatusValue.Published) {
+      return article;
     }
-    return article;
+
+    // Non-Published articles are only visible to the author.
+    if (requesterId && requesterId === article.authorId) {
+      return article;
+    }
+
+    throw new AppError('Article not available', 403);
   }
 
   private async findOwned(articleId: string, userId: string): Promise<Article> {

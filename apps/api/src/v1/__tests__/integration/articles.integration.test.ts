@@ -227,8 +227,8 @@ describe('Articles API Integration', () => {
       expect(response.status).toBe(404);
     });
 
-    it('should return 403 if article is not Published', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, status: 'Draft' });
+    it('should return 403 if article is not Published and requester is not the author', async () => {
+      mockFindById.mockResolvedValueOnce({ id: articleId, status: 'Draft', authorId: 'other-user' });
 
       const response = await request(app)
         .get(`/api/v1/articles/${articleId}`)
@@ -248,6 +248,80 @@ describe('Articles API Integration', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.title).toBe('Test Article');
+    });
+
+    it('should return 200 when the author requests their own Draft article', async () => {
+      const mockArticle = {
+        id: articleId,
+        title: 'My Draft',
+        body: { type: 'doc' },
+        status: 'Draft',
+        authorId: 'user-123',
+        tags: ['wip'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      mockFindById.mockResolvedValueOnce(mockArticle);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe('My Draft');
+      expect(response.body.data.status).toBe('Draft');
+      expect(response.body.data.body).toEqual({ type: 'doc' });
+    });
+
+    it('should return 200 when the author requests their own Rejected article', async () => {
+      const mockArticle = {
+        id: articleId,
+        title: 'My Rejected',
+        body: { type: 'doc' },
+        status: 'Rejected',
+        authorId: 'user-123',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      mockFindById.mockResolvedValueOnce(mockArticle);
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe('My Rejected');
+      expect(response.body.data.status).toBe('Rejected');
+    });
+
+    it('should return 403 when a different authenticated user requests someone else\'s Draft article', async () => {
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        status: 'Draft',
+        authorId: 'other-author',
+        title: 'Not Yours',
+      });
+
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return 401 for unauthenticated request to a Draft article (blocked by authenticate middleware)', async () => {
+      // No auth headers → authenticate middleware returns 401 before
+      // the controller/service is ever reached, so the article status
+      // is irrelevant and the repository mock is never called.
+      const response = await request(app)
+        .get(`/api/v1/articles/${articleId}`);
+
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+      expect(mockFindById).not.toHaveBeenCalled();
     });
   });
 

@@ -87,8 +87,9 @@ export class ArticleController {
   getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
+      const requesterId = req.user?.userId ?? null;
 
-      const article = await this.service.getPublishedById(id);
+      const article = await this.service.getArticleById(id, requesterId);
 
       res.status(200).json(successResponse(article, 'Article retrieved successfully'));
     } catch (error) {
