@@ -30,7 +30,7 @@ export interface ArticleAttachment {
   deletedAt: string | null;
 }
 
-interface ArticleResponse {
+export interface ArticleResponse {
   id: string;
   title: string;
   body: Record<string, unknown>;
@@ -60,6 +60,8 @@ interface EditorDraftContextValue {
   attachments: ArticleAttachment[];
   wordCount: number;
   charCount: number;
+  initialBody: Record<string, unknown> | null;
+  initialStatus: string | null;
 
   // Setters
   setTitle: (title: string) => void;
@@ -97,17 +99,23 @@ export function useEditorDraft(): EditorDraftContextValue {
 
 // ── Provider ────────────────────────────────────────────────────────────────
 
-export function EditorDraftProvider({ children }: { children: ReactNode }) {
+export function EditorDraftProvider({ 
+  children,
+  initialArticle 
+}: { 
+  children: ReactNode;
+  initialArticle?: ArticleResponse;
+}) {
   // ── Reactive state ──
-  const [articleId, setArticleId] = useState<string | null>(null);
-  const [articleStatus, setArticleStatus] = useState<string | null>(null);
-  const [title, setTitleState] = useState('');
-  const [tags, setTagsState] = useState<string[]>([]);
+  const [articleId, setArticleId] = useState<string | null>(initialArticle?.id ?? null);
+  const [articleStatus, setArticleStatus] = useState<string | null>(initialArticle?.status ?? null);
+  const [title, setTitleState] = useState(initialArticle?.title ?? '');
+  const [tags, setTagsState] = useState<string[]>(initialArticle?.tags ?? []);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
   const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(null);
-  const [attachments, setAttachmentsState] = useState<ArticleAttachment[]>([]);
+  const [attachments, setAttachmentsState] = useState<ArticleAttachment[]>(initialArticle?.attachments ?? []);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [contentChangeCounter, setContentChangeCounter] = useState(0);
@@ -115,11 +123,13 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
   // ── Mirror refs (for reading current values in async callbacks without
   //    stale closures — state setters from useState are stable, but the
   //    state *values* captured in closures go stale) ──
-  const articleIdRef = useRef<string | null>(null);
-  const titleRef = useRef('');
-  const tagsRef = useRef<string[]>([]);
+  const articleIdRef = useRef<string | null>(initialArticle?.id ?? null);
+  const titleRef = useRef(initialArticle?.title ?? '');
+  const tagsRef = useRef<string[]>(initialArticle?.tags ?? []);
   const editorRef = useRef<Editor | null>(null);
-  const attachmentsRef = useRef<ArticleAttachment[]>([]);
+  const attachmentsRef = useRef<ArticleAttachment[]>(initialArticle?.attachments ?? []);
+  const initialBodyRef = useRef<Record<string, unknown> | null>(initialArticle?.body ?? null);
+  const initialStatusRef = useRef<string | null>(initialArticle?.status ?? null);
 
   // ── Concurrency control (Correction 2) ──
   const creatingDraftRef = useRef<Promise<string> | null>(null);
@@ -546,6 +556,8 @@ export function EditorDraftProvider({ children }: { children: ReactNode }) {
       insertEditorImage,
       handleTitleBlur,
       notifyContentChanged,
+      initialBody: initialBodyRef.current,
+      initialStatus: initialStatusRef.current,
     }),
     [
       articleId,

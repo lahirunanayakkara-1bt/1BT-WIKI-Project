@@ -109,6 +109,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
     registerEditor,
     handleTitleBlur,
     notifyContentChanged,
+    initialBody,
   } = useEditorDraft();
 
   const editor = useEditor({
@@ -119,7 +120,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
         allowBase64: true,
       }),
     ],
-    content: '',
+    content: initialBody ?? '',
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none p-6 min-h-[400px]',

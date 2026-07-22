@@ -7,6 +7,7 @@ const statusBadgeClass: Record<ArticleStatus, string> = {
   Pending: 'bg-amber-50 text-amber-700 border-amber-200',
   Published: 'bg-green-50 text-green-700 border-green-200',
   Unpublished: 'bg-brand-red/10 text-brand-red border-brand-red/20',
+  Rejected: 'bg-brand-red/10 text-brand-red border-brand-red/20',
 };
 
 export function StatusBadge({ status }: { status: ArticleStatus }): React.JSX.Element {
