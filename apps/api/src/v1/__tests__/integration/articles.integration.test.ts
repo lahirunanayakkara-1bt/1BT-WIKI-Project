@@ -211,6 +211,7 @@ describe('Articles API Integration', () => {
 
   describe('GET /api/v1/articles/:id', () => {
     const articleId = 'article-123';
+    const mockDate = new Date().toISOString();
 
     it('should return 401 if unauthenticated', async () => {
       const response = await request(app).get(`/api/v1/articles/${articleId}`);
@@ -258,8 +259,8 @@ describe('Articles API Integration', () => {
         status: 'Draft',
         authorId: 'user-123',
         tags: ['wip'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: mockDate,
+        updatedAt: mockDate,
       };
       mockFindById.mockResolvedValueOnce(mockArticle);
 
@@ -282,8 +283,8 @@ describe('Articles API Integration', () => {
         status: 'Rejected',
         authorId: 'user-123',
         tags: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: mockDate,
+        updatedAt: mockDate,
       };
       mockFindById.mockResolvedValueOnce(mockArticle);
 
