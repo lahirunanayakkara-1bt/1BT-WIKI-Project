@@ -21,7 +21,8 @@
       "@controllers/*": ["src/v1/controllers/*"],
       "@routes/*": ["src/v1/routes/*"],
       "@services/*": ["src/v1/services/*"],
-      "@models/*": ["src/v1/types/*"]
+      "@models/*": ["src/v1/types/*"],
+      "@middleware/*": ["src/middleware/*"]
     },
   },
   "include": ["src/**/*"]

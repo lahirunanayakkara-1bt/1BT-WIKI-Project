@@ -107,3 +107,19 @@ export interface ArticleReview {
   updatedAt: Date;
 }
 
+export type ReviewStatus = 'Pending' | 'Approved' | 'Rejected';
+
+export const ReviewStatusValue = {
+  Pending: 'Pending',
+  Approved: 'Approved',
+  Rejected: 'Rejected',
+} as const satisfies Record<ReviewStatus, ReviewStatus>;
+
+export interface CreateArticleReviewInput {
+  articleId: string;
+  reviewerId: string;
+  status: ReviewStatus;
+  feedback: string | null;
+  createdBy: string;
+}
+

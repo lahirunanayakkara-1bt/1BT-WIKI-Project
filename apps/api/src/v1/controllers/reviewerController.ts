@@ -14,6 +14,17 @@ export class ReviewerController {
       next(error);
     }
   };
+
+  approveArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const reviewerId = req.user!.userId;
+      const article = await this.service.approveArticle(id, reviewerId);
+      res.status(200).json({ success: true, data: article, message: 'Article approved and published' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default new ReviewerController();
