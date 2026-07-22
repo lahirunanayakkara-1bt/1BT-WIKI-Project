@@ -20,7 +20,8 @@ export function CommentsSection() {
 
     const comment: Comment = {
       id: `new-${Date.now()}`,
-      author: mockUser, // mock current user
+      authorName: mockUser.name, // mock current user
+      authorImage: mockUser.avatarUrl,
       content: newComment.trim(),
       createdAt: new Date().toISOString(),
     };

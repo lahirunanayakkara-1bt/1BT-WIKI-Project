@@ -119,7 +119,28 @@ export class ArticleRepository {
     ]);
     return { articles: articles as unknown as Article[], total };
   }
+
+  async findByAuthor(authorId: string, page: number, limit: number) {
+    const where = { authorId, deletedAt: null };
+    const [articles, total] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          _count: {
+            select: {
+              likes: true,
+              comments: { where: { deletedAt: null } },
+            },
+          },
+        },
+      }),
+      prisma.article.count({ where }),
+    ]);
+    return { articles, total };
+  }
 }
 
 export default new ArticleRepository();
-

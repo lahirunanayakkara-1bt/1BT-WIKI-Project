@@ -42,6 +42,7 @@ const MockArticleRepository = {
   findByStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   softDelete: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   hardDelete: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+  findByAuthor: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
 };
 
 await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
@@ -83,6 +84,7 @@ const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
 const mockFindByStatus = MockArticleRepository.findByStatus as jest.Mock<any>;
 const mockSoftDelete = MockArticleRepository.softDelete as jest.Mock<any>;
 const mockHardDelete = MockArticleRepository.hardDelete as jest.Mock<any>;
+const mockFindByAuthor = MockArticleRepository.findByAuthor as jest.Mock<any>;
 const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
 
 const userHeaders = {
@@ -246,6 +248,60 @@ describe('Articles API Integration', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.title).toBe('Test Article');
+    });
+  });
+
+  describe('GET /api/v1/articles/mine', () => {
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).get('/api/v1/articles/mine');
+      expect(response.status).toBe(401);
+    });
+
+    it("should return the authenticated user's own articles across all statuses with default pagination", async () => {
+      const mockArticles = [
+        {
+          id: 'article-1',
+          title: 'Draft Article',
+          authorId: 'user-123',
+          tags: ['test'],
+          status: 'Draft',
+          createdAt: new Date('2023-01-01').toISOString(),
+          updatedAt: new Date('2023-01-01').toISOString(),
+          _count: { likes: 5, comments: 2 },
+        }
+      ];
+
+      mockFindByAuthor.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
+
+      const response = await request(app)
+        .get('/api/v1/articles/mine')
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.articles).toHaveLength(1);
+      expect(response.body.data.articles[0].status).toBe('Draft');
+      expect(response.body.data.articles[0].likeCount).toBe(5);
+      expect(response.body.data.articles[0].commentCount).toBe(2);
+      expect(response.body.data.total).toBe(1);
+      expect(response.body.data.page).toBe(1);
+      expect(response.body.data.limit).toBe(20);
+
+      expect(mockFindByAuthor).toHaveBeenCalledWith('user-123', 1, 20);
+    });
+
+    it('should respect custom page and limit query params', async () => {
+      mockFindByAuthor.mockResolvedValueOnce({ articles: [], total: 0 });
+
+      const response = await request(app)
+        .get('/api/v1/articles/mine?page=3&limit=5')
+        .set(userHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.page).toBe(3);
+      expect(response.body.data.limit).toBe(5);
+
+      expect(mockFindByAuthor).toHaveBeenCalledWith('user-123', 3, 5);
     });
   });
 

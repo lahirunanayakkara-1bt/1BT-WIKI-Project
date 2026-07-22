@@ -1,0 +1,214 @@
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ArticleListItem } from '@/lib/api/articles';
+
+const mockFetchMyArticles = jest.fn();
+
+jest.mock('@/lib/api/articles', () => ({
+  fetchMyArticles: (...args: unknown[]) => mockFetchMyArticles(...args),
+}));
+
+import { MyArticlesList } from '@/components/profile/MyArticlesList';
+
+function makeArticle(overrides: Partial<ArticleListItem> = {}): ArticleListItem {
+  return {
+    id: 'a1',
+    title: 'Alpha Article',
+    authorId: 'u1',
+    tags: [],
+    status: 'Draft',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-05T00:00:00.000Z',
+    likeCount: 0,
+    commentCount: 0,
+    ...overrides,
+  };
+}
+
+describe('MyArticlesList', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows a loading state while fetching', () => {
+    mockFetchMyArticles.mockReturnValue(new Promise(() => {}));
+
+    render(<MyArticlesList />);
+
+    expect(screen.getByText('Loading your articles...')).toBeInTheDocument();
+  });
+
+  it('shows an empty state when there are no articles', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({ articles: [], total: 0, page: 1, limit: 20 });
+
+    render(<MyArticlesList />);
+
+    expect(await screen.findByTestId('my-articles-empty')).toHaveTextContent(
+      "You haven't written any articles yet."
+    );
+  });
+
+  it('shows an error state when fetching fails', async () => {
+    mockFetchMyArticles.mockRejectedValueOnce(new Error('Network down'));
+
+    render(<MyArticlesList />);
+
+    expect(await screen.findByTestId('my-articles-error')).toHaveTextContent('Network down');
+  });
+
+  it('renders article cards with status and date labels', async () => {
+    const published = makeArticle({
+      id: 'pub1',
+      title: 'Published Piece',
+      status: 'Published',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-05T00:00:00.000Z',
+    });
+    const draft = makeArticle({
+      id: 'draft1',
+      title: 'Draft Piece',
+      status: 'Draft',
+      createdAt: '2026-01-03T00:00:00.000Z',
+      updatedAt: '2026-01-04T00:00:00.000Z',
+    });
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [published, draft],
+      total: 2,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+
+    const publishedCard = await screen.findByTestId('article-card-pub1');
+    expect(within(publishedCard).getByText('Published')).toBeInTheDocument();
+    expect(within(publishedCard).getByText(/Published: 05 Jan 2026/)).toBeInTheDocument();
+
+    const draftCard = screen.getByTestId('article-card-draft1');
+    expect(within(draftCard).getByText('Draft')).toBeInTheDocument();
+    expect(within(draftCard).getByText(/Last updated: 03 Jan 2026/)).toBeInTheDocument();
+  });
+
+  it('filters articles by title via search', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [
+        makeArticle({ id: 'a1', title: 'React Basics' }),
+        makeArticle({ id: 'a2', title: 'Node Deep Dive' }),
+      ],
+      total: 2,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+    await screen.findByTestId('article-card-a1');
+
+    const user = userEvent.setup();
+    await user.type(screen.getByTestId('article-search-input'), 'react');
+
+    expect(screen.getByTestId('article-card-a1')).toBeInTheDocument();
+    expect(screen.queryByTestId('article-card-a2')).not.toBeInTheDocument();
+  });
+
+  it('shows a no-match message when search filters out all articles', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [makeArticle({ id: 'a1', title: 'React Basics' })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+    await screen.findByTestId('article-card-a1');
+
+    const user = userEvent.setup();
+    await user.type(screen.getByTestId('article-search-input'), 'nonexistent');
+
+    expect(screen.getByTestId('my-articles-empty')).toHaveTextContent('No articles match your search.');
+  });
+
+  it('sorts articles by title A-Z', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [
+        makeArticle({ id: 'a1', title: 'Zebra' }),
+        makeArticle({ id: 'a2', title: 'Alpha' }),
+      ],
+      total: 2,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+    await screen.findByTestId('article-card-a1');
+
+    const user = userEvent.setup();
+    await user.selectOptions(screen.getByTestId('article-sort-select'), 'title');
+
+    const cards = screen.getAllByTestId(/^article-card-/);
+    expect(cards.map((c) => c.getAttribute('data-testid'))).toEqual([
+      'article-card-a2',
+      'article-card-a1',
+    ]);
+  });
+
+  it('sorts articles by newest and oldest createdAt', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [
+        makeArticle({ id: 'old', title: 'Old', createdAt: '2026-01-01T00:00:00.000Z' }),
+        makeArticle({ id: 'new', title: 'New', createdAt: '2026-01-10T00:00:00.000Z' }),
+      ],
+      total: 2,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+    await screen.findByTestId('article-card-old');
+
+    let cards = screen.getAllByTestId(/^article-card-/);
+    expect(cards.map((c) => c.getAttribute('data-testid'))).toEqual([
+      'article-card-new',
+      'article-card-old',
+    ]);
+
+    const user = userEvent.setup();
+    await user.selectOptions(screen.getByTestId('article-sort-select'), 'oldest');
+
+    cards = screen.getAllByTestId(/^article-card-/);
+    expect(cards.map((c) => c.getAttribute('data-testid'))).toEqual([
+      'article-card-old',
+      'article-card-new',
+    ]);
+  });
+
+  it('renders disabled edit and delete buttons', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [makeArticle({ id: 'a1' })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+    await screen.findByTestId('article-card-a1');
+
+    expect(screen.getByTestId('edit-article-a1')).toBeDisabled();
+    expect(screen.getByTestId('delete-article-a1')).toBeDisabled();
+  });
+
+  it('does not update state after unmount (cancelled fetch)', async () => {
+    let resolveFetch: (value: unknown) => void = () => {};
+    mockFetchMyArticles.mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      })
+    );
+
+    const { unmount } = render(<MyArticlesList />);
+    unmount();
+
+    resolveFetch({ articles: [], total: 0, page: 1, limit: 20 });
+
+    await waitFor(() => expect(mockFetchMyArticles).toHaveBeenCalledTimes(1));
+  });
+});

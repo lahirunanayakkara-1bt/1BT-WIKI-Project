@@ -61,3 +61,17 @@ describe('Sidebar sign-out', () => {
     expect(window.location.href).toBe('http://localhost/');
   });
 });
+
+describe('Sidebar navigation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders a My Articles link pointing to /my-articles', () => {
+    render(<Sidebar />);
+
+    const link = screen.getByTestId('nav-my-articles');
+    expect(link).toHaveAttribute('href', '/my-articles');
+    expect(link).toHaveTextContent('My Articles');
+  });
+});

@@ -8,13 +8,16 @@ import { authenticate } from '@/middleware/auth.middleware.js';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 const articleController = new ArticleController();
-const { create, listPublished, getById, update, submitForReview, remove } = articleController;
+const { create, listPublished, getById, update, submitForReview, remove, listMine } = articleController;
 
 // POST /api/v1/articles — Create a new article as Draft
 router.post('/', authenticate, upload.array('images'), create);
 
 // GET /api/v1/articles — List published articles
 router.get('/', authenticate, listPublished);
+
+// GET /api/v1/articles/mine — List the authenticated user's own articles across all statuses
+router.get('/mine', authenticate, listMine);
 
 // GET /api/v1/articles/:id — View a single published article
 router.get('/:id', authenticate, getById);

@@ -304,6 +304,29 @@ export class ArticleService {
 
     return article;
   }
+
+  async listMine(
+    authorId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
+    const { articles, total } = await this.repository.findByAuthor(authorId, page, limit);
+
+    const mappedArticles: ArticleListItem[] = articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      authorId: article.authorId,
+      tags: article.tags,
+      status: article.status as ArticleStatus,
+      createdAt: article.createdAt,
+      updatedAt: article.updatedAt,
+      likeCount: article._count?.likes ?? 0,
+      commentCount: article._count?.comments ?? 0,
+    }));
+
+    return { articles: mappedArticles, total, page, limit };
+  }
 }
 
 export default ArticleService;
+
