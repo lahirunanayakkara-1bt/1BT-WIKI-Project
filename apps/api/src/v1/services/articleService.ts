@@ -15,7 +15,8 @@ import type {
   JSONContent,
   ArticleListItem,
 } from '@models/article.types.js';
-import { ArticleStatusValue } from '@models/article.types.js';
+import { ArticleStatusValue, ARTICLE_SORT_FIELDS } from '@models/article.types.js';
+import { assertValidSort } from '../utils/queryHelpers.js';
 
 // Derives update-field shapes from the app-level Article interface — no Prisma types cross into the service layer.
 type ArticleUpdateFields = Partial<Pick<Article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
@@ -225,13 +226,26 @@ export class ArticleService {
 
   async listPublished(
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    search?: string,
+    sort?: string,
+    order?: string
   ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
+    assertValidSort(ARTICLE_SORT_FIELDS, sort);
+    if (order !== undefined && order !== 'asc' && order !== 'desc') {
+      throw new AppError('Invalid sort order. Allowed: asc, desc', 400);
+    }
+
     const { articles, total } = await this.repository.findByStatus(
       ArticleStatusValue.Published,
       page,
       limit,
-      { includeCounts: true }
+      {
+        includeCounts: true,
+        search,
+        sort,
+        order,
+      }
     );
 
     const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
@@ -240,6 +254,7 @@ export class ArticleService {
       authorId: article.authorId,
       tags: article.tags,
       status: article.status as ArticleStatus,
+      views: article.views,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
       likeCount: article._count?.likes ?? 0,
@@ -320,12 +335,13 @@ export class ArticleService {
   ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
     const { articles, total } = await this.repository.findByAuthor(authorId, page, limit);
 
-    const mappedArticles: ArticleListItem[] = articles.map((article) => ({
+    const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
       id: article.id,
       title: article.title,
       authorId: article.authorId,
       tags: article.tags,
       status: article.status as ArticleStatus,
+      views: article.views,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
       likeCount: article._count?.likes ?? 0,
