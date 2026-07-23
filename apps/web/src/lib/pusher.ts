@@ -25,8 +25,8 @@ let pusherInstance: Pusher | null = null;
 export function getPusherClient(): Pusher {
   if (pusherInstance) return pusherInstance;
 
-  pusherInstance = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  pusherInstance = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || 'dummy-key', {
+    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'dummy-cluster',
 
     // Custom authorizer: use apiFetch so the project's JWT handling
     // (in-memory cache, automatic refresh, retry logic) applies.
