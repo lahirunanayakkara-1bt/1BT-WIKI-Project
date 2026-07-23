@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Pencil, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { fetchMyArticles, type ArticleListItem } from '@/lib/api/articles';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 
@@ -20,6 +21,7 @@ function formatDate(iso: string): string {
 function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Element {
   const dateLabel = article.status === 'Published' ? 'Published' : 'Last updated';
   const dateValue = article.status === 'Published' ? article.updatedAt : article.createdAt;
+  const canEdit = article.status === 'Draft' || article.status === 'Rejected';
 
   return (
     <div
@@ -39,15 +41,26 @@ function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Eleme
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          type="button"
-          disabled
-          aria-label="Edit article"
-          data-testid={`edit-article-${article.id}`}
-          className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
+        {canEdit ? (
+          <Link
+            href={`/editor/${article.id}`}
+            aria-label="Edit article"
+            data-testid={`edit-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:border-brand-text-primary transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            aria-label="Edit article"
+            data-testid={`edit-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
         <button
           type="button"
           disabled

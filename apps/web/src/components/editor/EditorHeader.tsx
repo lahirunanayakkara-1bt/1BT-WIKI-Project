@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, Save } from 'lucide-react';
 import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
@@ -20,12 +21,14 @@ interface EditorHeaderProps {
 }
 
 export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
-  const { articleStatus, saveStatus, lastSavedAt, lastError, saveDraft, submitForReview } = useEditorDraft();
+  const router = useRouter();
+  const { articleStatus, initialStatus, saveStatus, lastSavedAt, lastError, saveDraft, submitForReview } = useEditorDraft();
   const statusDotRef = useRef<HTMLDivElement>(null);
   const { isVisible: isToastVisible, message: toastMessage, showToast } = useAutoDismissToast();
   
   const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [toastType, setToastType] = React.useState<'success' | 'error'>('success');
 
   // Animate the status dot based on save state
   useGSAP(() => {
@@ -72,17 +75,21 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
     try {
       await submitForReview();
       setIsConfirmModalOpen(false);
-      showToast('Submitted for review');
+      setToastType('success');
+      showToast('Article submitted for review successfully.');
+      router.push('/my-articles');
     } catch {
-      // Error state is already set in context (status pill handles it)
       setIsConfirmModalOpen(false);
+      setToastType('error');
+      showToast(lastError || 'Failed to submit article for review.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const isSaving = saveStatus === 'saving';
-  const isPublished = articleStatus !== null && articleStatus !== 'Draft';
+  const isPublished = articleStatus !== null && articleStatus !== 'Draft' && articleStatus !== 'Rejected';
+  const submitLabel = initialStatus === 'Rejected' ? 'Re-submit for Review' : 'Submit for Review';
 
   return (
     <>
@@ -161,15 +168,15 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
           disabled={isSaving || isPublished}
           className="rounded-lg bg-brand-red px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-brand-red-hover disabled:bg-brand-red-disabled transition-colors"
         >
-          Submit for Review
+          {submitLabel}
         </button>
       </div>
       </header>
-      <Toast visible={isToastVisible} message={toastMessage} type="success" />
+      <Toast visible={isToastVisible} message={toastMessage} type={toastType} />
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
-        title="Submit for Review"
-        message="Are you sure you want to submit this article for review?"
+        title={submitLabel}
+        message="Are you sure you want to submit this article for review? It will be locked from further edits until a reviewer approves or rejects it."
         confirmText="Submit"
         onConfirm={handleSubmitForReview}
         onCancel={() => setIsConfirmModalOpen(false)}

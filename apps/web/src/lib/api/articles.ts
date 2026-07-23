@@ -1,6 +1,6 @@
 import { apiFetch } from '@/lib/api/client';
 
-export type ArticleStatus = 'Draft' | 'Pending' | 'Published' | 'Unpublished';
+export type ArticleStatus = 'Draft' | 'Pending' | 'Published' | 'Unpublished' | 'Rejected';
 
 export interface ArticleListItem {
   id: string;
