@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { fetchMyArticles, deleteArticle, type ArticleListItem } from '@/lib/api/articles';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
-import { Toast, type ToastType } from '@/components/shared/Toast';
+import { Toast } from '@/components/shared/Toast';
 import { useUser } from '@/lib/hooks/useUser';
+import { useToast } from '@/lib/hooks/useToast';
 
 type SortOption = 'newest' | 'oldest' | 'title';
 
@@ -103,18 +104,7 @@ export function MyArticlesList(): React.JSX.Element {
 
   const [articleToDelete, setArticleToDelete] = useState<ArticleListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [toast, setToast] = useState<{ visible: boolean; message: string; type: ToastType }>({
-    visible: false,
-    message: '',
-    type: 'success'
-  });
-
-  const showToast = (message: string, type: ToastType) => {
-    setToast({ visible: true, message, type });
-    setTimeout(() => {
-      setToast(prev => ({ ...prev, visible: false }));
-    }, 3000);
-  };
+  const { toast, showToast } = useToast();
 
   const handleDeleteConfirm = async () => {
     if (!articleToDelete) return;
