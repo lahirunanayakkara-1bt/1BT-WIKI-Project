@@ -12,6 +12,12 @@ jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
   ArticleReviewRepository: jest.fn(),
 }));
 
+jest.unstable_mockModule('@services/notificationService.js', () => ({
+  default: {
+    send: jest.fn(() => Promise.resolve()),
+  },
+}));
+
 const { ReviewerService } = await import('../reviewerService.js');
 
 const makeMockArticleRepo = (): jest.Mocked<
