@@ -3,8 +3,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { fetchMyArticles, type ArticleListItem } from '@/lib/api/articles';
+import { fetchMyArticles, deleteArticle, type ArticleListItem } from '@/lib/api/articles';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
+import { Toast, type ToastType } from '@/components/shared/Toast';
+import { useUser } from '@/lib/hooks/useUser';
 
 type SortOption = 'newest' | 'oldest' | 'title';
 
@@ -18,10 +21,11 @@ function formatDate(iso: string): string {
   }
 }
 
-function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Element {
+function ArticleCard({ article, onDeleteClick, isAdmin }: { article: ArticleListItem; onDeleteClick: (article: ArticleListItem) => void; isAdmin: boolean }): React.JSX.Element {
   const dateLabel = article.status === 'Published' ? 'Published' : 'Last updated';
   const dateValue = article.status === 'Published' ? article.updatedAt : article.createdAt;
   const canEdit = article.status === 'Draft' || article.status === 'Rejected';
+  const canDelete = article.status === 'Draft' || isAdmin;
 
   return (
     <div
@@ -61,26 +65,71 @@ function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Eleme
             <Pencil className="w-4 h-4" />
           </button>
         )}
-        <button
-          type="button"
-          disabled
-          aria-label="Delete article"
-          data-testid={`delete-article-${article.id}`}
-          className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {canDelete ? (
+          <button
+            type="button"
+            onClick={() => onDeleteClick(article)}
+            aria-label="Delete article"
+            data-testid={`delete-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary hover:text-brand-red hover:border-brand-red transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled
+            aria-label="Delete article"
+            data-testid={`delete-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
 export function MyArticlesList(): React.JSX.Element {
+  const { user } = useUser();
+  const isAdmin = user?.role === 'Admin';
+  
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortOption>('newest');
+
+  const [articleToDelete, setArticleToDelete] = useState<ArticleListItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: ToastType }>({
+    visible: false,
+    message: '',
+    type: 'success'
+  });
+
+  const showToast = (message: string, type: ToastType) => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!articleToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteArticle(articleToDelete.id, isAdmin);
+      setArticles(prev => prev.filter(a => a.id !== articleToDelete.id));
+      showToast('Article deleted successfully', 'success');
+      setArticleToDelete(null);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err), 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -174,10 +223,29 @@ export function MyArticlesList(): React.JSX.Element {
       ) : (
         <div className="flex flex-col gap-3">
           {visibleArticles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
+            <ArticleCard key={article.id} article={article} onDeleteClick={setArticleToDelete} isAdmin={isAdmin} />
           ))}
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={!!articleToDelete}
+        title={isAdmin ? "Permanently Delete Article" : "Delete Draft"}
+        message={isAdmin 
+          ? "Are you sure you want to permanently delete this article? This action cannot be undone."
+          : "Are you sure you want to delete this draft? This action cannot be undone."}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setArticleToDelete(null)}
+        isConfirming={isDeleting}
+      />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+      />
     </div>
   );
 }
