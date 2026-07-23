@@ -59,7 +59,8 @@
     "express": "^4.18.2",
     "jose": "^6.2.3",
     "multer": "^2.2.0",
-    "pg": "^8.22.0"
+    "pg": "^8.22.0",
+    "pusher": "^5.3.4"
   },
   "devDependencies": {
     "@jest/globals": "^30.4.1",

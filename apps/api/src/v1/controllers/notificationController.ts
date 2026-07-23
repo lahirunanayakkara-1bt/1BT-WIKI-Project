@@ -65,4 +65,18 @@ const markNotificationAsRead = async (
   }
 };
 
-export default { getNotifications, markNotificationAsRead };
+const getUnreadCount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const count = await notificationService.countUnread(userId);
+    res.status(200).json({ success: true, data: { count } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { getNotifications, markNotificationAsRead, getUnreadCount };

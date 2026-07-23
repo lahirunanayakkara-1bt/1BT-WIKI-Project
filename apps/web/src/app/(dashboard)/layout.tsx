@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { UserProvider } from '@/lib/hooks/useUser';
+import { NotificationProvider, useNotificationContext } from '@/components/providers/NotificationProvider';
 import { isE2E } from '@/lib/e2e';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -18,7 +19,8 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps): React.JSX.Element {
+// Inner layout component — must live inside NotificationProvider to consume context.
+function DashboardLayoutInner({ children }: DashboardLayoutProps): React.JSX.Element {
   const pathname = usePathname();
   const isEditorRoute = pathname?.startsWith('/editor');
 
@@ -151,8 +153,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
+  const { unreadCount } = useNotificationContext();
+
   return (
-    <UserProvider>
     <div ref={containerRef} className="flex h-screen overflow-hidden bg-brand-bg">
       {/* Initial App Load Splash Screen */}
       {isAppLoading && (
@@ -171,9 +174,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
       <div ref={mainWrapperRef} className={cn('flex flex-col flex-1', !isEditorRoute && 'ml-60')}>
         {!isEditorRoute && (
           <Navbar
-            notificationCount={3}
-            userInitials="ML"
-            userName="Malindu"
+            notificationCount={unreadCount}
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={toggleSidebar}
           />
@@ -183,6 +184,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps): React.JSX.Element {
+  return (
+    <UserProvider>
+      <NotificationProvider>
+        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      </NotificationProvider>
     </UserProvider>
   );
 }

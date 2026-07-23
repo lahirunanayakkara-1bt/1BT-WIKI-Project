@@ -120,5 +120,19 @@ const markAsRead = async (
   }
 };
 
-export default { create, findById, list, markAsRead };
+// ---------------------------------------------------------------------------
+// Count
+// ---------------------------------------------------------------------------
+
+const countUnread = async (recipientId: string): Promise<number> => {
+  try {
+    return await prisma.notification.count({
+      where: { recipientId, isRead: false, deletedAt: null },
+    });
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { create, findById, list, markAsRead, countUnread };
 

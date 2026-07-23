@@ -4,6 +4,7 @@ import { AppError } from '@errors/AppError.js';
 import type { Article } from '@models/article.types.js';
 import { ArticleStatusValue } from '@models/article.types.js';
 import { ReviewStatus } from '@repo/db/generated/prisma/index.js';
+import notificationService from '@services/notificationService.js';
 
 export class ReviewerService {
   constructor(
@@ -40,7 +41,18 @@ export class ReviewerService {
       createdBy: reviewerId,
     });
 
-    // TODO: notify author on approval — pending notification-engineer infra migration
+    // Notify the author that their article has been approved and published.
+    // Fire-and-forget — a notification failure must not roll back the approval.
+    notificationService.send({
+      recipientId:                  article.authorId,
+      notificationTitle:            'Article Approved',
+      notificationReferenceType:    'article',
+      referenceId:                  articleId,
+      notificationType:             'success',
+      message:                      `Your article "${article.title}" has been approved and is now published.`,
+    }).catch((err: unknown) => {
+      console.error('[NotificationService] Failed to send approval notification:', err);
+    });
 
     return approved;
   }
@@ -70,7 +82,18 @@ export class ReviewerService {
       createdBy: reviewerId,
     });
 
-    // TODO: notify author on rejection — pending notification-engineer infra migration
+    // Notify the author that their article has been rejected, including feedback.
+    // Fire-and-forget — a notification failure must not roll back the rejection.
+    notificationService.send({
+      recipientId:                  article.authorId,
+      notificationTitle:            'Article Rejected',
+      notificationReferenceType:    'article',
+      referenceId:                  articleId,
+      notificationType:             'failure',
+      message:                      `Your article "${article.title}" was rejected. Feedback: ${feedback.trim()}`,
+    }).catch((err: unknown) => {
+      console.error('[NotificationService] Failed to send rejection notification:', err);
+    });
 
     return rejected;
   }
