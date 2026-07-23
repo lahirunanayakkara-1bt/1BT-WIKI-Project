@@ -79,4 +79,32 @@ const getUnreadCount = async (
   }
 };
 
-export default { getNotifications, markNotificationAsRead, getUnreadCount };
+
+
+const testNotification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    await notificationService.send({
+      recipientId: userId,
+      notificationTitle: "Test Notification",
+      notificationReferenceType: "article",
+      referenceId: "00000000-0000-0000-0000-000000000000",
+      notificationType: "info",
+      message: "Hello from notification test route",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Test notification sent"
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { getNotifications, markNotificationAsRead, getUnreadCount, testNotification };

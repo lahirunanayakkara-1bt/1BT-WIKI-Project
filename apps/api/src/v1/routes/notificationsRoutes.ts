@@ -9,6 +9,9 @@ import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 
+// POST /api/v1/notifications/test — helper route for development/testing
+router.post('/test', authenticate, NotificationController.testNotification);
+
 // GET /api/v1/notifications — list authenticated user's notifications (NO-02)
 router.get('/', authenticate, NotificationController.getNotifications);
 
