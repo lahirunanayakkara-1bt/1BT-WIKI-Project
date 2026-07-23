@@ -21,6 +21,7 @@ function formatDate(iso: string): string {
 function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Element {
   const dateLabel = article.status === 'Published' ? 'Published' : 'Last updated';
   const dateValue = article.status === 'Published' ? article.updatedAt : article.createdAt;
+  const canEdit = article.status === 'Draft' || article.status === 'Rejected';
 
   return (
     <div
@@ -40,7 +41,7 @@ function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Eleme
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        {article.status === 'Draft' || article.status === 'Rejected' ? (
+        {canEdit ? (
           <Link
             href={`/editor/${article.id}`}
             aria-label="Edit article"
