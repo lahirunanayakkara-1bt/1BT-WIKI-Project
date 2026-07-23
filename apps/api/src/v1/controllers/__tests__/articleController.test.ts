@@ -213,7 +213,7 @@ describe('ArticleController', () => {
 
       await controller.listPublished(req as Request, res as Response, next);
 
-      expect(mockService.listPublished).toHaveBeenCalledWith(1, 20);
+      expect(mockService.listPublished).toHaveBeenCalledWith(1, 20, undefined, undefined, undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -229,7 +229,18 @@ describe('ArticleController', () => {
 
       await controller.listPublished(req as Request, res as Response, next);
 
-      expect(mockService.listPublished).toHaveBeenCalledWith(3, 5);
+      expect(mockService.listPublished).toHaveBeenCalledWith(3, 5, undefined, undefined, undefined);
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should forward search, sort, and order query params to the service', async () => {
+      req.query = { page: '1', limit: '10', search: 'react', sort: 'views', order: 'asc' };
+      const mockResult = { articles: [], total: 0, page: 1, limit: 10 };
+      mockService.listPublished.mockResolvedValue(mockResult as never);
+
+      await controller.listPublished(req as Request, res as Response, next);
+
+      expect(mockService.listPublished).toHaveBeenCalledWith(1, 10, 'react', 'views', 'asc');
       expect(res.status).toHaveBeenCalledWith(200);
     });
 
