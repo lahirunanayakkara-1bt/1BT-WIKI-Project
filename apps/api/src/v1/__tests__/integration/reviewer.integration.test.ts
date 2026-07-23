@@ -147,9 +147,10 @@ describe('Reviewer API Integration', () => {
 
   describe('PATCH /api/v1/reviewer/articles/:id/approve', () => {
     const articleId = 'article-123';
+    const approvePath = `/api/v1/reviewer/articles/${articleId}/approve`;
 
     it('should return 401 if unauthenticated', async () => {
-      const response = await request(app).patch(`/api/v1/reviewer/articles/${articleId}/approve`);
+      const response = await request(app).patch(approvePath);
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
@@ -157,7 +158,7 @@ describe('Reviewer API Integration', () => {
 
     it('should return 403 for a non-Reviewer non-Admin role', async () => {
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/approve`)
+        .patch(approvePath)
         .set(userHeaders);
 
       expect(response.status).toBe(403);
@@ -169,7 +170,7 @@ describe('Reviewer API Integration', () => {
       mockFindById.mockResolvedValueOnce(null);
 
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/approve`)
+        .patch(approvePath)
         .set(reviewerHeaders);
 
       expect(response.status).toBe(404);
@@ -187,7 +188,7 @@ describe('Reviewer API Integration', () => {
       });
 
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/approve`)
+        .patch(approvePath)
         .set(reviewerHeaders);
 
       expect(response.status).toBe(400);
@@ -219,7 +220,7 @@ describe('Reviewer API Integration', () => {
       });
 
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/approve`)
+        .patch(approvePath)
         .set(reviewerHeaders);
 
       expect(response.status).toBe(200);
@@ -241,9 +242,10 @@ describe('Reviewer API Integration', () => {
 
   describe('PATCH /api/v1/reviewer/articles/:id/reject', () => {
     const articleId = 'article-123';
+    const rejectPath = `/api/v1/reviewer/articles/${articleId}/reject`;
 
     it('should return 401 if unauthenticated', async () => {
-      const response = await request(app).patch(`/api/v1/reviewer/articles/${articleId}/reject`);
+      const response = await request(app).patch(rejectPath);
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
@@ -251,7 +253,7 @@ describe('Reviewer API Integration', () => {
 
     it('should return 403 for a non-Reviewer non-Admin role', async () => {
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .patch(rejectPath)
         .set(userHeaders)
         .send({ feedback: 'this is a valid reject feedback' });
 
@@ -262,7 +264,7 @@ describe('Reviewer API Integration', () => {
 
     it('should return 400 when feedback is missing or under 10 characters', async () => {
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .patch(rejectPath)
         .set(reviewerHeaders)
         .send({ feedback: 'short' });
 
@@ -275,7 +277,7 @@ describe('Reviewer API Integration', () => {
       mockFindById.mockResolvedValueOnce(null);
 
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .patch(rejectPath)
         .set(reviewerHeaders)
         .send({ feedback: 'this is a valid reject feedback' });
 
@@ -294,7 +296,7 @@ describe('Reviewer API Integration', () => {
       });
 
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .patch(rejectPath)
         .set(reviewerHeaders)
         .send({ feedback: 'this is a valid reject feedback' });
 
@@ -327,7 +329,7 @@ describe('Reviewer API Integration', () => {
       });
 
       const response = await request(app)
-        .patch(`/api/v1/reviewer/articles/${articleId}/reject`)
+        .patch(rejectPath)
         .set(reviewerHeaders)
         .send({ feedback: 'this is a valid reject feedback' });
 
