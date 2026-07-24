@@ -199,6 +199,44 @@ describe('Comments API Integration', () => {
         })
       );
     });
+
+    it('should create the comment but NOT notify when the commenter is the article author', async () => {
+      const article = {
+        id: articleId,
+        authorId: 'user-123', // Same as the requester
+        title: 'Test Article',
+        status: 'Published',
+      };
+      const createdComment = {
+        id: 'comment-124',
+        articleId,
+        createdBy: 'user-123',
+        body: 'Self comment',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFindById.mockResolvedValueOnce(article);
+      mockCreateComment.mockResolvedValueOnce(createdComment);
+
+      const response = await request(app)
+        .post(`/api/v1/articles/${articleId}/comments`)
+        .set(userHeaders)
+        .send({ body: 'Self comment' });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(mockCreateComment).toHaveBeenCalledWith({
+        articleId,
+        createdBy: 'user-123',
+        body: 'Self comment',
+      });
+
+      // Flush microtasks
+      await new Promise((resolve) => setImmediate(resolve));
+      // Should not have sent a notification
+      expect(mockCreateNotification).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /api/v1/articles/:id/comments', () => {
