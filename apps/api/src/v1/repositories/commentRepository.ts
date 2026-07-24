@@ -1,5 +1,9 @@
 import { prisma } from '@repo/db';
-import type { Comment, CommentWithAuthor, CreateCommentInput } from '@models/comment.types.js';
+import type {
+  Comment,
+  CommentWithAuthor,
+  CreateCommentInput,
+} from '@models/comment.types.js';
 
 const COMMENT_SELECT = {
   id: true,
@@ -19,10 +23,15 @@ const create = async (data: CreateCommentInput): Promise<Comment> => {
   return result as unknown as Comment;
 };
 
-const findByArticleId = async (articleId: string): Promise<CommentWithAuthor[]> => {
+const findByArticleId = async (
+  articleId: string
+): Promise<CommentWithAuthor[]> => {
   const results = await prisma.comment.findMany({
     where: { articleId, deletedAt: null },
-    select: { ...COMMENT_SELECT, user: { select: { name: true, image: true } } },
+    select: {
+      ...COMMENT_SELECT,
+      user: { select: { name: true, image: true } },
+    },
     orderBy: { createdAt: 'asc' },
   });
 

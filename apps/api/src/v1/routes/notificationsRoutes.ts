@@ -9,9 +9,24 @@ import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 
-// GET /api/v1/notifications — list authenticated user's notifications (NO-02)
-router.get('/', authenticate, NotificationController.getNotifications);
+const {
+  testNotification,
+  getNotifications,
+  getUnreadCount,
+  markNotificationAsRead,
+} = NotificationController;
 
-router.patch('/:id/read', authenticate, NotificationController.markNotificationAsRead);
+// POST /api/v1/notifications/test — helper route for development/testing
+router.post('/test', authenticate, testNotification);
+
+// GET /api/v1/notifications — list authenticated user's notifications (NO-02)
+router.get('/', authenticate, getNotifications);
+
+// GET /api/v1/notifications/unread-count — unread badge count
+// IMPORTANT: must be registered before /:id routes to avoid Express treating
+// the literal string "unread-count" as an :id parameter.
+router.get('/unread-count', authenticate, getUnreadCount);
+
+router.patch('/:id/read', authenticate, markNotificationAsRead);
 
 export default router;

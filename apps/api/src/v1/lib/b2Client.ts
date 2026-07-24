@@ -24,12 +24,12 @@ const uploadFile = async (
   mimeType: string
 ): Promise<{ fileId: string; fileUrl: string }> => {
   await authorize();
-  
+
   const bucketId = process.env.B2_BUCKET_ID ?? '';
-  
+
   try {
     const uploadUrlResponse = await b2.getUploadUrl({ bucketId });
-    
+
     const uploadResponse = await b2.uploadFile({
       uploadUrl: uploadUrlResponse.data.uploadUrl,
       uploadAuthToken: uploadUrlResponse.data.authorizationToken,
@@ -37,9 +37,9 @@ const uploadFile = async (
       data: buffer,
       mime: mimeType,
     });
-    
+
     const fileId = uploadResponse.data.fileId;
-    
+
     // Construct the direct download URL.
     // The format is: https://f000.backblazeb2.com/file/{bucketName}/{fileName}
     // We can also get the downloadUrl from the authorization response, but it's simpler to construct if bucket name is known,
@@ -57,13 +57,16 @@ const uploadFile = async (
     } else {
       details = String(error);
     }
-    throw new AppError(`Failed to upload file ${key} to B2. Details: ${details}`, 500);
+    throw new AppError(
+      `Failed to upload file ${key} to B2. Details: ${details}`,
+      500
+    );
   }
 };
 
 const deleteFile = async (fileId: string, fileName: string): Promise<void> => {
   await authorize();
-  
+
   try {
     await b2.deleteFileVersion({
       fileId,

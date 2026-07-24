@@ -1,28 +1,64 @@
 // apps/api/src/__tests__/integration/users.integration.test.ts
 
-import { jest, describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+} from '@jest/globals';
 
 // ESM requires unstable_mockModule — jest.mock() doesn't hoist in ESM
 
 // ── Mock Prisma DB from @repo/db ───────────────────────────────────────────
 await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
-    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    articleAttachment: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    review: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    notification: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    user: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    article: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    articleAttachment: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    review: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    notification: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
   },
 }));
 
 await jest.unstable_mockModule('@/db/index.js', () => ({
   default: {
-    query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
+    query: jest
+      .fn<() => Promise<{ rows: unknown[] }>>()
+      .mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
     end: jest.fn(),
   },
   pool: {
-    query: jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
+    query: jest
+      .fn<() => Promise<{ rows: unknown[] }>>()
+      .mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
     end: jest.fn(),
   },
@@ -36,9 +72,9 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
       res: import('express').Response,
       next: import('express').NextFunction
     ) => {
-      const userId = req.headers['x-test-user-id']    as string | undefined;
-      const email  = req.headers['x-test-user-email'] as string | undefined;
-      const role   = req.headers['x-test-user-role']  as string | undefined;
+      const userId = req.headers['x-test-user-id'] as string | undefined;
+      const email = req.headers['x-test-user-email'] as string | undefined;
+      const role = req.headers['x-test-user-role'] as string | undefined;
 
       if (userId && email && role) {
         req.user = { userId, email, role };
@@ -46,7 +82,9 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
         return;
       }
 
-      res.status(401).json({ success: false, error: 'Authentication required' });
+      res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
   ),
 }));
@@ -54,64 +92,77 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
 // Mock userRepository — controls all DB calls made by the service layer
 await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
-    findByEmail:     jest.fn<() => Promise<null>>().mockResolvedValue(null),
-    findById:        jest.fn<() => Promise<null>>().mockResolvedValue(null),
+    findByEmail: jest.fn<() => Promise<null>>().mockResolvedValue(null),
+    findById: jest.fn<() => Promise<null>>().mockResolvedValue(null),
     createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    updateRole:      jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    updateRole: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
     updateBanStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-    updateById:      jest.fn<() => Promise<null>>().mockResolvedValue(null),
+    updateById: jest.fn<() => Promise<null>>().mockResolvedValue(null),
   },
 }));
 
 // Mock adminRepository — controls DB calls made by adminService
 await jest.unstable_mockModule('@repositories/adminRepository.js', () => ({
   default: {
-    getAllUsers:      jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+    getAllUsers: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
     createAdminUser: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
   },
 }));
 
 // Mock rbac middleware — passthrough for any role (role assertions tested separately)
 await jest.unstable_mockModule('@/middleware/rbac.middleware.js', () => ({
-  requireRole: (_role: string) =>
+  requireRole:
+    (_role: string) =>
     async (
       _req: import('express').Request,
       _res: import('express').Response,
       next: import('express').NextFunction
-    ) => next(),
+    ) =>
+      next(),
 }));
 
 // Import AFTER all mocks are registered
-const { default: app, appReady }          = await import('@/app.js');
-const { default: request }                = await import('supertest');
-const { default: UserRepository }         = await import('@repositories/userRepository.js');
-const { default: AdminRepository }        = await import('@repositories/adminRepository.js');
+const { default: app, appReady } = await import('@/app.js');
+const { default: request } = await import('supertest');
+const { default: UserRepository } =
+  await import('@repositories/userRepository.js');
+const { default: AdminRepository } =
+  await import('@repositories/adminRepository.js');
 
 // Typed mock helpers
-const mockGetAll          = AdminRepository.getAllUsers as jest.Mock<() => Promise<unknown[]>>;
-const mockFindByEmail     = UserRepository.findByEmail     as jest.Mock<() => Promise<unknown>>;
-const mockFindById        = UserRepository.findById        as jest.Mock<() => Promise<unknown>>;
-const mockCreateAdminUser = AdminRepository.createAdminUser as jest.Mock<() => Promise<unknown>>;
-const mockUpdateBanStatus = UserRepository.updateBanStatus as jest.Mock<() => Promise<unknown>>;
+const mockGetAll = AdminRepository.getAllUsers as jest.Mock<
+  () => Promise<unknown[]>
+>;
+const mockFindByEmail = UserRepository.findByEmail as jest.Mock<
+  () => Promise<unknown>
+>;
+const mockFindById = UserRepository.findById as jest.Mock<
+  () => Promise<unknown>
+>;
+const mockCreateAdminUser = AdminRepository.createAdminUser as jest.Mock<
+  () => Promise<unknown>
+>;
+const mockUpdateBanStatus = UserRepository.updateBanStatus as jest.Mock<
+  () => Promise<unknown>
+>;
 
 // ── Auth header helpers ───────────────────────────────────────────────────────
 
 const adminHeaders = {
-  'x-test-user-id':    'admin-001',
+  'x-test-user-id': 'admin-001',
   'x-test-user-email': 'admin@1billiontech.com',
-  'x-test-user-role':  'Admin',
+  'x-test-user-role': 'Admin',
 };
 
 const userHeaders = {
-  'x-test-user-id':    'user-001',
+  'x-test-user-id': 'user-001',
   'x-test-user-email': 'user@1billiontech.com',
-  'x-test-user-role':  'User',
+  'x-test-user-role': 'User',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Integration — Users API', () => {
-
   beforeAll(async () => {
     await appReady;
   });
@@ -188,7 +239,11 @@ describe('Integration — Users API', () => {
     const response = await request(app)
       .post('/api/v1/admin/createUsers')
       .set(adminHeaders)
-      .send({ name: 'Chathurika', email: 'chathurika@1billiontech.com', role: 'User' });
+      .send({
+        name: 'Chathurika',
+        email: 'chathurika@1billiontech.com',
+        role: 'User',
+      });
 
     expect(response.status).toBe(201);
     expect(response.body.success).toBe(true);
@@ -301,7 +356,8 @@ describe('Integration — Users API', () => {
       .send({ banned: true });
 
     expect(response.status).toBe(400);
-    expect(response.text).toContain('Ban reason is required when banning a user');
+    expect(response.text).toContain(
+      'Ban reason is required when banning a user'
+    );
   });
-
 });

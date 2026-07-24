@@ -40,7 +40,7 @@ export function Toast({ visible, message, type = 'success' }: ToastProps) {
         opacity: 0,
         scale: 0.95,
         duration: 0.2,
-        ease: 'power2.in'
+        ease: 'power2.in',
       });
     }
   }, [visible, mounted]);
@@ -60,13 +60,17 @@ export function Toast({ visible, message, type = 'success' }: ToastProps) {
       // Initial state before GSAP takes over
       style={{ opacity: 0 }}
     >
-      <div className={cn(
-        "flex h-5 w-5 items-center justify-center rounded-full",
-        type === 'success' && "bg-green-500/20 text-green-500",
-        type === 'error' && "bg-red-500/20 text-red-500",
-        type === 'info' && "bg-blue-500/20 text-blue-500"
-      )}>
-        {type === 'success' && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+      <div
+        className={cn(
+          'flex h-5 w-5 items-center justify-center rounded-full',
+          type === 'success' && 'bg-green-500/20 text-green-500',
+          type === 'error' && 'bg-red-500/20 text-red-500',
+          type === 'info' && 'bg-blue-500/20 text-blue-500'
+        )}
+      >
+        {type === 'success' && (
+          <Check className="h-3.5 w-3.5" strokeWidth={3} />
+        )}
         {type === 'error' && <X className="h-3.5 w-3.5" strokeWidth={3} />}
         {type === 'info' && <Info className="h-3.5 w-3.5" strokeWidth={3} />}
       </div>

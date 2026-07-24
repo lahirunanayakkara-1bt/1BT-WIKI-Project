@@ -4,7 +4,14 @@ jest.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => mockApiFetch(...args),
 }));
 
-import { fetchComments, postComment, updateComment, deleteComment, type CommentWithAuthor, type Comment } from '@/lib/api/comments';
+import {
+  fetchComments,
+  postComment,
+  updateComment,
+  deleteComment,
+  type CommentWithAuthor,
+  type Comment,
+} from '@/lib/api/comments';
 
 const sampleComment: CommentWithAuthor = {
   id: 'c1',
@@ -32,7 +39,10 @@ describe('fetchComments', () => {
   });
 
   it('calls apiFetch with the article comments path', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: true, data: [sampleComment] });
+    mockApiFetch.mockResolvedValueOnce({
+      success: true,
+      data: [sampleComment],
+    });
 
     await fetchComments('a1');
 
@@ -40,7 +50,10 @@ describe('fetchComments', () => {
   });
 
   it('resolves with data on success', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: true, data: [sampleComment] });
+    mockApiFetch.mockResolvedValueOnce({
+      success: true,
+      data: [sampleComment],
+    });
 
     const result = await fetchComments('a1');
 
@@ -48,7 +61,10 @@ describe('fetchComments', () => {
   });
 
   it('throws the returned error message when success is false', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: false, error: 'Article not found' });
+    mockApiFetch.mockResolvedValueOnce({
+      success: false,
+      error: 'Article not found',
+    });
 
     await expect(fetchComments('a1')).rejects.toThrow('Article not found');
   });
@@ -56,7 +72,9 @@ describe('fetchComments', () => {
   it('throws a fallback message when success is true but data is missing', async () => {
     mockApiFetch.mockResolvedValueOnce({ success: true, data: undefined });
 
-    await expect(fetchComments('a1')).rejects.toThrow('Failed to load comments');
+    await expect(fetchComments('a1')).rejects.toThrow(
+      'Failed to load comments'
+    );
   });
 });
 
@@ -85,15 +103,22 @@ describe('postComment', () => {
   });
 
   it('throws the returned error message when success is false', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: false, error: 'Comment body is required and cannot be empty' });
+    mockApiFetch.mockResolvedValueOnce({
+      success: false,
+      error: 'Comment body is required and cannot be empty',
+    });
 
-    await expect(postComment('a1', '')).rejects.toThrow('Comment body is required and cannot be empty');
+    await expect(postComment('a1', '')).rejects.toThrow(
+      'Comment body is required and cannot be empty'
+    );
   });
 
   it('throws a fallback message when success is true but data is missing', async () => {
     mockApiFetch.mockResolvedValueOnce({ success: true, data: undefined });
 
-    await expect(postComment('a1', 'New comment')).rejects.toThrow('Failed to post comment');
+    await expect(postComment('a1', 'New comment')).rejects.toThrow(
+      'Failed to post comment'
+    );
   });
 });
 
@@ -122,7 +147,10 @@ describe('updateComment', () => {
   });
 
   it('throws the returned error message when success is false', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: false, error: 'Only the comment owner can edit this comment' });
+    mockApiFetch.mockResolvedValueOnce({
+      success: false,
+      error: 'Only the comment owner can edit this comment',
+    });
 
     await expect(updateComment('a1', 'c2', 'Updated text')).rejects.toThrow(
       'Only the comment owner can edit this comment'
@@ -132,7 +160,9 @@ describe('updateComment', () => {
   it('throws a fallback message when success is true but data is missing', async () => {
     mockApiFetch.mockResolvedValueOnce({ success: true, data: undefined });
 
-    await expect(updateComment('a1', 'c2', 'Updated text')).rejects.toThrow('Failed to update comment');
+    await expect(updateComment('a1', 'c2', 'Updated text')).rejects.toThrow(
+      'Failed to update comment'
+    );
   });
 });
 
@@ -146,7 +176,9 @@ describe('deleteComment', () => {
 
     await deleteComment('a1', 'c1');
 
-    expect(mockApiFetch).toHaveBeenCalledWith('/articles/a1/comments/c1', { method: 'DELETE' });
+    expect(mockApiFetch).toHaveBeenCalledWith('/articles/a1/comments/c1', {
+      method: 'DELETE',
+    });
   });
 
   it('resolves without throwing on success', async () => {
@@ -156,8 +188,13 @@ describe('deleteComment', () => {
   });
 
   it('throws the returned error message when success is false', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: false, error: 'Only the comment owner can delete this comment' });
+    mockApiFetch.mockResolvedValueOnce({
+      success: false,
+      error: 'Only the comment owner can delete this comment',
+    });
 
-    await expect(deleteComment('a1', 'c1')).rejects.toThrow('Only the comment owner can delete this comment');
+    await expect(deleteComment('a1', 'c1')).rejects.toThrow(
+      'Only the comment owner can delete this comment'
+    );
   });
 });

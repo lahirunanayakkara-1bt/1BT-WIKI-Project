@@ -3,19 +3,23 @@
 import UserRepository from '@repositories/userRepository.js';
 import { AppError } from '@errors/AppError.js';
 import { capitalizeRole } from '@/types/userTypes.js';
-import type { UserProfile, ProfileUpdateInput, User } from '@/types/userTypes.js';
+import type {
+  UserProfile,
+  ProfileUpdateInput,
+  User,
+} from '@/types/userTypes.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 const mapToUserProfile = (user: User): UserProfile => ({
-  id:        user.id,
-  name:      user.name,
-  email:     user.email,
+  id: user.id,
+  name: user.name,
+  email: user.email,
   avatarUrl: user.image,
-  role:      capitalizeRole(user.role),
-  isActive:  user.banned !== true,
+  role: capitalizeRole(user.role),
+  isActive: user.banned !== true,
   createdAt: user.createdAt,
 });
 
@@ -54,7 +58,10 @@ const getProfile = async (userId: string): Promise<UserProfile> => {
 /**
  * Update the authenticated user's profile.
  */
-const updateProfile = async (userId: string, input: ProfileUpdateInput): Promise<UserProfile> => {
+const updateProfile = async (
+  userId: string,
+  input: ProfileUpdateInput
+): Promise<UserProfile> => {
   // Validate name
   if (input.name !== undefined) {
     if (typeof input.name !== 'string' || input.name.trim() === '') {

@@ -19,7 +19,7 @@ app.get('/api/v1/health', (_req, res) => {
 export const appReady: Promise<void> = (async () => {
   try {
     const { default: v1Router } = await import('@routes/index.js');
-    
+
     // Mount all v1 routes under /api/v1
     app.use('/api/v1', v1Router);
   } catch (err: unknown) {
@@ -34,15 +34,17 @@ export const appReady: Promise<void> = (async () => {
   // of whether route loading is sync or async.
   // Handles AppError (domain errors) and unexpected errors uniformly.
   // ---------------------------------------------------------------------------
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void => {
-    if (err instanceof AppError) {
-      res.status(err.statusCode).json(errorResponse(err.message));
-      return;
+  app.use(
+    (err: Error, _req: Request, res: Response, _next: NextFunction): void => {
+      if (err instanceof AppError) {
+        res.status(err.statusCode).json(errorResponse(err.message));
+        return;
+      }
+      // eslint-disable-next-line no-console
+      console.error('Unhandled error:', err);
+      res.status(500).json(errorResponse('Internal server error'));
     }
-    // eslint-disable-next-line no-console
-    console.error('Unhandled error:', err);
-    res.status(500).json(errorResponse('Internal server error'));
-  });
+  );
 })();
 
 export default app;

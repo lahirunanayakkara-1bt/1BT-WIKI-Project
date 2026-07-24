@@ -10,7 +10,6 @@
 import { describe, it, expect } from '@jest/globals';
 
 describe('AuthService — placeholder', () => {
-
   const isCompanyEmail = (email: string): boolean =>
     email.endsWith('@1billiontech.com');
 
@@ -37,5 +36,4 @@ describe('AuthService — placeholder', () => {
     // Act + Assert
     expect(isCompanyEmail(emptyEmail)).toBe(false);
   });
-
 });

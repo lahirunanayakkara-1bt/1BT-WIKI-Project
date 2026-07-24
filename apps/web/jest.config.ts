@@ -10,6 +10,7 @@ const config: Config = {
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^lenis$': '<rootDir>/__mocks__/lenis.ts',
   },
 };
 

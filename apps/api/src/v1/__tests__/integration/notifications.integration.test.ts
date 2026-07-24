@@ -9,18 +9,50 @@
 //   3. Mock notificationRepository so we control DB responses.
 //   4. await appReady in beforeAll so all routes are mounted before any request.
 
-import { jest, describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+} from '@jest/globals';
 
 // ── 1. Mock Prisma DB from @repo/db ──────────────────────────────────────
 
 // ── Mock Prisma DB from @repo/db ───────────────────────────────────────────
 await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
-    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    articleAttachment: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    review: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    notification: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+    user: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    article: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    articleAttachment: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    review: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    notification: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
   },
 }));
 
@@ -36,14 +68,18 @@ await jest.unstable_mockModule('@repo/db', () => ({
 // ── 2. Mock the DB pool — must come before app import ──────────────────────
 await jest.unstable_mockModule('@/db/index.js', () => ({
   default: {
-    query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
+    query: jest
+      .fn<() => Promise<{ rows: unknown[] }>>()
+      .mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
-    end:     jest.fn(),
+    end: jest.fn(),
   },
   pool: {
-    query:   jest.fn<() => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
+    query: jest
+      .fn<() => Promise<{ rows: unknown[] }>>()
+      .mockResolvedValue({ rows: [] }),
     connect: jest.fn(),
-    end:     jest.fn(),
+    end: jest.fn(),
   },
 }));
 
@@ -57,9 +93,9 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
       res: import('express').Response,
       next: import('express').NextFunction
     ) => {
-      const userId = req.headers['x-test-user-id']  as string | undefined;
-      const email  = req.headers['x-test-user-email'] as string | undefined;
-      const role   = req.headers['x-test-user-role']  as string | undefined;
+      const userId = req.headers['x-test-user-id'] as string | undefined;
+      const email = req.headers['x-test-user-email'] as string | undefined;
+      const role = req.headers['x-test-user-role'] as string | undefined;
 
       if (userId && email && role) {
         req.user = { userId, email, role };
@@ -67,19 +103,26 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
         return;
       }
 
-      res.status(401).json({ success: false, error: 'Authentication required' });
+      res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
   ),
 }));
 
 // ── 3. Mock notificationRepository so we control DB responses ─────────────
-await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
-  default: {
-    create:   jest.fn(),
-    findById: jest.fn(),
-    list:     jest.fn<(...args: unknown[]) => Promise<unknown[]>>().mockResolvedValue([]),
-  },
-}));
+await jest.unstable_mockModule(
+  '@repositories/notificationRepository.js',
+  () => ({
+    default: {
+      create: jest.fn(),
+      findById: jest.fn(),
+      list: jest
+        .fn<(...args: unknown[]) => Promise<unknown[]>>()
+        .mockResolvedValue([]),
+    },
+  })
+);
 
 // ── 4. Mock articlesRoutes — it imports multer which is not installed in
 //    devDependencies. Without this mock the Promise.all in app.ts rejects
@@ -91,17 +134,19 @@ await jest.unstable_mockModule('@routes/articlesRoutes.js', () => ({
 
 // ── Import app AFTER all mocks are registered ─────────────────────────────
 const { default: app, appReady } = await import('@/app.js');
-const { default: request }       = await import('supertest');
-const { default: NotificationRepository } = await import('@repositories/notificationRepository.js');
+const { default: request } = await import('supertest');
+const { default: NotificationRepository } =
+  await import('@repositories/notificationRepository.js');
 
-const mockedList = NotificationRepository.list as jest.Mock<(...args: unknown[]) => Promise<unknown[]>>;
+const mockedList = NotificationRepository.list as jest.Mock<
+  (...args: unknown[]) => Promise<unknown[]>
+>;
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 describe('Integration — GET /api/v1/notifications (NO-02)', () => {
-
   beforeAll(async () => {
     await appReady; // wait for all routes to be mounted in app.ts
   });
@@ -131,17 +176,17 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
     // Arrange
     const mockNotifications = [
       {
-        id:                        'notif-uuid-1',
-        recipientId:               'user-abc',
-        notificationTitle:         'Article approved',
+        id: 'notif-uuid-1',
+        recipientId: 'user-abc',
+        notificationTitle: 'Article approved',
         notificationReferenceType: 'article',
-        referenceId:               'article-uuid-1',
-        notificationType:          'success',
-        message:                   'Your article has been approved.',
-        isRead:                    false,
-        readAt:                    null,
-        deletedAt:                 null,
-        createdAt:                 new Date('2026-07-01T00:00:00.000Z'),
+        referenceId: 'article-uuid-1',
+        notificationType: 'success',
+        message: 'Your article has been approved.',
+        isRead: false,
+        readAt: null,
+        deletedAt: null,
+        createdAt: new Date('2026-07-01T00:00:00.000Z'),
       },
     ];
     mockedList.mockResolvedValueOnce(mockNotifications);
@@ -149,9 +194,9 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
     // Act — inject auth via X-Test-User-* headers
     const response = await request(app)
       .get('/api/v1/notifications')
-      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-id', 'user-abc')
       .set('x-test-user-email', 'malindu@1billiontech.com')
-      .set('x-test-user-role',  'User');
+      .set('x-test-user-role', 'User');
 
     // Assert — HTTP
     expect(response.status).toBe(200);
@@ -173,7 +218,10 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
 
     // Assert — repository was called with the injected userId
     expect(mockedList).toHaveBeenCalledTimes(1);
-    expect(mockedList).toHaveBeenCalledWith('user-abc', { limit: 20, offset: 0 });
+    expect(mockedList).toHaveBeenCalledWith('user-abc', {
+      limit: 20,
+      offset: 0,
+    });
   });
 
   // ── Authenticated — empty list ────────────────────────────────────────────
@@ -185,9 +233,9 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
     // Act
     const response = await request(app)
       .get('/api/v1/notifications')
-      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-id', 'user-abc')
       .set('x-test-user-email', 'malindu@1billiontech.com')
-      .set('x-test-user-role',  'User');
+      .set('x-test-user-role', 'User');
 
     // Assert
     expect(response.status).toBe(200);
@@ -204,13 +252,16 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
     // Act
     const response = await request(app)
       .get('/api/v1/notifications?limit=5&offset=10')
-      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-id', 'user-abc')
       .set('x-test-user-email', 'malindu@1billiontech.com')
-      .set('x-test-user-role',  'User');
+      .set('x-test-user-role', 'User');
 
     // Assert
     expect(response.status).toBe(200);
-    expect(mockedList).toHaveBeenCalledWith('user-abc', { limit: 5, offset: 10 });
+    expect(mockedList).toHaveBeenCalledWith('user-abc', {
+      limit: 5,
+      offset: 10,
+    });
   });
 
   it('should clamp limit to 100 when a larger value is provided', async () => {
@@ -220,13 +271,16 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
     // Act
     const response = await request(app)
       .get('/api/v1/notifications?limit=500')
-      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-id', 'user-abc')
       .set('x-test-user-email', 'malindu@1billiontech.com')
-      .set('x-test-user-role',  'User');
+      .set('x-test-user-role', 'User');
 
     // Assert
     expect(response.status).toBe(200);
-    expect(mockedList).toHaveBeenCalledWith('user-abc', { limit: 100, offset: 0 });
+    expect(mockedList).toHaveBeenCalledWith('user-abc', {
+      limit: 100,
+      offset: 0,
+    });
   });
 
   it('should fall back to defaults for non-numeric query params', async () => {
@@ -236,12 +290,15 @@ describe('Integration — GET /api/v1/notifications (NO-02)', () => {
     // Act
     const response = await request(app)
       .get('/api/v1/notifications?limit=abc&offset=xyz')
-      .set('x-test-user-id',    'user-abc')
+      .set('x-test-user-id', 'user-abc')
       .set('x-test-user-email', 'malindu@1billiontech.com')
-      .set('x-test-user-role',  'User');
+      .set('x-test-user-role', 'User');
 
     // Assert
     expect(response.status).toBe(200);
-    expect(mockedList).toHaveBeenCalledWith('user-abc', { limit: 20, offset: 0 });
+    expect(mockedList).toHaveBeenCalledWith('user-abc', {
+      limit: 20,
+      offset: 0,
+    });
   });
 });

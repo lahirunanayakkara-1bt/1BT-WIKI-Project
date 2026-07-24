@@ -14,7 +14,9 @@ import {
 import { cn } from '@/lib/utils';
 
 export function ReadingPreview() {
-  const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>(
+    'desktop'
+  );
 
   useEffect(() => {
     gsap.fromTo(
@@ -26,9 +28,12 @@ export function ReadingPreview() {
 
   const getViewportWidth = () => {
     switch (viewport) {
-      case 'mobile': return 'max-w-sm';
-      case 'tablet': return 'max-w-2xl';
-      default: return 'max-w-4xl';
+      case 'mobile':
+        return 'max-w-sm';
+      case 'tablet':
+        return 'max-w-2xl';
+      default:
+        return 'max-w-4xl';
     }
   };
 
@@ -41,7 +46,9 @@ export function ReadingPreview() {
             onClick={() => setViewport('desktop')}
             className={cn(
               'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-              viewport === 'desktop' ? 'bg-white text-brand-text-primary shadow-sm' : 'text-brand-text-secondary hover:text-brand-text-primary'
+              viewport === 'desktop'
+                ? 'bg-white text-brand-text-primary shadow-sm'
+                : 'text-brand-text-secondary hover:text-brand-text-primary'
             )}
           >
             <Monitor className="h-4 w-4" /> Desktop
@@ -50,7 +57,9 @@ export function ReadingPreview() {
             onClick={() => setViewport('tablet')}
             className={cn(
               'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-              viewport === 'tablet' ? 'bg-white text-brand-text-primary shadow-sm' : 'text-brand-text-secondary hover:text-brand-text-primary'
+              viewport === 'tablet'
+                ? 'bg-white text-brand-text-primary shadow-sm'
+                : 'text-brand-text-secondary hover:text-brand-text-primary'
             )}
           >
             <Tablet className="h-4 w-4" /> Tablet
@@ -59,7 +68,9 @@ export function ReadingPreview() {
             onClick={() => setViewport('mobile')}
             className={cn(
               'flex items-center gap-2 rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-              viewport === 'mobile' ? 'bg-white text-brand-text-primary shadow-sm' : 'text-brand-text-secondary hover:text-brand-text-primary'
+              viewport === 'mobile'
+                ? 'bg-white text-brand-text-primary shadow-sm'
+                : 'text-brand-text-secondary hover:text-brand-text-primary'
             )}
           >
             <Smartphone className="h-4 w-4" /> Mobile
@@ -77,12 +88,14 @@ export function ReadingPreview() {
         >
           {/* Header Image */}
           <div className="w-full h-64 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600" />
-          
+
           <div className="p-10 md:p-14">
             {/* Tags */}
             <div className="mb-6 flex gap-2">
               {MOCK_TAGS.map((tag) => (
-                <span key={tag} className="font-bold text-brand-red text-sm">{tag}</span>
+                <span key={tag} className="font-bold text-brand-red text-sm">
+                  {tag}
+                </span>
               ))}
             </div>
 
@@ -97,13 +110,17 @@ export function ReadingPreview() {
                 {MOCK_AUTHOR_INITIALS}
               </div>
               <div>
-                <p className="font-bold text-brand-text-primary">{MOCK_AUTHOR_NAME}</p>
-                <p className="text-sm text-brand-text-secondary">{MOCK_AUTHOR_META}</p>
+                <p className="font-bold text-brand-text-primary">
+                  {MOCK_AUTHOR_NAME}
+                </p>
+                <p className="text-sm text-brand-text-secondary">
+                  {MOCK_AUTHOR_META}
+                </p>
               </div>
             </div>
 
             {/* Simulated Rich Text Content */}
-            <div 
+            <div
               className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-brand-text-primary prose-p:text-brand-text-primary prose-a:text-brand-red"
               dangerouslySetInnerHTML={{ __html: MOCK_CONTENT_HTML }}
             />

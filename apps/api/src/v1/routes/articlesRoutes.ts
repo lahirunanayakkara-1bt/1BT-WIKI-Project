@@ -8,7 +8,15 @@ import { authenticate } from '@/middleware/auth.middleware.js';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 const articleController = new ArticleController();
-const { create, listPublished, getById, update, submitForReview, remove, listMine } = articleController;
+const {
+  create,
+  listPublished,
+  getById,
+  update,
+  submitForReview,
+  remove,
+  listMine,
+} = articleController;
 
 // POST /api/v1/articles — Create a new article as Draft
 router.post('/', authenticate, upload.array('images'), create);
@@ -41,4 +49,3 @@ router.use('/:id/comments', commentsRoutes);
 router.delete('/:id', authenticate, remove);
 
 export default router;
-

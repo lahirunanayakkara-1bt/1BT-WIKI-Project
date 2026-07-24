@@ -31,11 +31,16 @@ describe('LikeController.like', () => {
   });
 
   it('should call LikeService.likeArticle and return 200 with success response', async () => {
-    (mockLikeService.likeArticle as jest.Mock<any>).mockResolvedValue(undefined);
+    (mockLikeService.likeArticle as jest.Mock<any>).mockResolvedValue(
+      undefined
+    );
 
     await controller.like(req as Request, res as Response, next);
 
-    expect(mockLikeService.likeArticle).toHaveBeenCalledWith('article-123', 'user-123');
+    expect(mockLikeService.likeArticle).toHaveBeenCalledWith(
+      'article-123',
+      'user-123'
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -74,11 +79,16 @@ describe('LikeController.unlike', () => {
   });
 
   it('should call LikeService.unlikeArticle and return 200 with success response', async () => {
-    (mockLikeService.unlikeArticle as jest.Mock<any>).mockResolvedValue(undefined);
+    (mockLikeService.unlikeArticle as jest.Mock<any>).mockResolvedValue(
+      undefined
+    );
 
     await controller.unlike(req as Request, res as Response, next);
 
-    expect(mockLikeService.unlikeArticle).toHaveBeenCalledWith('article-123', 'user-123');
+    expect(mockLikeService.unlikeArticle).toHaveBeenCalledWith(
+      'article-123',
+      'user-123'
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,

@@ -33,7 +33,9 @@ describe('ReviewerController', () => {
     };
     next = jest.fn();
     mockService = makeMockService();
-    controller = new ReviewerController(mockService as unknown as ReviewerService);
+    controller = new ReviewerController(
+      mockService as unknown as ReviewerService
+    );
     jest.clearAllMocks();
   });
 
@@ -100,7 +102,10 @@ describe('ReviewerController', () => {
 
       await controller.approveArticle(req as Request, res as Response, next);
 
-      expect(mockService.approveArticle).toHaveBeenCalledWith('article-123', 'reviewer-1');
+      expect(mockService.approveArticle).toHaveBeenCalledWith(
+        'article-123',
+        'reviewer-1'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -137,7 +142,11 @@ describe('ReviewerController', () => {
 
       await controller.rejectArticle(req as Request, res as Response, next);
 
-      expect(mockService.rejectArticle).toHaveBeenCalledWith('article-123', 'reviewer-1', 'valid feedback text');
+      expect(mockService.rejectArticle).toHaveBeenCalledWith(
+        'article-123',
+        'reviewer-1',
+        'valid feedback text'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -159,7 +168,11 @@ describe('ReviewerController', () => {
 
       await controller.rejectArticle(req as Request, res as Response, next);
 
-      expect(mockService.rejectArticle).toHaveBeenCalledWith('article-123', 'reviewer-1', '');
+      expect(mockService.rejectArticle).toHaveBeenCalledWith(
+        'article-123',
+        'reviewer-1',
+        ''
+      );
     });
 
     it('should pass errors to next', async () => {

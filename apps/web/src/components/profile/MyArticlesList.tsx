@@ -15,7 +15,9 @@ type SortOption = 'newest' | 'oldest' | 'title';
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   } catch {
     return '—';
@@ -38,10 +40,14 @@ function ArticleCard({ article, onDeleteClick, isAdmin }: { article: ArticleList
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-brand-text-primary truncate">{article.title}</p>
+        <p className="font-medium text-brand-text-primary truncate">
+          {article.title}
+        </p>
         <div className="mt-1 flex items-center gap-2 text-xs text-brand-text-secondary">
           <StatusBadge status={article.status} />
-          <span>{dateLabel}: {formatDate(dateValue)}</span>
+          <span>
+            {dateLabel}: {formatDate(dateValue)}
+          </span>
         </div>
       </div>
 
@@ -174,7 +180,10 @@ export function MyArticlesList(): React.JSX.Element {
 
   if (error) {
     return (
-      <div className="p-4 bg-brand-red/10 border border-brand-red/20 rounded text-brand-red text-sm" data-testid="my-articles-error">
+      <div
+        className="p-4 bg-brand-red/10 border border-brand-red/20 rounded text-brand-red text-sm"
+        data-testid="my-articles-error"
+      >
         {error}
       </div>
     );
@@ -207,8 +216,13 @@ export function MyArticlesList(): React.JSX.Element {
       </div>
 
       {visibleArticles.length === 0 ? (
-        <div className="py-16 text-center text-brand-text-secondary text-sm" data-testid="my-articles-empty">
-          {articles.length === 0 ? 'You haven\'t written any articles yet.' : 'No articles match your search.'}
+        <div
+          className="py-16 text-center text-brand-text-secondary text-sm"
+          data-testid="my-articles-empty"
+        >
+          {articles.length === 0
+            ? "You haven't written any articles yet."
+            : 'No articles match your search.'}
         </div>
       ) : (
         <div className="flex flex-col gap-3">

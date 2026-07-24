@@ -133,12 +133,12 @@ PUBLIC_POSTGRES_CLAIM_URL=https://neon.new/claim/...
 Use for scripts and programmatic provisioning flows.
 
 ```typescript
-import { instantPostgres } from "neon-new";
+import { instantPostgres } from 'neon-new';
 
 const { databaseUrl, databaseUrlDirect, claimUrl, claimExpiresAt } =
   await instantPostgres({
-    referrer: "agent-skills",
-    seed: { type: "sql-script", path: "./init.sql" },
+    referrer: 'agent-skills',
+    seed: { type: 'sql-script', path: './init.sql' },
   });
 ```
 
@@ -204,12 +204,12 @@ npm i @neon/config
 
 ```typescript
 // neon.ts
-import { defineConfig } from "@neon/config/v1";
+import { defineConfig } from '@neon/config/v1';
 
 export default defineConfig({
   auth: true, // Neon Auth, once you outgrow a bare connection string
   dataApi: true, // Data API
-  branch: (branch) => (branch.exists ? {} : { ttl: "7d" }), // ephemeral non-default branches
+  branch: (branch) => (branch.exists ? {} : { ttl: '7d' }), // ephemeral non-default branches
 });
 ```
 

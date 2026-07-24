@@ -38,7 +38,12 @@ export const mockArticles: Record<string, Article> = {
         },
         {
           type: 'paragraph',
-          content: [{ type: 'text', text: 'Web development is constantly evolving. In this article, we explore the latest trends and practices...' }],
+          content: [
+            {
+              type: 'text',
+              text: 'Web development is constantly evolving. In this article, we explore the latest trends and practices...',
+            },
+          ],
         },
         {
           type: 'heading',
@@ -47,8 +52,13 @@ export const mockArticles: Record<string, Article> = {
         },
         {
           type: 'paragraph',
-          content: [{ type: 'text', text: 'With the advent of Next.js App Router, the way we build React applications has fundamentally changed.' }],
-        }
+          content: [
+            {
+              type: 'text',
+              text: 'With the advent of Next.js App Router, the way we build React applications has fundamentally changed.',
+            },
+          ],
+        },
       ],
     },
     likeCount: 42,

@@ -12,7 +12,8 @@ jest.unstable_mockModule('@services/commentService.js', () => ({
 }));
 
 const { default: controller } = await import('../commentController.js');
-const { default: mockCommentService } = await import('@services/commentService.js');
+const { default: mockCommentService } =
+  await import('@services/commentService.js');
 
 describe('CommentController.create', () => {
   let req: Partial<Request>;
@@ -45,11 +46,17 @@ describe('CommentController.create', () => {
       updatedAt: new Date(),
     };
 
-    (mockCommentService.addComment as jest.Mock<any>).mockResolvedValue(createdComment);
+    (mockCommentService.addComment as jest.Mock<any>).mockResolvedValue(
+      createdComment
+    );
 
     await controller.create(req as Request, res as Response, next);
 
-    expect(mockCommentService.addComment).toHaveBeenCalledWith('article-123', 'user-123', 'Nice article');
+    expect(mockCommentService.addComment).toHaveBeenCalledWith(
+      'article-123',
+      'user-123',
+      'Nice article'
+    );
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -103,11 +110,16 @@ describe('CommentController.list', () => {
       },
     ];
 
-    (mockCommentService.listComments as jest.Mock<any>).mockResolvedValue(comments);
+    (mockCommentService.listComments as jest.Mock<any>).mockResolvedValue(
+      comments
+    );
 
     await controller.list(req as Request, res as Response, next);
 
-    expect(mockCommentService.listComments).toHaveBeenCalledWith('article-123', 'user-123');
+    expect(mockCommentService.listComments).toHaveBeenCalledWith(
+      'article-123',
+      'user-123'
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -119,7 +131,9 @@ describe('CommentController.list', () => {
 
   it('should pass errors from CommentService to next', async () => {
     const error = new AppError('Cannot view comments on this article', 403);
-    (mockCommentService.listComments as jest.Mock<any>).mockRejectedValue(error);
+    (mockCommentService.listComments as jest.Mock<any>).mockRejectedValue(
+      error
+    );
 
     await controller.list(req as Request, res as Response, next);
 
@@ -158,11 +172,17 @@ describe('CommentController.update', () => {
       updatedAt: new Date(),
     };
 
-    (mockCommentService.updateComment as jest.Mock<any>).mockResolvedValue(updatedComment);
+    (mockCommentService.updateComment as jest.Mock<any>).mockResolvedValue(
+      updatedComment
+    );
 
     await controller.update(req as Request, res as Response, next);
 
-    expect(mockCommentService.updateComment).toHaveBeenCalledWith('comment-123', 'user-123', 'Updated body');
+    expect(mockCommentService.updateComment).toHaveBeenCalledWith(
+      'comment-123',
+      'user-123',
+      'Updated body'
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -175,8 +195,13 @@ describe('CommentController.update', () => {
   it('should pass errors from CommentService to next', async () => {
     req.body = { body: 'Updated body' };
 
-    const error = new AppError('Only the comment owner can edit this comment', 403);
-    (mockCommentService.updateComment as jest.Mock<any>).mockRejectedValue(error);
+    const error = new AppError(
+      'Only the comment owner can edit this comment',
+      403
+    );
+    (mockCommentService.updateComment as jest.Mock<any>).mockRejectedValue(
+      error
+    );
 
     await controller.update(req as Request, res as Response, next);
 
@@ -203,11 +228,16 @@ describe('CommentController.remove', () => {
   });
 
   it('should call CommentService.deleteComment and return 200 with success response', async () => {
-    (mockCommentService.deleteComment as jest.Mock<any>).mockResolvedValue(undefined);
+    (mockCommentService.deleteComment as jest.Mock<any>).mockResolvedValue(
+      undefined
+    );
 
     await controller.remove(req as Request, res as Response, next);
 
-    expect(mockCommentService.deleteComment).toHaveBeenCalledWith('comment-123', 'user-123');
+    expect(mockCommentService.deleteComment).toHaveBeenCalledWith(
+      'comment-123',
+      'user-123'
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -218,8 +248,13 @@ describe('CommentController.remove', () => {
   });
 
   it('should pass errors from CommentService to next', async () => {
-    const error = new AppError('Only the comment owner can delete this comment', 403);
-    (mockCommentService.deleteComment as jest.Mock<any>).mockRejectedValue(error);
+    const error = new AppError(
+      'Only the comment owner can delete this comment',
+      403
+    );
+    (mockCommentService.deleteComment as jest.Mock<any>).mockRejectedValue(
+      error
+    );
 
     await controller.remove(req as Request, res as Response, next);
 

@@ -3,7 +3,14 @@
 import React, { useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { X, Image as ImageIcon, UploadCloud, Link as LinkIcon, Search, Loader2 } from 'lucide-react';
+import {
+  X,
+  Image as ImageIcon,
+  UploadCloud,
+  Link as LinkIcon,
+  Search,
+  Loader2,
+} from 'lucide-react';
 import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +21,9 @@ interface ImageEmbedModalProps {
 
 export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
   const { uploadImage, insertEditorImage } = useEditorDraft();
-  const [activeTab, setActiveTab] = useState<'preset' | 'upload' | 'url'>('preset');
+  const [activeTab, setActiveTab] = useState<'preset' | 'upload' | 'url'>(
+    'preset'
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [webUrl, setWebUrl] = useState('');
@@ -25,21 +34,35 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
     if (!overlayRef.current || !modalRef.current) return;
 
     if (isOpen) {
-      gsap.to(overlayRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+      gsap.to(overlayRef.current, {
+        opacity: 1,
+        pointerEvents: 'auto',
+        duration: 0.3,
+      });
       gsap.fromTo(
         modalRef.current,
         { y: 30, opacity: 0, scale: 0.95 },
         { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.2)' }
       );
     } else {
-      gsap.to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
-      gsap.to(modalRef.current, { y: 20, opacity: 0, scale: 0.95, duration: 0.3, ease: 'power2.in' });
+      gsap.to(overlayRef.current, {
+        opacity: 0,
+        pointerEvents: 'none',
+        duration: 0.3,
+      });
+      gsap.to(modalRef.current, {
+        y: 20,
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.3,
+        ease: 'power2.in',
+      });
     }
   }, [isOpen]);
 
   if (!isOpen) {
     // We still render it invisible to let GSAP animate out, but React will unmount if we completely hide.
-    // However, with our GSAP logic, pointerEvents 'none' hides it enough for now. 
+    // However, with our GSAP logic, pointerEvents 'none' hides it enough for now.
     // In a production app, we'd wait for animation to complete before unmounting.
   }
 
@@ -72,7 +95,11 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
     onClose();
   };
 
-  const TabButton = ({ id, icon: Icon, label }: {
+  const TabButton = ({
+    id,
+    icon: Icon,
+    label,
+  }: {
     id: 'preset' | 'upload' | 'url';
     icon: React.ElementType;
     label: string;
@@ -101,7 +128,9 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
         className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-brand-border px-6 py-4">
-          <h2 className="text-lg font-bold text-brand-text-primary font-display">Embed Image</h2>
+          <h2 className="text-lg font-bold text-brand-text-primary font-display">
+            Embed Image
+          </h2>
           <button
             onClick={onClose}
             className="rounded p-1 text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary transition-colors"
@@ -133,11 +162,16 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
                     key={i}
                     className="group relative aspect-video cursor-pointer overflow-hidden rounded-lg bg-gray-200"
                   >
-                    <div className={cn(
-                      'absolute inset-0 transition-transform duration-500 group-hover:scale-110 bg-gradient-to-br',
-                      i % 3 === 0 ? 'from-blue-400 to-purple-500' :
-                      i % 2 === 0 ? 'from-orange-400 to-pink-500' : 'from-green-400 to-teal-500'
-                    )} />
+                    <div
+                      className={cn(
+                        'absolute inset-0 transition-transform duration-500 group-hover:scale-110 bg-gradient-to-br',
+                        i % 3 === 0
+                          ? 'from-blue-400 to-purple-500'
+                          : i % 2 === 0
+                            ? 'from-orange-400 to-pink-500'
+                            : 'from-green-400 to-teal-500'
+                      )}
+                    />
                     <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
                   </div>
                 ))}
@@ -145,18 +179,24 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
             </div>
           )}
 
-          {activeTab === 'upload' && (
-            isUploading ? (
+          {activeTab === 'upload' &&
+            (isUploading ? (
               <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-red/30 bg-red-50">
                 <Loader2 className="mb-4 h-10 w-10 text-brand-red animate-spin" />
-                <p className="text-sm font-bold text-brand-red">Uploading image...</p>
+                <p className="text-sm font-bold text-brand-red">
+                  Uploading image...
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
                 <label className="relative flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-border bg-brand-bg transition-colors hover:border-brand-red hover:bg-red-50 cursor-pointer">
                   <UploadCloud className="mb-4 h-10 w-10 text-gray-400" />
-                  <p className="mb-1 text-sm font-bold text-brand-text-primary">Click to upload or drag and drop</p>
-                  <p className="text-xs text-brand-text-secondary">PNG, JPG, WebP or GIF (max. 5MB)</p>
+                  <p className="mb-1 text-sm font-bold text-brand-text-primary">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-brand-text-secondary">
+                    PNG, JPG, WebP or GIF (max. 5MB)
+                  </p>
                   <input
                     type="file"
                     className="sr-only"
@@ -170,12 +210,13 @@ export function ImageEmbedModal({ isOpen, onClose }: ImageEmbedModalProps) {
                   </div>
                 )}
               </div>
-            )
-          )}
+            ))}
 
           {activeTab === 'url' && (
             <div className="flex h-64 flex-col justify-center gap-4">
-              <label className="text-sm font-semibold text-brand-text-primary">Image URL</label>
+              <label className="text-sm font-semibold text-brand-text-primary">
+                Image URL
+              </label>
               <input
                 type="text"
                 value={webUrl}

@@ -5,10 +5,26 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 // Mock Prisma DB from @repo/db
 await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
-    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    comment: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn(), delete: jest.fn() },
-  }
+    user: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    article: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    comment: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+  },
 }));
 
 // Mock Auth Middleware
@@ -20,8 +36,8 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
       next: import('express').NextFunction
     ) => {
       const userId = req.headers['x-test-user-id'] as string | undefined;
-      const email  = req.headers['x-test-user-email'] as string | undefined;
-      const role   = req.headers['x-test-user-role'] as string | undefined;
+      const email = req.headers['x-test-user-email'] as string | undefined;
+      const role = req.headers['x-test-user-role'] as string | undefined;
 
       if (userId && email && role) {
         req.user = { userId, email, role };
@@ -29,7 +45,9 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
         return;
       }
 
-      res.status(401).json({ success: false, error: 'Authentication required' });
+      res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
   ),
 }));
@@ -56,17 +74,23 @@ await jest.unstable_mockModule('@repositories/commentRepository.js', () => ({
   },
 }));
 
-await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
-  default: {
-    create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  },
-}));
+await jest.unstable_mockModule(
+  '@repositories/notificationRepository.js',
+  () => ({
+    default: {
+      create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    },
+  })
+);
 
 const { default: app } = await import('@/app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
-const { default: CommentRepository } = await import('@repositories/commentRepository.js');
-const { default: NotificationRepository } = await import('@repositories/notificationRepository.js');
+const { default: ArticleRepository } =
+  await import('@repositories/articleRepository.js');
+const { default: CommentRepository } =
+  await import('@repositories/commentRepository.js');
+const { default: NotificationRepository } =
+  await import('@repositories/notificationRepository.js');
 
 const mockFindById = ArticleRepository.findById as jest.Mock<any>;
 const mockCreateComment = CommentRepository.create as jest.Mock<any>;
@@ -77,9 +101,9 @@ const mockRemoveComment = CommentRepository.remove as jest.Mock<any>;
 const mockCreateNotification = NotificationRepository.create as jest.Mock<any>;
 
 const userHeaders = {
-  'x-test-user-id':    'user-123',
+  'x-test-user-id': 'user-123',
   'x-test-user-email': 'user@example.com',
-  'x-test-user-role':  'User',
+  'x-test-user-role': 'User',
 };
 
 describe('Comments API Integration', () => {
@@ -119,7 +143,11 @@ describe('Comments API Integration', () => {
     });
 
     it('should return 403 if article is not Published', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'other-user',
+        status: 'Draft',
+      });
 
       const response = await request(app)
         .post(`/api/v1/articles/${articleId}/comments`)
@@ -130,7 +158,12 @@ describe('Comments API Integration', () => {
     });
 
     it('should create the comment and notify the article author on a Published article', async () => {
-      const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+      const article = {
+        id: articleId,
+        authorId: 'other-user',
+        title: 'Test Article',
+        status: 'Published',
+      };
       const createdComment = {
         id: 'comment-123',
         articleId,
@@ -160,7 +193,10 @@ describe('Comments API Integration', () => {
       // Notification is fire-and-forget; flush microtasks before asserting.
       await new Promise((resolve) => setImmediate(resolve));
       expect(mockCreateNotification).toHaveBeenCalledWith(
-        expect.objectContaining({ recipientId: 'other-user', notificationReferenceType: 'comment' })
+        expect.objectContaining({
+          recipientId: 'other-user',
+          notificationReferenceType: 'comment',
+        })
       );
     });
   });
@@ -169,7 +205,9 @@ describe('Comments API Integration', () => {
     const articleId = 'article-123';
 
     it('should return 401 if unauthenticated', async () => {
-      const response = await request(app).get(`/api/v1/articles/${articleId}/comments`);
+      const response = await request(app).get(
+        `/api/v1/articles/${articleId}/comments`
+      );
 
       expect(response.status).toBe(401);
     });
@@ -185,7 +223,11 @@ describe('Comments API Integration', () => {
     });
 
     it('should return 403 if article is not Published and requester is not its author', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'other-user',
+        status: 'Draft',
+      });
 
       const response = await request(app)
         .get(`/api/v1/articles/${articleId}/comments`)
@@ -195,7 +237,11 @@ describe('Comments API Integration', () => {
     });
 
     it('should return 200 if article is not Published but requester is its author', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'user-123', status: 'Draft' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'user-123',
+        status: 'Draft',
+      });
       mockFindByArticleId.mockResolvedValueOnce([]);
 
       const response = await request(app)
@@ -206,7 +252,12 @@ describe('Comments API Integration', () => {
     });
 
     it('should return 200 with comments in chronological order including author name and image', async () => {
-      const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+      const article = {
+        id: articleId,
+        authorId: 'other-user',
+        title: 'Test Article',
+        status: 'Published',
+      };
       const comments = [
         {
           id: 'comment-1',
@@ -241,7 +292,9 @@ describe('Comments API Integration', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
       expect(response.body.data[0].authorName).toBe('Jane Doe');
-      expect(response.body.data[0].authorImage).toBe('https://example.com/pic.png');
+      expect(response.body.data[0].authorImage).toBe(
+        'https://example.com/pic.png'
+      );
       expect(response.body.data[1].authorName).toBe('No Picture User');
       expect(response.body.data[1].authorImage).toBeNull();
     });
@@ -337,8 +390,9 @@ describe('Comments API Integration', () => {
     const commentId = 'comment-123';
 
     it('should return 401 if unauthenticated', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/articles/${articleId}/comments/${commentId}`);
+      const response = await request(app).delete(
+        `/api/v1/articles/${articleId}/comments/${commentId}`
+      );
 
       expect(response.status).toBe(401);
     });

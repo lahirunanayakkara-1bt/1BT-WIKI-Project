@@ -3,7 +3,6 @@ import UserService from '@services/userService.js';
 import { successResponse } from '@/types/userTypes.js';
 import type { UserRole } from '@/types/userTypes.js';
 
-
 const updateUserRole = async (
   req: Request,
   res: Response,
@@ -13,8 +12,13 @@ const updateUserRole = async (
     const { userId } = req.params;
     const { role } = req.body as { role: unknown };
 
-    const updatedUser = await UserService.updateUserRole(userId, role as UserRole);
-    res.status(200).json(successResponse(updatedUser, 'User role updated successfully'));
+    const updatedUser = await UserService.updateUserRole(
+      userId,
+      role as UserRole
+    );
+    res
+      .status(200)
+      .json(successResponse(updatedUser, 'User role updated successfully'));
   } catch (error) {
     next(error);
   }
@@ -37,7 +41,9 @@ const updateUserBanStatus = async (
       banReason: banReason != null ? String(banReason) : undefined,
     });
 
-    const message = banned ? 'User deactivated successfully' : 'User reactivated successfully';
+    const message = banned
+      ? 'User deactivated successfully'
+      : 'User reactivated successfully';
     res.status(200).json(successResponse(updatedUser, message));
   } catch (error) {
     next(error);

@@ -6,7 +6,7 @@ import Lenis from 'lenis';
 export function useLenisScroll(containerId?: string | null): void {
   useEffect(() => {
     let wrapper: HTMLElement | null = null;
-    
+
     if (containerId) {
       wrapper = document.getElementById(containerId);
       if (!wrapper) return;

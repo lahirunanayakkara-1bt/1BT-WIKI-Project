@@ -10,7 +10,9 @@ jest.mock('@/lib/api/articles', () => ({
 
 import { MyArticlesList } from '@/components/profile/MyArticlesList';
 
-function makeArticle(overrides: Partial<ArticleListItem> = {}): ArticleListItem {
+function makeArticle(
+  overrides: Partial<ArticleListItem> = {}
+): ArticleListItem {
   return {
     id: 'a1',
     title: 'Alpha Article',
@@ -39,7 +41,12 @@ describe('MyArticlesList', () => {
   });
 
   it('shows an empty state when there are no articles', async () => {
-    mockFetchMyArticles.mockResolvedValueOnce({ articles: [], total: 0, page: 1, limit: 20 });
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
 
     render(<MyArticlesList />);
 
@@ -53,7 +60,9 @@ describe('MyArticlesList', () => {
 
     render(<MyArticlesList />);
 
-    expect(await screen.findByTestId('my-articles-error')).toHaveTextContent('Network down');
+    expect(await screen.findByTestId('my-articles-error')).toHaveTextContent(
+      'Network down'
+    );
   });
 
   it('renders article cards with status and date labels', async () => {
@@ -82,11 +91,15 @@ describe('MyArticlesList', () => {
 
     const publishedCard = await screen.findByTestId('article-card-pub1');
     expect(within(publishedCard).getByText('Published')).toBeInTheDocument();
-    expect(within(publishedCard).getByText(/Published: 05 Jan 2026/)).toBeInTheDocument();
+    expect(
+      within(publishedCard).getByText(/Published: 05 Jan 2026/)
+    ).toBeInTheDocument();
 
     const draftCard = screen.getByTestId('article-card-draft1');
     expect(within(draftCard).getByText('Draft')).toBeInTheDocument();
-    expect(within(draftCard).getByText(/Last updated: 03 Jan 2026/)).toBeInTheDocument();
+    expect(
+      within(draftCard).getByText(/Last updated: 03 Jan 2026/)
+    ).toBeInTheDocument();
   });
 
   it('filters articles by title via search', async () => {
@@ -124,7 +137,9 @@ describe('MyArticlesList', () => {
     const user = userEvent.setup();
     await user.type(screen.getByTestId('article-search-input'), 'nonexistent');
 
-    expect(screen.getByTestId('my-articles-empty')).toHaveTextContent('No articles match your search.');
+    expect(screen.getByTestId('my-articles-empty')).toHaveTextContent(
+      'No articles match your search.'
+    );
   });
 
   it('sorts articles by title A-Z', async () => {
@@ -142,7 +157,10 @@ describe('MyArticlesList', () => {
     await screen.findByTestId('article-card-a1');
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByTestId('article-sort-select'), 'title');
+    await user.selectOptions(
+      screen.getByTestId('article-sort-select'),
+      'title'
+    );
 
     const cards = screen.getAllByTestId(/^article-card-/);
     expect(cards.map((c) => c.getAttribute('data-testid'))).toEqual([
@@ -154,8 +172,16 @@ describe('MyArticlesList', () => {
   it('sorts articles by newest and oldest createdAt', async () => {
     mockFetchMyArticles.mockResolvedValueOnce({
       articles: [
-        makeArticle({ id: 'old', title: 'Old', createdAt: '2026-01-01T00:00:00.000Z' }),
-        makeArticle({ id: 'new', title: 'New', createdAt: '2026-01-10T00:00:00.000Z' }),
+        makeArticle({
+          id: 'old',
+          title: 'Old',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        }),
+        makeArticle({
+          id: 'new',
+          title: 'New',
+          createdAt: '2026-01-10T00:00:00.000Z',
+        }),
       ],
       total: 2,
       page: 1,
@@ -172,7 +198,10 @@ describe('MyArticlesList', () => {
     ]);
 
     const user = userEvent.setup();
-    await user.selectOptions(screen.getByTestId('article-sort-select'), 'oldest');
+    await user.selectOptions(
+      screen.getByTestId('article-sort-select'),
+      'oldest'
+    );
 
     cards = screen.getAllByTestId(/^article-card-/);
     expect(cards.map((c) => c.getAttribute('data-testid'))).toEqual([

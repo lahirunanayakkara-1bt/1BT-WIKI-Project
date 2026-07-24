@@ -15,7 +15,9 @@ const like = async (
 
     await LikeService.likeArticle(articleId, userId);
 
-    res.status(200).json(successResponse({ liked: true }, 'Article liked successfully'));
+    res
+      .status(200)
+      .json(successResponse({ liked: true }, 'Article liked successfully'));
   } catch (error) {
     next(error);
   }
@@ -34,7 +36,9 @@ const unlike = async (
 
     await LikeService.unlikeArticle(articleId, userId);
 
-    res.status(200).json(successResponse({ liked: false }, 'Article unliked successfully'));
+    res
+      .status(200)
+      .json(successResponse({ liked: false }, 'Article unliked successfully'));
   } catch (error) {
     next(error);
   }

@@ -156,7 +156,7 @@ datasource db {
 > Prisma 7+ moves connection config out of `schema.prisma` into `prisma.config.ts` instead of a `datasource url`/`directUrl`. Check the installed Prisma version before generating either form.
 
 ```typescript
-import { PrismaClient } from "@prisma/client"; // Prisma 7+: import from your configured `output` path instead (e.g. "./generated/prisma")
+import { PrismaClient } from '@prisma/client'; // Prisma 7+: import from your configured `output` path instead (e.g. "./generated/prisma")
 
 const prisma = new PrismaClient();
 ```
@@ -168,8 +168,8 @@ npm install @prisma/client @prisma/adapter-neon
 ```
 
 ```typescript
-import { PrismaClient } from "@prisma/client"; // Prisma 7+: import from your configured `output` path
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaClient } from '@prisma/client'; // Prisma 7+: import from your configured `output` path
+import { PrismaNeon } from '@prisma/adapter-neon';
 
 const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -255,7 +255,7 @@ npm i @neon/config
 
 ```typescript
 // neon.ts
-import { defineConfig } from "@neon/config/v1";
+import { defineConfig } from '@neon/config/v1';
 
 export default defineConfig({
   auth: true, // Neon Auth (adds NEON_AUTH_* env vars)
@@ -265,12 +265,12 @@ export default defineConfig({
     if (branch.exists) return {}; // leave existing branches untouched
     if (branch.isDefault) return { protected: true }; // prod keeps default compute
     return {
-      ttl: "7d", // non-prod branches auto-expire (max 30d)
+      ttl: '7d', // non-prod branches auto-expire (max 30d)
       postgres: {
         computeSettings: {
           autoscalingLimitMinCu: 0.25, // scale to zero
           autoscalingLimitMaxCu: 1, // keep dev/preview cheap
-          suspendTimeout: "5m",
+          suspendTimeout: '5m',
         },
       },
     };
@@ -294,8 +294,8 @@ Since `neon.ts` is TypeScript, invalid combinations fail to compile with an acti
 Read the resulting env back, typed and validated against the policy, with `parseEnv` from `@neon/env`:
 
 ```typescript
-import { parseEnv } from "@neon/env";
-import config from "./neon";
+import { parseEnv } from '@neon/env';
+import config from './neon';
 
 const env = parseEnv(config);
 env.postgres.databaseUrl; // typed; enabling auth / dataApi above surfaces env.auth / env.dataApi

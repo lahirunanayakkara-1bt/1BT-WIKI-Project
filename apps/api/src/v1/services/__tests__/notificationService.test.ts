@@ -1,7 +1,10 @@
 // apps/api/src/services/__tests__/notificationService.test.ts
 
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { CreateNotificationInput, Notification } from '@models/notificationTypes.js';
+import type {
+  CreateNotificationInput,
+  Notification,
+} from '@models/notificationTypes.js';
 
 // ── ESM mock registration — must be before any import of the service ────────
 
@@ -9,14 +12,22 @@ const mockCreate = jest.fn<any>();
 const mockList = jest.fn<any>();
 const mockMarkAsRead = jest.fn<any>();
 
-await jest.unstable_mockModule('@repositories/notificationRepository.js', () => ({
-  default: { create: mockCreate, list: mockList, markAsRead: mockMarkAsRead },
+await jest.unstable_mockModule(
+  '@repositories/notificationRepository.js',
+  () => ({
+    default: { create: mockCreate, list: mockList, markAsRead: mockMarkAsRead },
+  })
+);
+
+// Mock pusherClient so the service never tries to connect to Pusher during tests.
+const mockPusherTrigger = jest.fn<any>().mockResolvedValue(undefined);
+await jest.unstable_mockModule('@v1/lib/pusherClient.js', () => ({
+  default: { trigger: mockPusherTrigger },
 }));
 
 // Import AFTER mock is registered (ESM requirement)
-const { default: notificationService } = await import(
-  '../notificationService.js'
-);
+const { default: notificationService } =
+  await import('../notificationService.js');
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -45,7 +56,6 @@ const sampleNotification: Notification = {
 // ---------------------------------------------------------------------------
 
 describe('NotificationService.send', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -76,7 +86,7 @@ describe('NotificationService.send', () => {
 
     // Act + Assert
     await expect(notificationService.send(samplePayload)).rejects.toThrow(
-      'Database is unavailable',
+      'Database is unavailable'
     );
 
     expect(mockCreate).toHaveBeenCalledTimes(1);
@@ -84,7 +94,6 @@ describe('NotificationService.send', () => {
 });
 
 describe('NotificationService.list', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -95,11 +104,17 @@ describe('NotificationService.list', () => {
     mockList.mockResolvedValue(notifications);
 
     // Act
-    const result = await notificationService.list('user-uuid-1', { limit: 20, offset: 0 });
+    const result = await notificationService.list('user-uuid-1', {
+      limit: 20,
+      offset: 0,
+    });
 
     // Assert
     expect(mockList).toHaveBeenCalledTimes(1);
-    expect(mockList).toHaveBeenCalledWith('user-uuid-1', { limit: 20, offset: 0 });
+    expect(mockList).toHaveBeenCalledWith('user-uuid-1', {
+      limit: 20,
+      offset: 0,
+    });
     expect(result).toBe(notifications);
   });
 
@@ -110,7 +125,7 @@ describe('NotificationService.list', () => {
 
     // Act + Assert
     await expect(
-      notificationService.list('user-uuid-1', { limit: 20, offset: 0 }),
+      notificationService.list('user-uuid-1', { limit: 20, offset: 0 })
     ).rejects.toThrow('Database is unavailable');
 
     expect(mockList).toHaveBeenCalledTimes(1);
@@ -118,7 +133,6 @@ describe('NotificationService.list', () => {
 });
 
 describe('NotificationService.markAsRead', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -133,7 +147,10 @@ describe('NotificationService.markAsRead', () => {
     mockMarkAsRead.mockResolvedValue(readNotification);
 
     // Act
-    const result = await notificationService.markAsRead('notif-uuid-1', 'user-uuid-1');
+    const result = await notificationService.markAsRead(
+      'notif-uuid-1',
+      'user-uuid-1'
+    );
 
     // Assert
     expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
@@ -147,7 +164,7 @@ describe('NotificationService.markAsRead', () => {
 
     // Act + Assert
     await expect(
-      notificationService.markAsRead('nonexistent-id', 'user-uuid-1'),
+      notificationService.markAsRead('nonexistent-id', 'user-uuid-1')
     ).rejects.toThrow('Notification not found');
 
     expect(mockMarkAsRead).toHaveBeenCalledTimes(1);
@@ -160,7 +177,7 @@ describe('NotificationService.markAsRead', () => {
 
     // Act + Assert
     await expect(
-      notificationService.markAsRead('notif-uuid-1', 'user-uuid-1'),
+      notificationService.markAsRead('notif-uuid-1', 'user-uuid-1')
     ).rejects.toThrow('Database is unavailable');
 
     expect(mockMarkAsRead).toHaveBeenCalledTimes(1);

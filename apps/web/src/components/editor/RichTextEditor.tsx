@@ -4,7 +4,22 @@ import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
-import { Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, Quote, Image as ImageIcon, Undo, Redo, X } from 'lucide-react';
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  Image as ImageIcon,
+  Undo,
+  Redo,
+  X,
+} from 'lucide-react';
 import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { POPULAR_TAGS } from '@/components/editor/data';
 import { cn } from '@/lib/utils';
@@ -13,10 +28,21 @@ interface RichTextEditorProps {
   onOpenImageEmbed: () => void;
 }
 
-const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEditor>, onOpenImageEmbed: () => void }) => {
+const MenuBar = ({
+  editor,
+  onOpenImageEmbed,
+}: {
+  editor: ReturnType<typeof useEditor>;
+  onOpenImageEmbed: () => void;
+}) => {
   if (!editor) return null;
 
-  const ToolbarButton = ({ onClick, isActive, disabled, children }: {
+  const ToolbarButton = ({
+    onClick,
+    isActive,
+    disabled,
+    children,
+  }: {
     onClick: () => void;
     isActive?: boolean;
     disabled?: boolean;
@@ -39,40 +65,70 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
 
   return (
     <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b border-brand-border bg-white p-2">
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        isActive={editor.isActive('bold')}
+      >
         <Bold className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive('italic')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        isActive={editor.isActive('italic')}
+      >
         <Italic className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive('strike')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        isActive={editor.isActive('strike')}
+      >
         <Strikethrough className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive('code')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleCode().run()}
+        isActive={editor.isActive('code')}
+      >
         <Code className="h-4 w-4" />
       </ToolbarButton>
 
       <div className="mx-2 h-6 w-px bg-brand-border" />
 
-      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive('heading', { level: 1 })}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        isActive={editor.isActive('heading', { level: 1 })}
+      >
         <Heading1 className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive('heading', { level: 2 })}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        isActive={editor.isActive('heading', { level: 2 })}
+      >
         <Heading2 className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive('heading', { level: 3 })}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        isActive={editor.isActive('heading', { level: 3 })}
+      >
         <Heading3 className="h-4 w-4" />
       </ToolbarButton>
 
       <div className="mx-2 h-6 w-px bg-brand-border" />
 
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={editor.isActive('bulletList')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        isActive={editor.isActive('bulletList')}
+      >
         <List className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} isActive={editor.isActive('orderedList')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        isActive={editor.isActive('orderedList')}
+      >
         <ListOrdered className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} isActive={editor.isActive('blockquote')}>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        isActive={editor.isActive('blockquote')}
+      >
         <Quote className="h-4 w-4" />
       </ToolbarButton>
 
@@ -89,10 +145,16 @@ const MenuBar = ({ editor, onOpenImageEmbed }: { editor: ReturnType<typeof useEd
       <div className="mx-2 h-6 w-px bg-brand-border" />
 
       <div className="ml-auto flex items-center gap-1">
-        <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+        >
           <Undo className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+        >
           <Redo className="h-4 w-4" />
         </ToolbarButton>
       </div>
@@ -123,7 +185,8 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
     content: initialBody ?? '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none p-6 min-h-[400px]',
+        class:
+          'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none p-6 min-h-[400px]',
       },
     },
     onUpdate: ({ editor: ed }) => {
@@ -142,7 +205,7 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
   }, [editor, registerEditor]);
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
+    setTags(tags.filter((t) => t !== tagToRemove));
   };
 
   const addTag = (tagToAdd: string) => {
@@ -154,7 +217,9 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
   return (
     <div className="flex flex-col rounded-xl bg-white shadow-sm border border-brand-border overflow-hidden">
       <div className="p-8 pb-4">
-        <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase mb-2">Article Title</p>
+        <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase mb-2">
+          Article Title
+        </p>
         <input
           type="text"
           value={title}
@@ -164,20 +229,28 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
           className="w-full bg-transparent text-4xl font-bold font-display text-brand-text-primary outline-none placeholder:text-gray-400 mb-8"
         />
 
-        <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase mb-3">Tags & Classification</p>
-        
+        <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase mb-3">
+          Tags & Classification
+        </p>
+
         <div className="flex flex-wrap items-center gap-2 mb-4 p-2 bg-brand-bg rounded-lg border border-brand-border">
-          {tags.map(tag => (
-            <div key={tag} className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-medium border border-brand-border shadow-sm">
+          {tags.map((tag) => (
+            <div
+              key={tag}
+              className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-medium border border-brand-border shadow-sm"
+            >
               <span className="text-brand-red">#</span> {tag}
-              <button onClick={() => removeTag(tag)} className="ml-1 text-gray-400 hover:text-brand-red">
+              <button
+                onClick={() => removeTag(tag)}
+                className="ml-1 text-gray-400 hover:text-brand-red"
+              >
                 <X className="h-3 w-3" />
               </button>
             </div>
           ))}
-          <input 
-            type="text" 
-            placeholder="Add tag..." 
+          <input
+            type="text"
+            placeholder="Add tag..."
             className="bg-transparent text-sm outline-none px-2 text-brand-text-primary placeholder:text-gray-400 flex-1 min-w-[100px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && e.currentTarget.value.trim() !== '') {
@@ -189,8 +262,10 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <span className="text-xs font-semibold text-brand-text-secondary uppercase tracking-wide mr-2">Popular Suggestions:</span>
-          {POPULAR_TAGS.map(tag => {
+          <span className="text-xs font-semibold text-brand-text-secondary uppercase tracking-wide mr-2">
+            Popular Suggestions:
+          </span>
+          {POPULAR_TAGS.map((tag) => {
             const isSelected = tags.includes(tag);
             return (
               <button
@@ -213,7 +288,9 @@ export function RichTextEditor({ onOpenImageEmbed }: RichTextEditorProps) {
 
       <div className="mt-4 flex flex-col border-t border-brand-border">
         <div className="px-8 py-3 bg-brand-bg border-b border-brand-border">
-          <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase">Rich Story Content</p>
+          <p className="text-xs font-bold tracking-widest text-brand-text-secondary uppercase">
+            Rich Story Content
+          </p>
         </div>
         <MenuBar editor={editor} onOpenImageEmbed={onOpenImageEmbed} />
         <div className="bg-white">
