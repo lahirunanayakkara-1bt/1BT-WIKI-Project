@@ -349,5 +349,84 @@ describe('Reviewer API Integration', () => {
       );
     });
   });
+
+  describe('GET /api/v1/reviewer/articles/:id', () => {
+    const articleId = 'article-123';
+    const viewPath = `/api/v1/reviewer/articles/${articleId}`;
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).get(viewPath);
+
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should return 403 for a non-Reviewer non-Admin role', async () => {
+      const response = await request(app)
+        .get(viewPath)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+      expect(mockFindById).not.toHaveBeenCalled();
+    });
+
+    it('should return 404 when article does not exist', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .get(viewPath)
+        .set(reviewerHeaders);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Article not found');
+    });
+
+    it('should return 400 when article is not Pending', async () => {
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        title: 'Draft Article',
+        status: 'Draft',
+        authorId: 'user-1',
+      });
+
+      const response = await request(app)
+        .get(viewPath)
+        .set(reviewerHeaders);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Only Pending articles can be reviewed');
+    });
+
+    it('should return 200 with full article for a Pending article', async () => {
+      const pendingArticle = {
+        id: articleId,
+        title: 'Pending Article',
+        body: { type: 'doc', content: [{ type: 'paragraph', text: 'Full article body content' }] },
+        status: 'Pending',
+        authorId: 'user-1',
+        tags: ['tech', 'wiki'],
+        createdAt: mockDate,
+        updatedAt: mockDate,
+      };
+
+      mockFindById.mockResolvedValueOnce(pendingArticle);
+
+      const response = await request(app)
+        .get(viewPath)
+        .set(reviewerHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Article retrieved for review');
+      expect(response.body.data.id).toBe(articleId);
+      expect(response.body.data.title).toBe('Pending Article');
+      expect(response.body.data.body).toEqual(pendingArticle.body);
+      expect(response.body.data.tags).toEqual(['tech', 'wiki']);
+      expect(response.body.data.status).toBe('Pending');
+      expect(mockFindById).toHaveBeenCalledWith(articleId);
+    });
+  });
 });
+
 

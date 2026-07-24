@@ -37,6 +37,16 @@ export class ReviewerController {
       next(error);
     }
   };
+
+  getArticleForReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const article = await this.service.getArticleForReview(id);
+      res.status(200).json({ success: true, data: article, message: 'Article retrieved for review' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default new ReviewerController();
