@@ -19,6 +19,12 @@ await jest.unstable_mockModule(
   })
 );
 
+// Mock pusherClient so the service never tries to connect to Pusher during tests.
+const mockPusherTrigger = jest.fn<any>().mockResolvedValue(undefined);
+await jest.unstable_mockModule('@v1/lib/pusherClient.js', () => ({
+  default: { trigger: mockPusherTrigger },
+}));
+
 // Import AFTER mock is registered (ESM requirement)
 const { default: notificationService } =
   await import('../notificationService.js');
