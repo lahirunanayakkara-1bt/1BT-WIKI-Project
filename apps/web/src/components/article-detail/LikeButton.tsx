@@ -10,11 +10,9 @@ interface LikeButtonProps {
   articleId: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function LikeButton({
   initialLikeCount,
   initialLikedByMe,
-  articleId,
 }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLikedByMe);
   const [count, setCount] = useState(initialLikeCount);
