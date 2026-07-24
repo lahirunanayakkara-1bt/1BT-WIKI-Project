@@ -45,3 +45,6 @@ yarn-error.log*
 CLAUDE.local.md
 .claude/rules/
 .claude/
+
+# Cypress Cache
+.cypress-cache
