@@ -16,7 +16,9 @@ const create = async (
 
     const comment = await CommentService.addComment(articleId, authorId, body);
 
-    res.status(201).json(successResponse(comment, 'Comment added successfully'));
+    res
+      .status(201)
+      .json(successResponse(comment, 'Comment added successfully'));
   } catch (error) {
     next(error);
   }
@@ -35,7 +37,9 @@ const list = async (
 
     const comments = await CommentService.listComments(articleId, requesterId);
 
-    res.status(200).json(successResponse(comments, 'Comments retrieved successfully'));
+    res
+      .status(200)
+      .json(successResponse(comments, 'Comments retrieved successfully'));
   } catch (error) {
     next(error);
   }
@@ -55,7 +59,9 @@ const update = async (
 
     const comment = await CommentService.updateComment(commentId, userId, body);
 
-    res.status(200).json(successResponse(comment, 'Comment updated successfully'));
+    res
+      .status(200)
+      .json(successResponse(comment, 'Comment updated successfully'));
   } catch (error) {
     next(error);
   }

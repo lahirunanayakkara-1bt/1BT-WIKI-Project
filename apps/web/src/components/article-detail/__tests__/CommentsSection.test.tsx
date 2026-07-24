@@ -31,7 +31,9 @@ jest.mock('@gsap/react', () => ({
 
 import { CommentsSection } from '@/components/article-detail/CommentsSection';
 
-function makeComment(overrides: Partial<CommentWithAuthor> = {}): CommentWithAuthor {
+function makeComment(
+  overrides: Partial<CommentWithAuthor> = {}
+): CommentWithAuthor {
   return {
     id: 'c1',
     articleId: 'a1',
@@ -58,7 +60,12 @@ const currentUser = {
 describe('CommentsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseUser.mockReturnValue({ user: currentUser, loading: false, error: null, refetch: jest.fn() });
+    mockUseUser.mockReturnValue({
+      user: currentUser,
+      loading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
   });
 
   it('shows a loading state while fetching', () => {
@@ -74,7 +81,9 @@ describe('CommentsSection', () => {
 
     render(<CommentsSection articleId="a1" />);
 
-    expect(await screen.findByTestId('comments-error')).toHaveTextContent('Network down');
+    expect(await screen.findByTestId('comments-error')).toHaveTextContent(
+      'Network down'
+    );
   });
 
   it('shows an empty state when there are no comments', async () => {
@@ -101,7 +110,7 @@ describe('CommentsSection', () => {
     expect(screen.getByText('Comments (2)')).toBeInTheDocument();
   });
 
-  it('only shows edit/delete controls on the current user\'s own comment', async () => {
+  it("only shows edit/delete controls on the current user's own comment", async () => {
     mockFetchComments.mockResolvedValueOnce([
       makeComment({ id: 'mine', createdBy: 'test-user-1' }),
       makeComment({ id: 'theirs', createdBy: 'other-user' }),
@@ -130,32 +139,46 @@ describe('CommentsSection', () => {
     render(<CommentsSection articleId="a1" />);
     await screen.findByTestId('comments-empty');
 
-    await user.type(screen.getByPlaceholderText('Add a comment...'), 'My new comment');
+    await user.type(
+      screen.getByPlaceholderText('Add a comment...'),
+      'My new comment'
+    );
     await user.click(screen.getByRole('button', { name: 'Post Comment' }));
 
-    await waitFor(() => expect(mockPostComment).toHaveBeenCalledWith('a1', 'My new comment'));
+    await waitFor(() =>
+      expect(mockPostComment).toHaveBeenCalledWith('a1', 'My new comment')
+    );
     expect(await screen.findByText('My new comment')).toBeInTheDocument();
   });
 
   it('shows an error and keeps the draft when posting fails', async () => {
     mockFetchComments.mockResolvedValueOnce([]);
-    mockPostComment.mockRejectedValueOnce(new Error('Comment cannot exceed 5000 characters'));
+    mockPostComment.mockRejectedValueOnce(
+      new Error('Comment cannot exceed 5000 characters')
+    );
     const user = userEvent.setup();
 
     render(<CommentsSection articleId="a1" />);
     await screen.findByTestId('comments-empty');
 
-    await user.type(screen.getByPlaceholderText('Add a comment...'), 'Too long');
+    await user.type(
+      screen.getByPlaceholderText('Add a comment...'),
+      'Too long'
+    );
     await user.click(screen.getByRole('button', { name: 'Post Comment' }));
 
     expect(await screen.findByTestId('post-comment-error')).toHaveTextContent(
       'Comment cannot exceed 5000 characters'
     );
-    expect(screen.getByPlaceholderText('Add a comment...')).toHaveValue('Too long');
+    expect(screen.getByPlaceholderText('Add a comment...')).toHaveValue(
+      'Too long'
+    );
   });
 
   it('deletes a comment and removes it from the list on success', async () => {
-    mockFetchComments.mockResolvedValueOnce([makeComment({ id: 'mine', createdBy: 'test-user-1' })]);
+    mockFetchComments.mockResolvedValueOnce([
+      makeComment({ id: 'mine', createdBy: 'test-user-1' }),
+    ]);
     mockDeleteComment.mockResolvedValueOnce(undefined);
     const user = userEvent.setup();
 
@@ -165,13 +188,21 @@ describe('CommentsSection', () => {
     await user.click(screen.getByTestId('delete-comment-btn'));
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
-    await waitFor(() => expect(mockDeleteComment).toHaveBeenCalledWith('a1', 'mine'));
-    await waitFor(() => expect(screen.getByTestId('comments-empty')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(mockDeleteComment).toHaveBeenCalledWith('a1', 'mine')
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('comments-empty')).toBeInTheDocument()
+    );
   });
 
   it('keeps the comment and shows an error toast when deleting fails', async () => {
-    mockFetchComments.mockResolvedValueOnce([makeComment({ id: 'mine', createdBy: 'test-user-1' })]);
-    mockDeleteComment.mockRejectedValueOnce(new Error('Only the comment owner can delete this comment'));
+    mockFetchComments.mockResolvedValueOnce([
+      makeComment({ id: 'mine', createdBy: 'test-user-1' }),
+    ]);
+    mockDeleteComment.mockRejectedValueOnce(
+      new Error('Only the comment owner can delete this comment')
+    );
     const user = userEvent.setup();
 
     render(<CommentsSection articleId="a1" />);
@@ -187,7 +218,9 @@ describe('CommentsSection', () => {
   });
 
   it('edits a comment and updates its body on success', async () => {
-    mockFetchComments.mockResolvedValueOnce([makeComment({ id: 'mine', createdBy: 'test-user-1', body: 'Old body' })]);
+    mockFetchComments.mockResolvedValueOnce([
+      makeComment({ id: 'mine', createdBy: 'test-user-1', body: 'Old body' }),
+    ]);
     const updated: Comment = {
       id: 'mine',
       articleId: 'a1',
@@ -208,7 +241,9 @@ describe('CommentsSection', () => {
     await user.type(textarea, 'New body');
     await user.click(screen.getByTestId('save-edit-comment-btn'));
 
-    await waitFor(() => expect(mockUpdateComment).toHaveBeenCalledWith('a1', 'mine', 'New body'));
+    await waitFor(() =>
+      expect(mockUpdateComment).toHaveBeenCalledWith('a1', 'mine', 'New body')
+    );
     expect(await screen.findByText('New body')).toBeInTheDocument();
   });
 });

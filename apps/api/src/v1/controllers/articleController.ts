@@ -8,7 +8,11 @@ import { AppError } from '@errors/AppError.js';
 export class ArticleController {
   constructor(private service: ArticleService = new ArticleService()) {}
 
-  create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       if (!req.body.data) {
         throw new AppError('The "data" field is required', 400);
@@ -28,13 +32,19 @@ export class ArticleController {
 
       const article = await this.service.createArticle(input, authorId, images);
 
-      res.status(201).json(successResponse(article, 'Article created successfully'));
+      res
+        .status(201)
+        .json(successResponse(article, 'Article created successfully'));
     } catch (error) {
       next(error);
     }
   };
 
-  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  update = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const authorId = req.user!.userId;
@@ -50,67 +60,104 @@ export class ArticleController {
 
       const images = (req.files as Express.Multer.File[]) ?? [];
 
-      const article = await this.service.updateArticle(id, input, authorId, images);
+      const article = await this.service.updateArticle(
+        id,
+        input,
+        authorId,
+        images
+      );
 
-      res.status(200).json(successResponse(article, 'Article updated successfully'));
+      res
+        .status(200)
+        .json(successResponse(article, 'Article updated successfully'));
     } catch (error) {
       next(error);
     }
   };
 
-  submitForReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  submitForReview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const authorId = req.user!.userId;
 
       const article = await this.service.submitForReview(id, authorId);
 
-      res.status(200).json(successResponse(article, 'Article submitted for review'));
+      res
+        .status(200)
+        .json(successResponse(article, 'Article submitted for review'));
     } catch (error) {
       next(error);
     }
   };
 
-  listPublished = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  listPublished = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 20;
 
       const result = await this.service.listPublished(page, limit);
 
-      res.status(200).json(successResponse(result, 'Articles retrieved successfully'));
+      res
+        .status(200)
+        .json(successResponse(result, 'Articles retrieved successfully'));
     } catch (error) {
       next(error);
     }
   };
 
-  getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const requesterId = req.user?.userId ?? null;
 
       const article = await this.service.getArticleById(id, requesterId);
 
-      res.status(200).json(successResponse(article, 'Article retrieved successfully'));
+      res
+        .status(200)
+        .json(successResponse(article, 'Article retrieved successfully'));
     } catch (error) {
       next(error);
     }
   };
 
-  remove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  remove = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const userId = req.user!.userId;
       const role = req.user!.role as UserRole;
       const hard = req.query.hard === 'true';
       await this.service.deleteArticle(id, userId, role, hard);
-      res.status(200).json({ success: true, data: null, message: 'Article deleted successfully' });
+      res.status(200).json({
+        success: true,
+        data: null,
+        message: 'Article deleted successfully',
+      });
     } catch (error) {
       next(error);
     }
   };
 
-  listMine = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  listMine = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const authorId = req.user!.userId;
       const page = parseInt(req.query.page as string, 10) || 1;
@@ -118,7 +165,9 @@ export class ArticleController {
 
       const result = await this.service.listMine(authorId, page, limit);
 
-      res.status(200).json(successResponse(result, 'Articles retrieved successfully'));
+      res
+        .status(200)
+        .json(successResponse(result, 'Articles retrieved successfully'));
     } catch (error) {
       next(error);
     }
@@ -126,4 +175,3 @@ export class ArticleController {
 }
 
 export default ArticleController;
-

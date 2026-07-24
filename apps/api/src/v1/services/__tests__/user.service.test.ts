@@ -15,7 +15,8 @@ await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
 
 // Import AFTER mock is registered
 const { default: UserService } = await import('../userService.js');
-const { default: UserRepository } = await import('@repositories/userRepository.js');
+const { default: UserRepository } =
+  await import('@repositories/userRepository.js');
 
 const mockedRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 
@@ -35,16 +36,16 @@ const makeUser = (overrides: Partial<User> = {}): User => ({
 });
 
 describe('UserService', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('updateUserRole', () => {
-
     it('should update a user role when the role is valid', async () => {
       const updatedUser = makeUser({ id: '9', role: 'Reviewer' });
-      mockedRepo.findById.mockResolvedValue(makeUser({ id: '9', role: 'User' }));
+      mockedRepo.findById.mockResolvedValue(
+        makeUser({ id: '9', role: 'User' })
+      );
       mockedRepo.updateRole.mockResolvedValue(updatedUser);
 
       const result = await UserService.updateUserRole('9', 'Reviewer');
@@ -55,20 +56,26 @@ describe('UserService', () => {
     });
 
     it('should reject an invalid role', async () => {
-      await expect(UserService.updateUserRole('9', 'SuperAdmin' as never)).rejects.toMatchObject({
+      await expect(
+        UserService.updateUserRole('9', 'SuperAdmin' as never)
+      ).rejects.toMatchObject({
         message: 'Role must be one of: Admin, Reviewer, User',
       });
 
       expect(mockedRepo.updateRole).not.toHaveBeenCalled();
     });
-
   });
 
   describe('updateUserBanStatus', () => {
-
     it('should deactivate a user when banned is true with reason', async () => {
-      const updatedUser = makeUser({ id: '5', banned: true, banReason: 'policy violation' });
-      mockedRepo.findById.mockResolvedValue(makeUser({ id: '5', banned: false, banReason: null }));
+      const updatedUser = makeUser({
+        id: '5',
+        banned: true,
+        banReason: 'policy violation',
+      });
+      mockedRepo.findById.mockResolvedValue(
+        makeUser({ id: '5', banned: false, banReason: null })
+      );
       mockedRepo.updateBanStatus.mockResolvedValue(updatedUser);
 
       const result = await UserService.updateUserBanStatus('5', {
@@ -86,7 +93,9 @@ describe('UserService', () => {
 
     it('should reactivate a user when banned is false', async () => {
       const updatedUser = makeUser({ id: '6', banned: false, banReason: null });
-      mockedRepo.findById.mockResolvedValue(makeUser({ id: '6', banned: true, banReason: 'temporary block' }));
+      mockedRepo.findById.mockResolvedValue(
+        makeUser({ id: '6', banned: true, banReason: 'temporary block' })
+      );
       mockedRepo.updateBanStatus.mockResolvedValue(updatedUser);
 
       const result = await UserService.updateUserBanStatus('6', {
@@ -102,17 +111,19 @@ describe('UserService', () => {
     });
 
     it('should reject banning without reason', async () => {
-      mockedRepo.findById.mockResolvedValue(makeUser({ id: '7', banned: false, banReason: null }));
+      mockedRepo.findById.mockResolvedValue(
+        makeUser({ id: '7', banned: false, banReason: null })
+      );
 
-      await expect(UserService.updateUserBanStatus('7', {
-        banned: true,
-      })).rejects.toMatchObject({
+      await expect(
+        UserService.updateUserBanStatus('7', {
+          banned: true,
+        })
+      ).rejects.toMatchObject({
         message: 'Ban reason is required when banning a user',
       });
 
       expect(mockedRepo.updateBanStatus).not.toHaveBeenCalled();
     });
-
   });
-
 });

@@ -20,27 +20,27 @@ export type NotificationReferenceType =
   | 'review';
 
 export interface Notification {
-  id:                          string;
-  recipientId:                 string;
-  notificationTitle:           string;
-  notificationReferenceType:   NotificationReferenceType;
-  referenceId:                 string;
-  notificationType:            NotificationType;
-  message:                     string;
-  isRead:                      boolean;
-  readAt:                      string | null;
-  deletedAt:                   string | null;
-  createdAt:                   string;
+  id: string;
+  recipientId: string;
+  notificationTitle: string;
+  notificationReferenceType: NotificationReferenceType;
+  referenceId: string;
+  notificationType: NotificationType;
+  message: string;
+  isRead: boolean;
+  readAt: string | null;
+  deletedAt: string | null;
+  createdAt: string;
 }
 
 /** Shape of the notification:new Pusher event payload. */
 export interface PusherNotificationPayload {
-  id:          string;
+  id: string;
   recipientId: string;
-  title:       string;
-  message:     string;
-  isRead:      boolean;
-  createdAt:   string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -54,10 +54,10 @@ export interface PusherNotificationPayload {
  */
 export async function getNotifications(
   limit = 20,
-  offset = 0,
+  offset = 0
 ): Promise<Notification[]> {
   const result = await apiFetch<Notification[]>(
-    `/notifications?limit=${limit}&offset=${offset}`,
+    `/notifications?limit=${limit}&offset=${offset}`
   );
   if (!result.success || !result.data) {
     throw new Error(result.error ?? 'Failed to load notifications');
@@ -70,7 +70,9 @@ export async function getNotifications(
  *
  * PATCH /api/v1/notifications/:id/read
  */
-export async function markNotificationAsRead(id: string): Promise<Notification> {
+export async function markNotificationAsRead(
+  id: string
+): Promise<Notification> {
   const result = await apiFetch<Notification>(`/notifications/${id}/read`, {
     method: 'PATCH',
   });
@@ -86,7 +88,9 @@ export async function markNotificationAsRead(id: string): Promise<Notification> 
  * GET /api/v1/notifications/unread-count
  */
 export async function getUnreadCount(): Promise<number> {
-  const result = await apiFetch<{ count: number }>('/notifications/unread-count');
+  const result = await apiFetch<{ count: number }>(
+    '/notifications/unread-count'
+  );
   if (!result.success || result.data === undefined) {
     throw new Error(result.error ?? 'Failed to load unread count');
   }

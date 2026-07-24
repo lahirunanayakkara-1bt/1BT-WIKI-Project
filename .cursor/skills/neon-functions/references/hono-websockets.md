@@ -12,21 +12,21 @@ So vendor the small adapter below. It depends only on `hono` and `ws` (no deprec
 
 ```typescript
 // src/hono-ws.ts — bridges Hono's upgradeWebSocket() to Neon's { fetch, upgrade }.
-import { STATUS_CODES, type IncomingMessage } from "node:http";
-import type { Duplex } from "node:stream";
-import type { Hono } from "hono";
-import { WSContext, defineWebSocketHelper } from "hono/ws";
-import { WebSocketServer, type WebSocket } from "ws";
+import { STATUS_CODES, type IncomingMessage } from 'node:http';
+import type { Duplex } from 'node:stream';
+import type { Hono } from 'hono';
+import { WSContext, defineWebSocketHelper } from 'hono/ws';
+import { WebSocketServer, type WebSocket } from 'ws';
 
 type Wire = (ws: WebSocket) => void;
 
-export function createNeonWebSocket(app: Hono, baseUrl = "http://localhost") {
+export function createNeonWebSocket(app: Hono, baseUrl = 'http://localhost') {
   const wss = new WebSocketServer({ noServer: true });
   // Correlate a handshake to its route handler via the per-request env object identity.
   const pending = new Map<unknown, Wire>();
 
   const upgradeWebSocket = defineWebSocketHelper(async (c, events, options) => {
-    if (c.req.header("upgrade")?.toLowerCase() !== "websocket") return;
+    if (c.req.header('upgrade')?.toLowerCase() !== 'websocket') return;
     const url = c.req.url;
     pending.set(c.env, (ws) => {
       const onError = options?.onError ?? ((e: unknown) => console.error(e));
@@ -41,36 +41,45 @@ export function createNeonWebSocket(app: Hono, baseUrl = "http://localhost") {
         },
       });
       try {
-        events.onOpen?.(new Event("open"), ctx);
+        events.onOpen?.(new Event('open'), ctx);
       } catch (e) {
         onError(e);
       }
-      ws.on("message", (data, isBinary) => {
+      ws.on('message', (data, isBinary) => {
         for (const chunk of Array.isArray(data) ? data : [data]) {
           try {
             const payload = isBinary
               ? chunk instanceof ArrayBuffer
                 ? chunk
-                : chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength)
-              : chunk.toString("utf-8");
-            events.onMessage?.(new MessageEvent("message", { data: payload }), ctx);
+                : chunk.buffer.slice(
+                    chunk.byteOffset,
+                    chunk.byteOffset + chunk.byteLength
+                  )
+              : chunk.toString('utf-8');
+            events.onMessage?.(
+              new MessageEvent('message', { data: payload }),
+              ctx
+            );
           } catch (e) {
             onError(e);
           }
         }
       });
-      ws.on("close", (code, reason) => {
+      ws.on('close', (code, reason) => {
         try {
-          events.onClose?.(new CloseEvent("close", { code, reason: reason.toString() }), ctx);
+          events.onClose?.(
+            new CloseEvent('close', { code, reason: reason.toString() }),
+            ctx
+          );
         } catch (e) {
           onError(e);
         }
       });
       // Node 24 has no global ErrorEvent; a browser's ws.onerror gets a plain Event anyway.
-      ws.on("error", (error) => {
+      ws.on('error', (error) => {
         onError(error);
         try {
-          events.onError?.(new Event("error"), ctx);
+          events.onError?.(new Event('error'), ctx);
         } catch (e) {
           onError(e);
         }
@@ -82,7 +91,7 @@ export function createNeonWebSocket(app: Hono, baseUrl = "http://localhost") {
   const handler = {
     fetch: (request: Request) => app.fetch(request),
     async upgrade(req: IncomingMessage, socket: Duplex, head: Buffer) {
-      const url = new URL(req.url ?? "/", baseUrl);
+      const url = new URL(req.url ?? '/', baseUrl);
       const headers = new Headers();
       for (const [key, value] of Object.entries(req.headers)) {
         if (value) headers.append(key, Array.isArray(value) ? value[0] : value);
@@ -93,7 +102,9 @@ export function createNeonWebSocket(app: Hono, baseUrl = "http://localhost") {
       const wire = pending.get(env);
       pending.delete(env);
       if (!wire) {
-        socket.end(`HTTP/1.1 ${response.status} ${STATUS_CODES[response.status] ?? ""}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);
+        socket.end(
+          `HTTP/1.1 ${response.status} ${STATUS_CODES[response.status] ?? ''}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`
+        );
         return;
       }
       wss.handleUpgrade(req, socket, head, (ws) => wire(ws));
@@ -112,26 +123,26 @@ Because the handshake is routed through `app.request`, **auth and other gating a
 
 ```typescript
 // src/index.ts
-import { Hono } from "hono";
-import { createNeonWebSocket } from "./hono-ws";
+import { Hono } from 'hono';
+import { createNeonWebSocket } from './hono-ws';
 
 const app = new Hono();
 const { upgradeWebSocket, handler } = createNeonWebSocket(app);
 
-app.get("/", (c) => c.text("ok"));
+app.get('/', (c) => c.text('ok'));
 
 app.get(
-  "/ws",
+  '/ws',
   async (c, next) => {
-    const identity = await verifyToken(c.req.query("token")); // your JWT check
-    if (!identity) return c.text("Unauthorized", 401);
+    const identity = await verifyToken(c.req.query('token')); // your JWT check
+    if (!identity) return c.text('Unauthorized', 401);
     await next();
   },
   upgradeWebSocket(() => ({
-    onOpen: (_evt, ws) => ws.send("welcome"),
+    onOpen: (_evt, ws) => ws.send('welcome'),
     onMessage: (evt, ws) => ws.send(`echo: ${evt.data}`),
-    onClose: () => console.log("disconnected"),
-  })),
+    onClose: () => console.log('disconnected'),
+  }))
 );
 
 export default handler; // Neon's { fetch, upgrade } contract

@@ -11,11 +11,9 @@ import userRepository from '@repositories/userRepository.js';
 // Accepted role values
 const VALID_ROLES: UserRole[] = ['Admin', 'Reviewer', 'User'];
 
-
 // ---------------------------------------------------------------------------
 // Admin operations
 // ---------------------------------------------------------------------------
-
 
 // ---------------------------------------------------------------------------
 // Read
@@ -41,7 +39,6 @@ const getAllUsers = async (): Promise<User[]> => {
  * @throws AppError 409 — email already exists
  */
 const adminCreateUser = async (data: CreateUserInput): Promise<User> => {
-
   // --- Validate name ---
   if (!data.name || data.name.trim().length === 0) {
     throw new AppError('Name is required', 400);
@@ -59,14 +56,13 @@ const adminCreateUser = async (data: CreateUserInput): Promise<User> => {
 
   // --- Validate role (if provided) ---
   if (data.role && !VALID_ROLES.includes(data.role)) {
-    throw new AppError(
-      `Role must be one of: ${VALID_ROLES.join(', ')}`,
-      400
-    );
+    throw new AppError(`Role must be one of: ${VALID_ROLES.join(', ')}`, 400);
   }
 
   // --- Duplicate email check ---
-  const existing = await userRepository.findByEmail(data.email.toLowerCase().trim());
+  const existing = await userRepository.findByEmail(
+    data.email.toLowerCase().trim()
+  );
   if (existing) {
     throw new AppError('A user with this email already exists', 409);
   }

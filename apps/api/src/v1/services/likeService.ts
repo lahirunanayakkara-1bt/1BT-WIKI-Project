@@ -3,7 +3,10 @@ import LikeRepository from '@repositories/likeRepository.js';
 import NotificationService from '@services/notificationService.js';
 import { AppError } from '@/errors/AppError.js';
 
-const likeArticle = async (articleId: string, userId: string): Promise<void> => {
+const likeArticle = async (
+  articleId: string,
+  userId: string
+): Promise<void> => {
   const article = await ArticleRepository.findById(articleId);
 
   if (!article) {
@@ -30,7 +33,10 @@ const likeArticle = async (articleId: string, userId: string): Promise<void> => 
   }
 };
 
-const unlikeArticle = async (articleId: string, userId: string): Promise<void> => {
+const unlikeArticle = async (
+  articleId: string,
+  userId: string
+): Promise<void> => {
   const article = await ArticleRepository.findById(articleId);
 
   if (!article) {

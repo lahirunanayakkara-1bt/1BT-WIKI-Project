@@ -6,17 +6,18 @@ import type { User } from '@/types/userTypes.js';
 // ── ESM mock registration — must be before any import of the service ────────
 await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
   default: {
-    getAll:          jest.fn(),
-    findByEmail:     jest.fn(),
-    findById:        jest.fn(),
+    getAll: jest.fn(),
+    findByEmail: jest.fn(),
+    findById: jest.fn(),
     createAdminUser: jest.fn(),
-    updateById:      jest.fn(),
+    updateById: jest.fn(),
   },
 }));
 
 // Import AFTER mock is registered (ESM requirement)
-const { default: ProfileService }  = await import('../profileService.js');
-const { default: UserRepository }  = await import('@repositories/userRepository.js');
+const { default: ProfileService } = await import('../profileService.js');
+const { default: UserRepository } =
+  await import('@repositories/userRepository.js');
 
 const mockedRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 
@@ -26,17 +27,17 @@ const mockedRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 
 /** Build a complete neon_auth.user row with sensible defaults. */
 const makeUser = (overrides: Partial<User> = {}): User => ({
-  id:            'user-123',
-  name:          'Malindu Gurunada',
-  email:         'malindu@1billiontech.com',
+  id: 'user-123',
+  name: 'Malindu Gurunada',
+  email: 'malindu@1billiontech.com',
   emailVerified: true,
-  image:         'https://example.com/avatar.png',
-  createdAt:     new Date('2026-01-01T00:00:00.000Z'),
-  updatedAt:     new Date('2026-01-01T00:00:00.000Z'),
-  role:          'User',
-  banned:        null,
-  banReason:     null,
-  banExpires:    null,
+  image: 'https://example.com/avatar.png',
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  role: 'User',
+  banned: null,
+  banReason: null,
+  banExpires: null,
   ...overrides,
 });
 
@@ -45,7 +46,6 @@ const makeUser = (overrides: Partial<User> = {}): User => ({
 // ---------------------------------------------------------------------------
 
 describe('ProfileService.getProfile', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -66,12 +66,12 @@ describe('ProfileService.getProfile', () => {
 
     // Assert — returned shape matches UserProfile (safe fields only)
     expect(result).toEqual({
-      id:        'user-123',
-      name:      'Malindu Gurunada',
-      email:     'malindu@1billiontech.com',
-      avatarUrl: 'https://example.com/avatar.png',   // image → avatarUrl
-      role:      'User',
-      isActive:  true,                               // banned=null → isActive=true
+      id: 'user-123',
+      name: 'Malindu Gurunada',
+      email: 'malindu@1billiontech.com',
+      avatarUrl: 'https://example.com/avatar.png', // image → avatarUrl
+      role: 'User',
+      isActive: true, // banned=null → isActive=true
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
     });
 
@@ -127,7 +127,7 @@ describe('ProfileService.getProfile', () => {
 
     // Act + Assert
     await expect(ProfileService.getProfile('ghost-id')).rejects.toMatchObject({
-      message:    'User not found',
+      message: 'User not found',
       statusCode: 404,
     });
 
@@ -162,11 +162,9 @@ describe('ProfileService.getProfile', () => {
 
     expect(result.role).toBe('User');
   });
-
 });
 
 describe('ProfileService.updateProfile', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -175,26 +173,41 @@ describe('ProfileService.updateProfile', () => {
     const rawUser = makeUser({ name: 'New Name' });
     mockedRepo.updateById.mockResolvedValue(rawUser);
 
-    const result = await ProfileService.updateProfile('user-123', { name: 'New Name' });
+    const result = await ProfileService.updateProfile('user-123', {
+      name: 'New Name',
+    });
 
     expect(mockedRepo.updateById).toHaveBeenCalledTimes(1);
-    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', { name: 'New Name' });
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', {
+      name: 'New Name',
+    });
     expect(result.name).toBe('New Name');
   });
 
   it('should successfully update name and avatarUrl', async () => {
-    const rawUser = makeUser({ name: 'New Name', image: 'https://example.com/new.png' });
+    const rawUser = makeUser({
+      name: 'New Name',
+      image: 'https://example.com/new.png',
+    });
     mockedRepo.updateById.mockResolvedValue(rawUser);
 
-    const result = await ProfileService.updateProfile('user-123', { name: 'New Name', avatarUrl: 'https://example.com/new.png' });
+    const result = await ProfileService.updateProfile('user-123', {
+      name: 'New Name',
+      avatarUrl: 'https://example.com/new.png',
+    });
 
     expect(mockedRepo.updateById).toHaveBeenCalledTimes(1);
-    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', { name: 'New Name', image: 'https://example.com/new.png' });
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', {
+      name: 'New Name',
+      image: 'https://example.com/new.png',
+    });
     expect(result.avatarUrl).toBe('https://example.com/new.png');
   });
 
   it('should throw AppError 400 for empty name', async () => {
-    await expect(ProfileService.updateProfile('user-123', { name: '   ' })).rejects.toMatchObject({
+    await expect(
+      ProfileService.updateProfile('user-123', { name: '   ' })
+    ).rejects.toMatchObject({
       message: 'Name cannot be empty',
       statusCode: 400,
     });
@@ -203,7 +216,9 @@ describe('ProfileService.updateProfile', () => {
 
   it('should throw AppError 400 for name exceeding 255 characters', async () => {
     const longName = 'a'.repeat(256);
-    await expect(ProfileService.updateProfile('user-123', { name: longName })).rejects.toMatchObject({
+    await expect(
+      ProfileService.updateProfile('user-123', { name: longName })
+    ).rejects.toMatchObject({
       message: 'Name cannot exceed 255 characters',
       statusCode: 400,
     });
@@ -211,7 +226,9 @@ describe('ProfileService.updateProfile', () => {
   });
 
   it('should throw AppError 400 for invalid avatarUrl format', async () => {
-    await expect(ProfileService.updateProfile('user-123', { avatarUrl: 'not-a-url' })).rejects.toMatchObject({
+    await expect(
+      ProfileService.updateProfile('user-123', { avatarUrl: 'not-a-url' })
+    ).rejects.toMatchObject({
       message: 'Invalid avatarUrl format',
       statusCode: 400,
     });
@@ -227,23 +244,29 @@ describe('ProfileService.updateProfile', () => {
       role: 'Admin',
       email: 'hacked@example.com',
       banned: true,
-      contactDetails: '123 fake street'
+      contactDetails: '123 fake street',
     } as any; // Cast to any to simulate malicious input
 
     await ProfileService.updateProfile('user-123', input);
 
     expect(mockedRepo.updateById).toHaveBeenCalledTimes(1);
-    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', { name: 'Safe Name' });
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('user-123', {
+      name: 'Safe Name',
+    });
   });
 
   it('should throw AppError 404 when the user does not exist', async () => {
     mockedRepo.updateById.mockResolvedValue(null);
 
-    await expect(ProfileService.updateProfile('ghost-id', { name: 'New Name' })).rejects.toMatchObject({
+    await expect(
+      ProfileService.updateProfile('ghost-id', { name: 'New Name' })
+    ).rejects.toMatchObject({
       message: 'User not found',
       statusCode: 404,
     });
-    expect(mockedRepo.updateById).toHaveBeenCalledWith('ghost-id', { name: 'New Name' });
+    expect(mockedRepo.updateById).toHaveBeenCalledWith('ghost-id', {
+      name: 'New Name',
+    });
   });
   // ── Role capitalisation ─────────────────────────────────────────────────
 
@@ -251,9 +274,10 @@ describe('ProfileService.updateProfile', () => {
     const rawUser = makeUser({ name: 'New Name', role: 'reviewer' });
     mockedRepo.updateById.mockResolvedValue(rawUser);
 
-    const result = await ProfileService.updateProfile('user-123', { name: 'New Name' });
+    const result = await ProfileService.updateProfile('user-123', {
+      name: 'New Name',
+    });
 
     expect(result.role).toBe('Reviewer');
   });
-
 });

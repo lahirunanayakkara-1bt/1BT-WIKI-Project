@@ -18,7 +18,9 @@ import type {
 import { ArticleStatusValue } from '@models/article.types.js';
 
 // Derives update-field shapes from the app-level Article interface — no Prisma types cross into the service layer.
-type ArticleUpdateFields = Partial<Pick<Article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
+type ArticleUpdateFields = Partial<
+  Pick<Article, 'title' | 'tags' | 'status'>
+> & { body?: JSONContent };
 
 type PublishedArticleRow = Article & {
   _count?: { likes: number; comments: number };
@@ -33,13 +35,20 @@ const validateImages = (images: Express.Multer.File[]) => {
     if (img.size > 5 * 1024 * 1024) {
       throw new AppError('Image size cannot exceed 5MB', 400);
     }
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ];
     if (!allowedMimeTypes.includes(img.mimetype)) {
-      throw new AppError('Only jpeg, png, webp, and gif images are allowed', 400);
+      throw new AppError(
+        'Only jpeg, png, webp, and gif images are allowed',
+        400
+      );
     }
   }
 };
-
 
 const validateTitle = (title: string | undefined): string => {
   if (!title || title.trim() === '') {
@@ -56,10 +65,17 @@ const validateTitle = (title: string | undefined): string => {
 const validateBody = (body: JSONContent | undefined): JSONContent => {
   const safeBody = body ?? {};
   if (typeof safeBody === 'string') {
-    throw new AppError('Body must be valid JSONContent, raw HTML is not allowed', 400);
+    throw new AppError(
+      'Body must be valid JSONContent, raw HTML is not allowed',
+      400
+    );
   }
 
-  if (typeof safeBody !== 'object' || safeBody === null || Array.isArray(safeBody)) {
+  if (
+    typeof safeBody !== 'object' ||
+    safeBody === null ||
+    Array.isArray(safeBody)
+  ) {
     throw new AppError('Body must be a valid JSON object', 400);
   }
 
@@ -70,19 +86,28 @@ const validateBody = (body: JSONContent | undefined): JSONContent => {
   return safeBody;
 };
 
-const assertTransition = (currentStatus: ArticleStatus, targetStatus: ArticleStatus): void => {
-  if (currentStatus === ArticleStatusValue.Draft && targetStatus === ArticleStatusValue.Pending) {
+const assertTransition = (
+  currentStatus: ArticleStatus,
+  targetStatus: ArticleStatus
+): void => {
+  if (
+    currentStatus === ArticleStatusValue.Draft &&
+    targetStatus === ArticleStatusValue.Pending
+  ) {
     return;
   }
 
-  throw new AppError(`Cannot transition from ${currentStatus} to ${targetStatus}`, 400);
+  throw new AppError(
+    `Cannot transition from ${currentStatus} to ${targetStatus}`,
+    400
+  );
 };
 
 export class ArticleService {
   constructor(
     private repository: ArticleRepository = new ArticleRepository(),
     private reviewRepository: ArticleReviewRepository = new ArticleReviewRepository(),
-    private attachmentRepository: ArticleAttachmentRepository = new ArticleAttachmentRepository(),
+    private attachmentRepository: ArticleAttachmentRepository = new ArticleAttachmentRepository()
   ) {}
 
   private async uploadArticleImages(
@@ -100,7 +125,11 @@ export class ArticleService {
       const b2FileKey = `articles/${articleId}/${fileUuid}-${sanitizedName}`;
 
       try {
-        const { fileId, fileUrl } = await b2Client.uploadFile(b2FileKey, img.buffer, img.mimetype);
+        const { fileId, fileUrl } = await b2Client.uploadFile(
+          b2FileKey,
+          img.buffer,
+          img.mimetype
+        );
 
         const attachment = await this.attachmentRepository.create({
           articleId,
@@ -147,7 +176,11 @@ export class ArticleService {
     });
 
     // Upload valid images to B2 and track in DB
-    const { attachments, warnings } = await this.uploadArticleImages(article.id, authorId, images);
+    const { attachments, warnings } = await this.uploadArticleImages(
+      article.id,
+      authorId,
+      images
+    );
 
     return {
       ...article,
@@ -175,7 +208,8 @@ export class ArticleService {
     if (article.status === ArticleStatusValue.Draft) {
       isEditable = true;
     } else {
-      const latestReview = await this.reviewRepository.findLatestByArticleId(id);
+      const latestReview =
+        await this.reviewRepository.findLatestByArticleId(id);
       if (latestReview && latestReview.reviewStatus === 'Rejected') {
         isEditable = true;
         resetToDraft = true;
@@ -186,14 +220,19 @@ export class ArticleService {
       throw new AppError('Only Draft or Rejected articles can be edited', 400);
     }
 
-    const hasUpdates = input.title !== undefined || input.body !== undefined || input.tags !== undefined;
+    const hasUpdates =
+      input.title !== undefined ||
+      input.body !== undefined ||
+      input.tags !== undefined;
     let updatedArticle = article;
 
     if (hasUpdates || resetToDraft) {
       const updateFields: ArticleUpdateFields = {};
 
-      if (input.title !== undefined) updateFields.title = validateTitle(input.title);
-      if (input.body !== undefined) updateFields.body = validateBody(input.body);
+      if (input.title !== undefined)
+        updateFields.title = validateTitle(input.title);
+      if (input.body !== undefined)
+        updateFields.body = validateBody(input.body);
       if (input.tags !== undefined) updateFields.tags = input.tags;
       if (resetToDraft) updateFields.status = ArticleStatusValue.Draft;
 
@@ -206,7 +245,11 @@ export class ArticleService {
     }
 
     // Upload any new images
-    const { attachments, warnings } = await this.uploadArticleImages(updatedArticle.id, userId, images);
+    const { attachments, warnings } = await this.uploadArticleImages(
+      updatedArticle.id,
+      userId,
+      images
+    );
 
     return {
       ...updatedArticle,
@@ -226,7 +269,12 @@ export class ArticleService {
   async listPublished(
     page: number = 1,
     limit: number = 20
-  ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    articles: ArticleListItem[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const { articles, total } = await this.repository.findByStatus(
       ArticleStatusValue.Published,
       page,
@@ -234,17 +282,19 @@ export class ArticleService {
       { includeCounts: true }
     );
 
-    const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
-      id: article.id,
-      title: article.title,
-      authorId: article.authorId,
-      tags: article.tags,
-      status: article.status as ArticleStatus,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt,
-      likeCount: article._count?.likes ?? 0,
-      commentCount: article._count?.comments ?? 0,
-    }));
+    const mappedArticles: ArticleListItem[] = articles.map(
+      (article: PublishedArticleRow) => ({
+        id: article.id,
+        title: article.title,
+        authorId: article.authorId,
+        tags: article.tags,
+        status: article.status as ArticleStatus,
+        createdAt: article.createdAt,
+        updatedAt: article.updatedAt,
+        likeCount: article._count?.likes ?? 0,
+        commentCount: article._count?.comments ?? 0,
+      })
+    );
 
     return { articles: mappedArticles, total, page, limit };
   }
@@ -280,7 +330,10 @@ export class ArticleService {
     }
   }
 
-  async getArticleById(id: string, requesterId: string | null = null): Promise<Article> {
+  async getArticleById(
+    id: string,
+    requesterId: string | null = null
+  ): Promise<Article> {
     const article = await this.repository.findById(id);
     if (!article) {
       throw new AppError('Article not found', 404);
@@ -317,8 +370,17 @@ export class ArticleService {
     authorId: string,
     page: number = 1,
     limit: number = 20
-  ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
-    const { articles, total } = await this.repository.findByAuthor(authorId, page, limit);
+  ): Promise<{
+    articles: ArticleListItem[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { articles, total } = await this.repository.findByAuthor(
+      authorId,
+      page,
+      limit
+    );
 
     const mappedArticles: ArticleListItem[] = articles.map((article) => ({
       id: article.id,
@@ -337,4 +399,3 @@ export class ArticleService {
 }
 
 export default ArticleService;
-

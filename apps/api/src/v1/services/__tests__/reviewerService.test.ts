@@ -28,7 +28,9 @@ const makeMockArticleRepo = (): jest.Mocked<
   updateStatus: jest.fn(),
 });
 
-const makeMockReviewRepo = (): jest.Mocked<Pick<ArticleReviewRepository, 'create'>> => ({
+const makeMockReviewRepo = (): jest.Mocked<
+  Pick<ArticleReviewRepository, 'create'>
+> => ({
   create: jest.fn(),
 });
 
@@ -61,7 +63,10 @@ describe('ReviewerService.listPending', () => {
       },
     ];
 
-    mockArticleRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 1 } as never);
+    mockArticleRepo.findByStatus.mockResolvedValue({
+      articles: mockArticles,
+      total: 1,
+    } as never);
 
     const result = await service.listPending(2, 10);
 
@@ -77,7 +82,10 @@ describe('ReviewerService.listPending', () => {
   });
 
   it('should default page and limit when not provided', async () => {
-    mockArticleRepo.findByStatus.mockResolvedValue({ articles: [], total: 0 } as never);
+    mockArticleRepo.findByStatus.mockResolvedValue({
+      articles: [],
+      total: 0,
+    } as never);
 
     const result = await service.listPending();
 
@@ -130,7 +138,10 @@ describe('ReviewerService.approveArticle', () => {
     const result = await service.approveArticle(articleId, reviewerId);
 
     expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
-    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(articleId, 'Published');
+    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(
+      articleId,
+      'Published'
+    );
     expect(mockReviewRepo.create).toHaveBeenCalledWith({
       articleId,
       reviewerId,
@@ -150,8 +161,11 @@ describe('ReviewerService.approveArticle', () => {
         authorId: 'user-1',
       } as never);
 
-      await expect(service.approveArticle(articleId, reviewerId))
-        .rejects.toThrow(new AppError('Only Pending articles can be approved', 400));
+      await expect(
+        service.approveArticle(articleId, reviewerId)
+      ).rejects.toThrow(
+        new AppError('Only Pending articles can be approved', 400)
+      );
 
       expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
       expect(mockReviewRepo.create).not.toHaveBeenCalled();
@@ -161,8 +175,9 @@ describe('ReviewerService.approveArticle', () => {
   it('should throw 404 when article does not exist', async () => {
     mockArticleRepo.findById.mockResolvedValue(null);
 
-    await expect(service.approveArticle(articleId, reviewerId))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(service.approveArticle(articleId, reviewerId)).rejects.toThrow(
+      new AppError('Article not found', 404)
+    );
 
     expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
     expect(mockReviewRepo.create).not.toHaveBeenCalled();
@@ -187,8 +202,11 @@ describe('ReviewerService.rejectArticle', () => {
   });
 
   it('should throw 400 when feedback is missing or empty', async () => {
-    await expect(service.rejectArticle(articleId, reviewerId, ''))
-      .rejects.toThrow(new AppError('Rejection feedback must be at least 10 characters', 400));
+    await expect(
+      service.rejectArticle(articleId, reviewerId, '')
+    ).rejects.toThrow(
+      new AppError('Rejection feedback must be at least 10 characters', 400)
+    );
 
     expect(mockArticleRepo.findById).not.toHaveBeenCalled();
     expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
@@ -196,8 +214,11 @@ describe('ReviewerService.rejectArticle', () => {
   });
 
   it('should throw 400 when feedback is under 10 characters', async () => {
-    await expect(service.rejectArticle(articleId, reviewerId, 'too short'))
-      .rejects.toThrow(new AppError('Rejection feedback must be at least 10 characters', 400));
+    await expect(
+      service.rejectArticle(articleId, reviewerId, 'too short')
+    ).rejects.toThrow(
+      new AppError('Rejection feedback must be at least 10 characters', 400)
+    );
 
     expect(mockArticleRepo.findById).not.toHaveBeenCalled();
     expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
@@ -205,8 +226,11 @@ describe('ReviewerService.rejectArticle', () => {
   });
 
   it('should throw 400 when feedback becomes under 10 characters after trimming', async () => {
-    await expect(service.rejectArticle(articleId, reviewerId, '   short   '))
-      .rejects.toThrow(new AppError('Rejection feedback must be at least 10 characters', 400));
+    await expect(
+      service.rejectArticle(articleId, reviewerId, '   short   ')
+    ).rejects.toThrow(
+      new AppError('Rejection feedback must be at least 10 characters', 400)
+    );
 
     expect(mockArticleRepo.findById).not.toHaveBeenCalled();
     expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
@@ -221,12 +245,18 @@ describe('ReviewerService.rejectArticle', () => {
       authorId: 'user-1',
     };
     mockArticleRepo.findById.mockResolvedValue(pendingArticle as never);
-    mockArticleRepo.updateStatus.mockResolvedValue({ ...pendingArticle, status: 'Unpublished' } as never);
+    mockArticleRepo.updateStatus.mockResolvedValue({
+      ...pendingArticle,
+      status: 'Unpublished',
+    } as never);
 
     await service.rejectArticle(articleId, reviewerId, 'exactlyTen');
 
     expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
-    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(articleId, 'Unpublished');
+    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(
+      articleId,
+      'Unpublished'
+    );
     expect(mockReviewRepo.create).toHaveBeenCalledWith({
       articleId,
       reviewerId,
@@ -239,8 +269,9 @@ describe('ReviewerService.rejectArticle', () => {
   it('should throw 404 when article does not exist', async () => {
     mockArticleRepo.findById.mockResolvedValue(null);
 
-    await expect(service.rejectArticle(articleId, reviewerId, 'valid feedback text'))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(
+      service.rejectArticle(articleId, reviewerId, 'valid feedback text')
+    ).rejects.toThrow(new AppError('Article not found', 404));
 
     expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
     expect(mockReviewRepo.create).not.toHaveBeenCalled();
@@ -255,8 +286,11 @@ describe('ReviewerService.rejectArticle', () => {
         authorId: 'user-1',
       } as never);
 
-      await expect(service.rejectArticle(articleId, reviewerId, 'valid feedback text'))
-        .rejects.toThrow(new AppError('Only Pending articles can be rejected', 400));
+      await expect(
+        service.rejectArticle(articleId, reviewerId, 'valid feedback text')
+      ).rejects.toThrow(
+        new AppError('Only Pending articles can be rejected', 400)
+      );
 
       expect(mockArticleRepo.updateStatus).not.toHaveBeenCalled();
       expect(mockReviewRepo.create).not.toHaveBeenCalled();
@@ -283,10 +317,17 @@ describe('ReviewerService.rejectArticle', () => {
       updatedAt: new Date(),
     } as never);
 
-    const result = await service.rejectArticle(articleId, reviewerId, '   valid feedback text longer than 10   ');
+    const result = await service.rejectArticle(
+      articleId,
+      reviewerId,
+      '   valid feedback text longer than 10   '
+    );
 
     expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
-    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(articleId, 'Unpublished');
+    expect(mockArticleRepo.updateStatus).toHaveBeenCalledWith(
+      articleId,
+      'Unpublished'
+    );
     expect(mockReviewRepo.create).toHaveBeenCalledWith({
       articleId,
       reviewerId,
@@ -297,4 +338,3 @@ describe('ReviewerService.rejectArticle', () => {
     expect(result).toEqual(rejectedArticle);
   });
 });
-

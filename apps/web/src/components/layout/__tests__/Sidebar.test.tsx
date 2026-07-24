@@ -24,7 +24,15 @@ jest.mock('@/lib/auth/client', () => ({
 
 jest.mock('@/lib/hooks/useUser', () => ({
   useUser: () => ({
-    user: { id: 'u1', name: 'Test User', email: 'test@1billiontech.com', role: 'User', avatarUrl: null, isActive: true, createdAt: '' },
+    user: {
+      id: 'u1',
+      name: 'Test User',
+      email: 'test@1billiontech.com',
+      role: 'User',
+      avatarUrl: null,
+      isActive: true,
+      createdAt: '',
+    },
     loading: false,
     error: null,
     refetch: jest.fn(),
@@ -47,7 +55,9 @@ describe('Sidebar sign-out', () => {
     await user.click(screen.getByTestId('logout-btn'));
 
     expect(mockSignOut).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(window.location.href).toBe('http://localhost/signin'));
+    await waitFor(() =>
+      expect(window.location.href).toBe('http://localhost/signin')
+    );
   });
 
   it('does not redirect when authClient.signOut() rejects', async () => {

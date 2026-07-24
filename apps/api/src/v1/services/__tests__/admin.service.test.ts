@@ -31,12 +31,14 @@ await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
 // Import AFTER mock is registered
 // ---------------------------------------------------------------------------
 
-const { default: AdminService }    = await import('../adminService.js');
-const { default: AdminRepository } = await import('@repositories/adminRepository.js');
-const { default: UserRepository }  = await import('@repositories/userRepository.js');
+const { default: AdminService } = await import('../adminService.js');
+const { default: AdminRepository } =
+  await import('@repositories/adminRepository.js');
+const { default: UserRepository } =
+  await import('@repositories/userRepository.js');
 
-const mockedRepo     = AdminRepository as jest.Mocked<typeof AdminRepository>;
-const mockedUserRepo = UserRepository  as jest.Mocked<typeof UserRepository>;
+const mockedRepo = AdminRepository as jest.Mocked<typeof AdminRepository>;
+const mockedUserRepo = UserRepository as jest.Mocked<typeof UserRepository>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,7 +64,6 @@ const makeUser = (overrides: Partial<User> = {}): User => ({
 // ---------------------------------------------------------------------------
 
 describe('AdminService', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -70,11 +71,14 @@ describe('AdminService', () => {
   // ── getAllUsers ─────────────────────────────────────────────────────────────
 
   describe('getAllUsers', () => {
-
     it('should return all users from the repository', async () => {
       const mockUsers: User[] = [
-        makeUser({ id: '1', name: 'Malindu', email: 'malindu@1billiontech.com' }),
-        makeUser({ id: '2', name: 'Lahiru',  email: 'lahiru@1billiontech.com'  }),
+        makeUser({
+          id: '1',
+          name: 'Malindu',
+          email: 'malindu@1billiontech.com',
+        }),
+        makeUser({ id: '2', name: 'Lahiru', email: 'lahiru@1billiontech.com' }),
       ];
 
       mockedRepo.getAllUsers.mockResolvedValue(mockUsers);
@@ -106,13 +110,11 @@ describe('AdminService', () => {
 
       expect(mockedRepo.getAllUsers).toHaveBeenCalledTimes(1);
     });
-
   });
 
   // ── adminCreateUser ────────────────────────────────────────────────────────
 
   describe('adminCreateUser', () => {
-
     it('should create and return a new user', async () => {
       const input: CreateUserInput = {
         name: 'Chathurika',
@@ -126,7 +128,9 @@ describe('AdminService', () => {
 
       const result = await AdminService.adminCreateUser(input);
 
-      expect(mockedUserRepo.findByEmail).toHaveBeenCalledWith('chathurika@1billiontech.com');
+      expect(mockedUserRepo.findByEmail).toHaveBeenCalledWith(
+        'chathurika@1billiontech.com'
+      );
       expect(mockedRepo.createAdminUser).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Chathurika',
@@ -166,7 +170,5 @@ describe('AdminService', () => {
 
       expect(mockedRepo.createAdminUser).not.toHaveBeenCalled();
     });
-
   });
-
 });

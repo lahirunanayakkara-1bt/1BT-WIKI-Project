@@ -24,8 +24,7 @@ function createPrismaClient(): PrismaClient {
 
 // Singleton: reuse in hot-reload environments (e.g., dev with tsx watch)
 // In production (NODE_ENV=production), always create a fresh instance
-export const prisma: PrismaClient =
-  globalThis.__prisma ?? createPrismaClient();
+export const prisma: PrismaClient = globalThis.__prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma;

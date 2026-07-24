@@ -1,10 +1,16 @@
 // apps/api/src/services/notificationService.ts
 
 import NotificationRepository from '@repositories/notificationRepository.js';
-import type { CreateNotificationInput, Notification } from '@models/notificationTypes.js';
+import type {
+  CreateNotificationInput,
+  Notification,
+} from '@models/notificationTypes.js';
 import { AppError } from '@errors/AppError.js';
 import pusherClient from '@v1/lib/pusherClient.js';
-import { PUSHER_NOTIFICATION_EVENT, pusherChannelName } from '@v1/lib/pusherEvents.js';
+import {
+  PUSHER_NOTIFICATION_EVENT,
+  pusherChannelName,
+} from '@v1/lib/pusherEvents.js';
 
 // ---------------------------------------------------------------------------
 // Service
@@ -45,16 +51,19 @@ class NotificationService {
         pusherChannelName(saved.recipientId),
         PUSHER_NOTIFICATION_EVENT,
         {
-          id:          saved.id,
+          id: saved.id,
           recipientId: saved.recipientId,
-          title:       saved.notificationTitle,
-          message:     saved.message,
-          isRead:      saved.isRead,
-          createdAt:   saved.createdAt,
-        },
+          title: saved.notificationTitle,
+          message: saved.message,
+          isRead: saved.isRead,
+          createdAt: saved.createdAt,
+        }
       )
       .catch((error: unknown) => {
-        console.error('[Pusher] Failed to trigger notification:new event:', error);
+        console.error(
+          '[Pusher] Failed to trigger notification:new event:',
+          error
+        );
       });
   }
 
@@ -66,13 +75,16 @@ class NotificationService {
    */
   async list(
     userId: string,
-    options: { limit: number; offset: number },
+    options: { limit: number; offset: number }
   ): Promise<Notification[]> {
     return NotificationRepository.list(userId, options);
   }
 
   async markAsRead(id: string, recipientId: string): Promise<Notification> {
-    const notification = await NotificationRepository.markAsRead(id, recipientId);
+    const notification = await NotificationRepository.markAsRead(
+      id,
+      recipientId
+    );
 
     if (!notification) {
       throw new AppError('Notification not found', 404);
@@ -92,4 +104,3 @@ class NotificationService {
 }
 
 export default new NotificationService();
-

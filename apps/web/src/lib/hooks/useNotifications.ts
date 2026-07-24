@@ -13,7 +13,10 @@ import {
   getUnreadCount,
   markNotificationAsRead,
 } from '@/lib/api/notifications';
-import type { Notification, PusherNotificationPayload } from '@/lib/api/notifications';
+import type {
+  Notification,
+  PusherNotificationPayload,
+} from '@/lib/api/notifications';
 
 // The event name must match the backend constant in pusherEvents.ts
 const NOTIFICATION_EVENT = 'notification:new';
@@ -23,16 +26,18 @@ interface UseNotificationsOptions {
 }
 
 interface UseNotificationsResult {
-  notifications:  Notification[];
-  unreadCount:    number;
-  loading:        boolean;
-  markAsRead:     (id: string) => Promise<void>;
+  notifications: Notification[];
+  unreadCount: number;
+  loading: boolean;
+  markAsRead: (id: string) => Promise<void>;
 }
 
-export function useNotifications({ userId }: UseNotificationsOptions): UseNotificationsResult {
+export function useNotifications({
+  userId,
+}: UseNotificationsOptions): UseNotificationsResult {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount]     = useState(0);
-  const [loading, setLoading]             = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // ---------------------------------------------------------------------------
   // Initial data load
@@ -61,7 +66,9 @@ export function useNotifications({ userId }: UseNotificationsOptions): UseNotifi
     };
 
     loadInitialData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   // ---------------------------------------------------------------------------
@@ -71,7 +78,7 @@ export function useNotifications({ userId }: UseNotificationsOptions): UseNotifi
   useEffect(() => {
     if (!userId) return;
 
-    const pusher  = getPusherClient();
+    const pusher = getPusherClient();
     const channelName = `private-user-${userId}`;
     const channel = pusher.subscribe(channelName);
 
@@ -86,17 +93,17 @@ export function useNotifications({ userId }: UseNotificationsOptions): UseNotifi
         // The full Notification object will be fetched on next page load;
         // this is the optimistic representation for immediate UI update.
         const newNotification: Notification = {
-          id:                        payload.id,
-          recipientId:               payload.recipientId,
-          notificationTitle:         payload.title,
+          id: payload.id,
+          recipientId: payload.recipientId,
+          notificationTitle: payload.title,
           notificationReferenceType: 'article',
-          referenceId:               '',
-          notificationType:          'info',
-          message:                   payload.message,
-          isRead:                    payload.isRead,
-          readAt:                    null,
-          deletedAt:                 null,
-          createdAt:                 payload.createdAt,
+          referenceId: '',
+          notificationType: 'info',
+          message: payload.message,
+          isRead: payload.isRead,
+          readAt: null,
+          deletedAt: null,
+          createdAt: payload.createdAt,
         };
 
         return [newNotification, ...prev];
@@ -111,7 +118,10 @@ export function useNotifications({ userId }: UseNotificationsOptions): UseNotifi
         const count = await getUnreadCount();
         setUnreadCount(count);
       } catch (err) {
-        console.error('[useNotifications] Failed to reconcile unread count:', err);
+        console.error(
+          '[useNotifications] Failed to reconcile unread count:',
+          err
+        );
       }
     });
 
@@ -130,13 +140,16 @@ export function useNotifications({ userId }: UseNotificationsOptions): UseNotifi
       await markNotificationAsRead(id);
 
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
 
       // Only decrement if the notification was previously unread
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error('[useNotifications] Failed to mark notification as read:', err);
+      console.error(
+        '[useNotifications] Failed to mark notification as read:',
+        err
+      );
       throw err;
     }
   }, []);

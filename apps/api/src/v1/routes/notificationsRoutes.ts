@@ -18,8 +18,16 @@ router.get('/', authenticate, NotificationController.getNotifications);
 // GET /api/v1/notifications/unread-count — unread badge count
 // IMPORTANT: must be registered before /:id routes to avoid Express treating
 // the literal string "unread-count" as an :id parameter.
-router.get('/unread-count', authenticate, NotificationController.getUnreadCount);
+router.get(
+  '/unread-count',
+  authenticate,
+  NotificationController.getUnreadCount
+);
 
-router.patch('/:id/read', authenticate, NotificationController.markNotificationAsRead);
+router.patch(
+  '/:id/read',
+  authenticate,
+  NotificationController.markNotificationAsRead
+);
 
 export default router;

@@ -29,7 +29,7 @@ import { pusherChannelName } from '@v1/lib/pusherEvents.js';
 const auth = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

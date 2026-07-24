@@ -14,7 +14,18 @@ jest.unstable_mockModule('../../services/articleService.js', () => ({
 const { ArticleController } = await import('../articleController.js');
 
 // Build a typed mock service object — injected directly into the controller.
-const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'listMine' | 'getArticleById' | 'deleteArticle'>> => ({
+const makeMockService = (): jest.Mocked<
+  Pick<
+    ArticleService,
+    | 'createArticle'
+    | 'updateArticle'
+    | 'submitForReview'
+    | 'listPublished'
+    | 'listMine'
+    | 'getArticleById'
+    | 'deleteArticle'
+  >
+> => ({
   createArticle: jest.fn(),
   updateArticle: jest.fn(),
   submitForReview: jest.fn(),
@@ -29,12 +40,14 @@ describe('ArticleController', () => {
   let res: Partial<Response>;
   let next: jest.Mock<any>;
   let mockService: ReturnType<typeof makeMockService>;
-  let controller: InstanceType<typeof ArticleController>;;
+  let controller: InstanceType<typeof ArticleController>;
 
   beforeEach(() => {
     ({ req, res, next } = makeMockReqResNext());
     mockService = makeMockService();
-    controller = new ArticleController(mockService as unknown as ArticleService);
+    controller = new ArticleController(
+      mockService as unknown as ArticleService
+    );
     jest.clearAllMocks();
   });
 
@@ -61,7 +74,7 @@ describe('ArticleController', () => {
     it('should call ArticleService.createArticle and return 201 with success response', async () => {
       const inputData = { title: 'Test Article', body: { type: 'doc' } };
       req.body = { data: JSON.stringify(inputData) };
-      
+
       const mockFile = {
         originalname: 'test.png',
         mimetype: 'image/png',
@@ -84,7 +97,11 @@ describe('ArticleController', () => {
 
       await controller.create(req as Request, res as Response, next);
 
-      expect(mockService.createArticle).toHaveBeenCalledWith(inputData, 'user-123', [mockFile]);
+      expect(mockService.createArticle).toHaveBeenCalledWith(
+        inputData,
+        'user-123',
+        [mockFile]
+      );
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -127,7 +144,12 @@ describe('ArticleController', () => {
 
       await controller.update(req as Request, res as Response, next);
 
-      expect(mockService.updateArticle).toHaveBeenCalledWith('article-123', {}, 'user-123', []);
+      expect(mockService.updateArticle).toHaveBeenCalledWith(
+        'article-123',
+        {},
+        'user-123',
+        []
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -149,7 +171,7 @@ describe('ArticleController', () => {
     it('should call ArticleService.updateArticle with parsed data and files', async () => {
       const inputData = { title: 'Updated Article' };
       req.body = { data: JSON.stringify(inputData) };
-      
+
       const mockFile = {
         originalname: 'test.png',
         mimetype: 'image/png',
@@ -172,7 +194,12 @@ describe('ArticleController', () => {
 
       await controller.update(req as Request, res as Response, next);
 
-      expect(mockService.updateArticle).toHaveBeenCalledWith('article-123', inputData, 'user-123', [mockFile]);
+      expect(mockService.updateArticle).toHaveBeenCalledWith(
+        'article-123',
+        inputData,
+        'user-123',
+        [mockFile]
+      );
       expect(res.status).toHaveBeenCalledWith(200);
     });
 
@@ -196,7 +223,10 @@ describe('ArticleController', () => {
 
       await controller.submitForReview(req as Request, res as Response, next);
 
-      expect(mockService.submitForReview).toHaveBeenCalledWith('article-123', 'user-123');
+      expect(mockService.submitForReview).toHaveBeenCalledWith(
+        'article-123',
+        'user-123'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -258,12 +288,19 @@ describe('ArticleController', () => {
     });
 
     it('should return the article', async () => {
-      const mockArticle = { id: 'article-123', title: 'Test Article', status: 'Published' };
+      const mockArticle = {
+        id: 'article-123',
+        title: 'Test Article',
+        status: 'Published',
+      };
       mockService.getArticleById.mockResolvedValue(mockArticle as never);
 
       await controller.getById(req as Request, res as Response, next);
 
-      expect(mockService.getArticleById).toHaveBeenCalledWith('article-123', 'user-123');
+      expect(mockService.getArticleById).toHaveBeenCalledWith(
+        'article-123',
+        'user-123'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -293,7 +330,12 @@ describe('ArticleController', () => {
 
       await controller.remove(req as Request, res as Response, next);
 
-      expect(mockService.deleteArticle).toHaveBeenCalledWith('article-123', 'user-123', 'User', false);
+      expect(mockService.deleteArticle).toHaveBeenCalledWith(
+        'article-123',
+        'user-123',
+        'User',
+        false
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -309,7 +351,12 @@ describe('ArticleController', () => {
 
       await controller.remove(req as Request, res as Response, next);
 
-      expect(mockService.deleteArticle).toHaveBeenCalledWith('article-123', 'admin-1', 'Admin', true);
+      expect(mockService.deleteArticle).toHaveBeenCalledWith(
+        'article-123',
+        'admin-1',
+        'Admin',
+        true
+      );
     });
 
     it('should pass req.user.role through to the service', async () => {
@@ -318,7 +365,12 @@ describe('ArticleController', () => {
 
       await controller.remove(req as Request, res as Response, next);
 
-      expect(mockService.deleteArticle).toHaveBeenCalledWith('article-123', 'user-123', 'Reviewer', false);
+      expect(mockService.deleteArticle).toHaveBeenCalledWith(
+        'article-123',
+        'user-123',
+        'Reviewer',
+        false
+      );
     });
 
     it('should pass errors to next', async () => {
@@ -350,7 +402,9 @@ describe('ArticleController.listMine', () => {
     };
     next = jest.fn();
     mockService = makeMockService();
-    controller = new ArticleController(mockService as unknown as ArticleService);
+    controller = new ArticleController(
+      mockService as unknown as ArticleService
+    );
     jest.clearAllMocks();
   });
 
@@ -383,7 +437,13 @@ describe('ArticleController.listMine', () => {
   it('should include articles across all statuses with likeCount and commentCount', async () => {
     const result = {
       articles: [
-        { id: 'article-1', title: 'Title 1', status: 'Draft', likeCount: 5, commentCount: 2 },
+        {
+          id: 'article-1',
+          title: 'Title 1',
+          status: 'Draft',
+          likeCount: 5,
+          commentCount: 2,
+        },
       ],
       total: 1,
       page: 1,

@@ -33,15 +33,29 @@ export function ConfirmationModal({
     if (!overlayRef.current || !modalRef.current) return;
 
     if (isOpen) {
-      gsap.to(overlayRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+      gsap.to(overlayRef.current, {
+        opacity: 1,
+        pointerEvents: 'auto',
+        duration: 0.3,
+      });
       gsap.fromTo(
         modalRef.current,
         { y: 30, opacity: 0, scale: 0.95 },
         { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.2)' }
       );
     } else {
-      gsap.to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
-      gsap.to(modalRef.current, { y: 20, opacity: 0, scale: 0.95, duration: 0.3, ease: 'power2.in' });
+      gsap.to(overlayRef.current, {
+        opacity: 0,
+        pointerEvents: 'none',
+        duration: 0.3,
+      });
+      gsap.to(modalRef.current, {
+        y: 20,
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.3,
+        ease: 'power2.in',
+      });
     }
   }, [isOpen]);
 
@@ -55,7 +69,9 @@ export function ConfirmationModal({
         className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-brand-border px-6 py-4">
-          <h2 className="text-lg font-bold text-brand-text-primary font-display">{title}</h2>
+          <h2 className="text-lg font-bold text-brand-text-primary font-display">
+            {title}
+          </h2>
           <button
             onClick={onCancel}
             disabled={isConfirming}
@@ -65,9 +81,7 @@ export function ConfirmationModal({
           </button>
         </div>
 
-        <div className="px-6 py-6 text-sm text-gray-600">
-          {message}
-        </div>
+        <div className="px-6 py-6 text-sm text-gray-600">{message}</div>
 
         <div className="flex items-center justify-end gap-3 border-t border-brand-border bg-gray-50 px-6 py-4">
           <button

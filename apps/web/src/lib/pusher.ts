@@ -25,35 +25,38 @@ let pusherInstance: Pusher | null = null;
 export function getPusherClient(): Pusher {
   if (pusherInstance) return pusherInstance;
 
-  pusherInstance = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || 'dummy-key', {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'dummy-cluster',
+  pusherInstance = new Pusher(
+    process.env.NEXT_PUBLIC_PUSHER_KEY || 'dummy-key',
+    {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'dummy-cluster',
 
-    // Custom authorizer: use apiFetch so the project's JWT handling
-    // (in-memory cache, automatic refresh, retry logic) applies.
-    authorizer: (channel) => ({
-      authorize: async (socketId, callback) => {
-        try {
-          const response = await apiFetch<{ auth: string }>('/pusher/auth', {
-            method: 'POST',
-            body: JSON.stringify({
-              socket_id:    socketId,
-              channel_name: channel.name,
-            }),
-          });
+      // Custom authorizer: use apiFetch so the project's JWT handling
+      // (in-memory cache, automatic refresh, retry logic) applies.
+      authorizer: (channel) => ({
+        authorize: async (socketId, callback) => {
+          try {
+            const response = await apiFetch<{ auth: string }>('/pusher/auth', {
+              method: 'POST',
+              body: JSON.stringify({
+                socket_id: socketId,
+                channel_name: channel.name,
+              }),
+            });
 
-          // response.data is { auth: "key:signature" } — exactly what Pusher expects.
-          if (!response.success || !response.data) {
-            callback(new Error('Pusher auth failed: invalid response'), null);
-            return;
+            // response.data is { auth: "key:signature" } — exactly what Pusher expects.
+            if (!response.success || !response.data) {
+              callback(new Error('Pusher auth failed: invalid response'), null);
+              return;
+            }
+
+            callback(null, response.data as Parameters<typeof callback>[1]);
+          } catch (err) {
+            callback(err instanceof Error ? err : new Error(String(err)), null);
           }
-
-          callback(null, response.data as Parameters<typeof callback>[1]);
-        } catch (err) {
-          callback(err instanceof Error ? err : new Error(String(err)), null);
-        }
-      },
-    }),
-  });
+        },
+      }),
+    }
+  );
 
   return pusherInstance;
 }

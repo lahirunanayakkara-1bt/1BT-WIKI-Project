@@ -5,9 +5,19 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 // Mock Prisma DB from @repo/db
 await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
-    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-  }
+    user: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    article: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+  },
 }));
 
 // Mock Auth Middleware
@@ -19,8 +29,8 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
       next: import('express').NextFunction
     ) => {
       const userId = req.headers['x-test-user-id'] as string | undefined;
-      const email  = req.headers['x-test-user-email'] as string | undefined;
-      const role   = req.headers['x-test-user-role'] as string | undefined;
+      const email = req.headers['x-test-user-email'] as string | undefined;
+      const role = req.headers['x-test-user-role'] as string | undefined;
 
       if (userId && email && role) {
         req.user = { userId, email, role };
@@ -28,7 +38,9 @@ await jest.unstable_mockModule('@/middleware/auth.middleware.js', () => ({
         return;
       }
 
-      res.status(401).json({ success: false, error: 'Authentication required' });
+      res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
   ),
 }));
@@ -50,33 +62,49 @@ await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
-await jest.unstable_mockModule('@repositories/articleAttachmentRepository.js', () => {
-  const mockCreate = jest.fn<() => Promise<unknown>>().mockResolvedValue({});
-  return {
-    default: { create: mockCreate },
-    ArticleAttachmentRepository: jest.fn().mockImplementation(() => ({ create: mockCreate }))
-  };
-});
+await jest.unstable_mockModule(
+  '@repositories/articleAttachmentRepository.js',
+  () => {
+    const mockCreate = jest.fn<() => Promise<unknown>>().mockResolvedValue({});
+    return {
+      default: { create: mockCreate },
+      ArticleAttachmentRepository: jest
+        .fn()
+        .mockImplementation(() => ({ create: mockCreate })),
+    };
+  }
+);
 
-await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => {
-  const mockFindLatest = jest.fn<() => Promise<unknown>>().mockResolvedValue(null);
-  return {
-    default: { findLatestByArticleId: mockFindLatest },
-    ArticleReviewRepository: jest.fn().mockImplementation(() => ({ findLatestByArticleId: mockFindLatest }))
-  };
-});
+await jest.unstable_mockModule(
+  '@repositories/articleReviewRepository.js',
+  () => {
+    const mockFindLatest = jest
+      .fn<() => Promise<unknown>>()
+      .mockResolvedValue(null);
+    return {
+      default: { findLatestByArticleId: mockFindLatest },
+      ArticleReviewRepository: jest
+        .fn()
+        .mockImplementation(() => ({ findLatestByArticleId: mockFindLatest })),
+    };
+  }
+);
 
 // Mock B2 Client
 await jest.unstable_mockModule('@v1/lib/b2Client.js', () => ({
   default: {
-    uploadFile: jest.fn<() => Promise<{ fileId: string; fileUrl: string }>>().mockResolvedValue({ fileId: 'test', fileUrl: 'test' }),
+    uploadFile: jest
+      .fn<() => Promise<{ fileId: string; fileUrl: string }>>()
+      .mockResolvedValue({ fileId: 'test', fileUrl: 'test' }),
   },
 }));
 
 const { default: app } = await import('@/app.js');
 const { default: request } = await import('supertest');
-const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
-const { default: ArticleReviewRepository } = await import('@repositories/articleReviewRepository.js');
+const { default: ArticleRepository } =
+  await import('@repositories/articleRepository.js');
+const { default: ArticleReviewRepository } =
+  await import('@repositories/articleReviewRepository.js');
 
 const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
 const mockUpdate = MockArticleRepository.update as jest.Mock<any>;
@@ -85,18 +113,19 @@ const mockFindByStatus = MockArticleRepository.findByStatus as jest.Mock<any>;
 const mockSoftDelete = MockArticleRepository.softDelete as jest.Mock<any>;
 const mockHardDelete = MockArticleRepository.hardDelete as jest.Mock<any>;
 const mockFindByAuthor = MockArticleRepository.findByAuthor as jest.Mock<any>;
-const mockFindLatestByArticleId = ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
+const mockFindLatestByArticleId =
+  ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>;
 
 const userHeaders = {
-  'x-test-user-id':    'user-123',
+  'x-test-user-id': 'user-123',
   'x-test-user-email': 'user@example.com',
-  'x-test-user-role':  'User',
+  'x-test-user-role': 'User',
 };
 
 const adminHeaders = {
-  'x-test-user-id':    'admin-1',
+  'x-test-user-id': 'admin-1',
   'x-test-user-email': 'admin@example.com',
-  'x-test-user-role':  'Admin',
+  'x-test-user-role': 'Admin',
 };
 
 describe('Articles API Integration', () => {
@@ -106,12 +135,12 @@ describe('Articles API Integration', () => {
 
   describe('PATCH /api/v1/articles/:id', () => {
     const articleId = 'article-123';
-    
+
     it('should return 401 if unauthenticated', async () => {
       const response = await request(app)
         .patch(`/api/v1/articles/${articleId}`)
         .send({ data: JSON.stringify({ title: 'New Title' }) });
-        
+
       expect(response.status).toBe(401);
     });
 
@@ -122,25 +151,34 @@ describe('Articles API Integration', () => {
         .patch(`/api/v1/articles/${articleId}`)
         .set(userHeaders)
         .field('data', JSON.stringify({ title: 'New Title' }));
-        
+
       expect(response.status).toBe(404);
     });
 
     it('should return 403 if user is not author', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'other-user',
+        status: 'Draft',
+      });
 
       const response = await request(app)
         .patch(`/api/v1/articles/${articleId}`)
         .set(userHeaders)
         .field('data', JSON.stringify({ title: 'New Title' }));
-        
+
       expect(response.status).toBe(403);
     });
 
     it('should update article successfully if user is author and article is Draft', async () => {
-      const existingArticle = { id: articleId, authorId: 'user-123', status: 'Draft', title: 'Old Title' };
+      const existingArticle = {
+        id: articleId,
+        authorId: 'user-123',
+        status: 'Draft',
+        title: 'Old Title',
+      };
       const updatedArticle = { ...existingArticle, title: 'New Title' };
-      
+
       mockFindById.mockResolvedValueOnce(existingArticle);
       mockUpdate.mockResolvedValueOnce(updatedArticle);
 
@@ -148,11 +186,13 @@ describe('Articles API Integration', () => {
         .patch(`/api/v1/articles/${articleId}`)
         .set(userHeaders)
         .field('data', JSON.stringify({ title: 'New Title' }));
-        
+
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.title).toBe('New Title');
-      expect(mockUpdate).toHaveBeenCalledWith(articleId, { title: 'New Title' });
+      expect(mockUpdate).toHaveBeenCalledWith(articleId, {
+        title: 'New Title',
+      });
     });
   });
 
@@ -173,10 +213,13 @@ describe('Articles API Integration', () => {
           createdAt: new Date('2023-01-01').toISOString(),
           updatedAt: new Date('2023-01-01').toISOString(),
           _count: { likes: 5, comments: 2 },
-        }
+        },
       ];
 
-      mockFindByStatus.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
+      mockFindByStatus.mockResolvedValueOnce({
+        articles: mockArticles,
+        total: 1,
+      });
 
       const response = await request(app)
         .get('/api/v1/articles')
@@ -190,8 +233,10 @@ describe('Articles API Integration', () => {
       expect(response.body.data.total).toBe(1);
       expect(response.body.data.page).toBe(1);
       expect(response.body.data.limit).toBe(20);
-      
-      expect(mockFindByStatus).toHaveBeenCalledWith('Published', 1, 20, { includeCounts: true });
+
+      expect(mockFindByStatus).toHaveBeenCalledWith('Published', 1, 20, {
+        includeCounts: true,
+      });
     });
 
     it('should respect custom page and limit query params', async () => {
@@ -204,8 +249,10 @@ describe('Articles API Integration', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.page).toBe(3);
       expect(response.body.data.limit).toBe(5);
-      
-      expect(mockFindByStatus).toHaveBeenCalledWith('Published', 3, 5, { includeCounts: true });
+
+      expect(mockFindByStatus).toHaveBeenCalledWith('Published', 3, 5, {
+        includeCounts: true,
+      });
     });
   });
 
@@ -229,7 +276,11 @@ describe('Articles API Integration', () => {
     });
 
     it('should return 403 if article is not Published and requester is not the author', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, status: 'Draft', authorId: 'other-user' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        status: 'Draft',
+        authorId: 'other-user',
+      });
 
       const response = await request(app)
         .get(`/api/v1/articles/${articleId}`)
@@ -239,7 +290,11 @@ describe('Articles API Integration', () => {
     });
 
     it('should return 200 and the article if Published', async () => {
-      const mockArticle = { id: articleId, title: 'Test Article', status: 'Published' };
+      const mockArticle = {
+        id: articleId,
+        title: 'Test Article',
+        status: 'Published',
+      };
       mockFindById.mockResolvedValueOnce(mockArticle);
 
       const response = await request(app)
@@ -298,7 +353,7 @@ describe('Articles API Integration', () => {
       expect(response.body.data.status).toBe('Rejected');
     });
 
-    it('should return 403 when a different authenticated user requests someone else\'s Draft article', async () => {
+    it("should return 403 when a different authenticated user requests someone else's Draft article", async () => {
       mockFindById.mockResolvedValueOnce({
         id: articleId,
         status: 'Draft',
@@ -317,8 +372,7 @@ describe('Articles API Integration', () => {
       // No auth headers → authenticate middleware returns 401 before
       // the controller/service is ever reached, so the article status
       // is irrelevant and the repository mock is never called.
-      const response = await request(app)
-        .get(`/api/v1/articles/${articleId}`);
+      const response = await request(app).get(`/api/v1/articles/${articleId}`);
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
@@ -343,10 +397,13 @@ describe('Articles API Integration', () => {
           createdAt: new Date('2023-01-01').toISOString(),
           updatedAt: new Date('2023-01-01').toISOString(),
           _count: { likes: 5, comments: 2 },
-        }
+        },
       ];
 
-      mockFindByAuthor.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
+      mockFindByAuthor.mockResolvedValueOnce({
+        articles: mockArticles,
+        total: 1,
+      });
 
       const response = await request(app)
         .get('/api/v1/articles/mine')
@@ -382,9 +439,11 @@ describe('Articles API Integration', () => {
 
   describe('POST /api/v1/articles/:id/submit', () => {
     const articleId = 'article-123';
-    
+
     it('should return 401 if unauthenticated', async () => {
-      const response = await request(app).post(`/api/v1/articles/${articleId}/submit`);
+      const response = await request(app).post(
+        `/api/v1/articles/${articleId}/submit`
+      );
       expect(response.status).toBe(401);
     });
 
@@ -394,42 +453,56 @@ describe('Articles API Integration', () => {
       const response = await request(app)
         .post(`/api/v1/articles/${articleId}/submit`)
         .set(userHeaders);
-        
+
       expect(response.status).toBe(404);
     });
 
     it('should return 403 if user is not author', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'other-user',
+        status: 'Draft',
+      });
 
       const response = await request(app)
         .post(`/api/v1/articles/${articleId}/submit`)
         .set(userHeaders);
-        
+
       expect(response.status).toBe(403);
     });
 
     it('should return 400 if article is not Draft', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'user-123', status: 'Pending' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'user-123',
+        status: 'Pending',
+      });
 
       const response = await request(app)
         .post(`/api/v1/articles/${articleId}/submit`)
         .set(userHeaders);
-        
+
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Cannot transition from Pending to Pending');
+      expect(response.body.error).toBe(
+        'Cannot transition from Pending to Pending'
+      );
     });
 
     it('should submit article for review successfully', async () => {
-      const existingArticle = { id: articleId, authorId: 'user-123', status: 'Draft' };
+      const existingArticle = {
+        id: articleId,
+        authorId: 'user-123',
+        status: 'Draft',
+      };
       const updatedArticle = { ...existingArticle, status: 'Pending' };
-      
+
       mockFindById.mockResolvedValueOnce(existingArticle);
       mockUpdateStatus.mockResolvedValueOnce(updatedArticle);
 
       const response = await request(app)
         .post(`/api/v1/articles/${articleId}/submit`)
         .set(userHeaders);
-        
+
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.status).toBe('Pending');
@@ -441,7 +514,12 @@ describe('Articles API Integration', () => {
     const articleId = 'article-123';
 
     it('should soft-delete own Draft as author (deletedAt set, row retained)', async () => {
-      const existingArticle = { id: articleId, authorId: 'user-123', status: 'Draft', title: 'Draft Article' };
+      const existingArticle = {
+        id: articleId,
+        authorId: 'user-123',
+        status: 'Draft',
+        title: 'Draft Article',
+      };
       const deletedAt = new Date();
       const softDeletedArticle = { ...existingArticle, deletedAt };
 
@@ -462,7 +540,11 @@ describe('Articles API Integration', () => {
     });
 
     it('should return 400 when author tries to delete own Published article', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'user-123', status: 'Published' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'user-123',
+        status: 'Published',
+      });
 
       const response = await request(app)
         .delete(`/api/v1/articles/${articleId}`)
@@ -475,7 +557,11 @@ describe('Articles API Integration', () => {
     });
 
     it('should return 403 when non-author non-admin attempts delete', async () => {
-      mockFindById.mockResolvedValueOnce({ id: articleId, authorId: 'other-user', status: 'Draft' });
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        authorId: 'other-user',
+        status: 'Draft',
+      });
 
       const response = await request(app)
         .delete(`/api/v1/articles/${articleId}`)
@@ -488,7 +574,12 @@ describe('Articles API Integration', () => {
     });
 
     it('should hard-delete as Admin with ?hard=true (row removed from DB)', async () => {
-      const existingArticle = { id: articleId, authorId: 'other-user', status: 'Published', title: 'Published Article' };
+      const existingArticle = {
+        id: articleId,
+        authorId: 'other-user',
+        status: 'Published',
+        title: 'Published Article',
+      };
 
       mockFindById.mockResolvedValueOnce(existingArticle);
       mockHardDelete.mockResolvedValueOnce(undefined);
@@ -508,4 +599,3 @@ describe('Articles API Integration', () => {
     });
   });
 });
-

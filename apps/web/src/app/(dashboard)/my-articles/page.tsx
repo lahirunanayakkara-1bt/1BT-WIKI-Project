@@ -24,7 +24,9 @@ export default function MyArticlesPage() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold text-brand-text-primary mb-8">My Articles</h1>
+      <h1 className="text-2xl font-semibold text-brand-text-primary mb-8">
+        My Articles
+      </h1>
       <MyArticlesList />
     </div>
   );

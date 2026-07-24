@@ -92,7 +92,10 @@ const updateComment = async (
   return CommentRepository.update(commentId, body);
 };
 
-const deleteComment = async (commentId: string, userId: string): Promise<void> => {
+const deleteComment = async (
+  commentId: string,
+  userId: string
+): Promise<void> => {
   const comment = await CommentRepository.findById(commentId);
 
   if (!comment) {

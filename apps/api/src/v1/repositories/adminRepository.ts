@@ -6,17 +6,17 @@ import type { User, CreateUserInput } from '@/types/userTypes.js';
 // ---------------------------------------------------------------------------
 
 const USER_SELECT = {
-  id:            true,
-  name:          true,
-  email:         true,
+  id: true,
+  name: true,
+  email: true,
   emailVerified: true,
-  image:         true,
-  createdAt:     true,
-  updatedAt:     true,
-  role:          true,
-  banned:        true,
-  banReason:     true,
-  banExpires:    true,
+  image: true,
+  createdAt: true,
+  updatedAt: true,
+  role: true,
+  banned: true,
+  banReason: true,
+  banExpires: true,
 } as const;
 
 // ---------------------------------------------------------------------------

@@ -25,9 +25,8 @@ await jest.unstable_mockModule('@repo/db', () => ({
 }));
 
 // Import AFTER mock is registered (ESM requirement)
-const { default: NotificationRepository } = await import(
-  '../notificationRepository.js'
-);
+const { default: NotificationRepository } =
+  await import('../notificationRepository.js');
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -78,7 +77,6 @@ const sampleInput: CreateNotificationInput = {
 // ---------------------------------------------------------------------------
 
 describe('NotificationRepository.create', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -108,7 +106,6 @@ describe('NotificationRepository.create', () => {
 });
 
 describe('NotificationRepository.findById', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -154,7 +151,6 @@ describe('NotificationRepository.findById', () => {
 });
 
 describe('NotificationRepository.list', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -162,16 +158,28 @@ describe('NotificationRepository.list', () => {
   it('should build correct parameterized SQL and return mapped entities', async () => {
     // Arrange
     const item1 = expectedEntity;
-    const item2 = { ...expectedEntity, id: 'notif-uuid-2', notificationTitle: 'New comment', notificationType: 'info', message: 'Someone commented on your article.' };
+    const item2 = {
+      ...expectedEntity,
+      id: 'notif-uuid-2',
+      notificationTitle: 'New comment',
+      notificationType: 'info',
+      message: 'Someone commented on your article.',
+    };
     mockFindMany.mockResolvedValue([item1, item2]);
 
     // Act
-    const result = await NotificationRepository.list('user-uuid-1', { limit: 20, offset: 0 });
+    const result = await NotificationRepository.list('user-uuid-1', {
+      limit: 20,
+      offset: 0,
+    });
 
     // Assert — prisma findMany called with expected args
     expect(mockFindMany).toHaveBeenCalledTimes(1);
     const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
-    expect(findManyArgs.where).toEqual({ recipientId: 'user-uuid-1', deletedAt: null });
+    expect(findManyArgs.where).toEqual({
+      recipientId: 'user-uuid-1',
+      deletedAt: null,
+    });
     expect(findManyArgs.take).toEqual(20);
     expect(findManyArgs.skip).toEqual(0);
 
@@ -186,7 +194,10 @@ describe('NotificationRepository.list', () => {
     mockFindMany.mockResolvedValue([]);
 
     // Act
-    const result = await NotificationRepository.list('user-uuid-1', { limit: 10, offset: 0 });
+    const result = await NotificationRepository.list('user-uuid-1', {
+      limit: 10,
+      offset: 0,
+    });
 
     // Assert
     expect(result).toEqual([]);
@@ -195,19 +206,24 @@ describe('NotificationRepository.list', () => {
   });
 });
 
-
 describe('NotificationRepository.markAsRead', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('should build correct parameterized UPDATE SQL scoped by id and recipientId, excluding soft-deleted rows', async () => {
-    const readEntity = { ...expectedEntity, isRead: true, readAt: new Date('2026-07-13T09:10:00.000Z') };
+    const readEntity = {
+      ...expectedEntity,
+      isRead: true,
+      readAt: new Date('2026-07-13T09:10:00.000Z'),
+    };
     mockFindFirst.mockResolvedValue(readEntity);
     mockUpdate.mockResolvedValue(readEntity);
 
-    const result = await NotificationRepository.markAsRead('notif-uuid-1', 'user-uuid-1');
+    const result = await NotificationRepository.markAsRead(
+      'notif-uuid-1',
+      'user-uuid-1'
+    );
 
     expect(mockFindFirst).toHaveBeenCalledTimes(1);
     expect(mockUpdate).toHaveBeenCalledTimes(1);
@@ -222,7 +238,10 @@ describe('NotificationRepository.markAsRead', () => {
   it('should return null no matching row is found(wrong id, wrong owner, or soft-deleted)', async () => {
     mockFindFirst.mockResolvedValue(null);
 
-    const result = await NotificationRepository.markAsRead('nonexistent-id', 'user-uuid-1');
+    const result = await NotificationRepository.markAsRead(
+      'nonexistent-id',
+      'user-uuid-1'
+    );
 
     // Assert
     expect(result).toBeNull();
@@ -236,7 +255,7 @@ describe('NotificationRepository.markAsRead', () => {
 
     // Act & Assert
     await expect(
-      NotificationRepository.markAsRead('notif-uuid-1', 'user-uuid-1'),
+      NotificationRepository.markAsRead('notif-uuid-1', 'user-uuid-1')
     ).rejects.toThrow('Database is unavailable');
   });
 });

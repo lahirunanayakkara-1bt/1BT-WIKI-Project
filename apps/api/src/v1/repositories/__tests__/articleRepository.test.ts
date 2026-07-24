@@ -33,7 +33,10 @@ describe('ArticleRepository.findByStatus', () => {
     expect(mockFindMany).toHaveBeenCalledTimes(1);
     const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
 
-    expect(findManyArgs.where).toEqual({ status: 'Published', deletedAt: null });
+    expect(findManyArgs.where).toEqual({
+      status: 'Published',
+      deletedAt: null,
+    });
     expect(findManyArgs.orderBy).toEqual({ createdAt: 'desc' });
     expect(findManyArgs.skip).toBe(10);
     expect(findManyArgs.take).toBe(10);
@@ -134,7 +137,13 @@ describe('ArticleRepository.findByAuthor', () => {
 
   it('should return the articles and total as resolved by prisma', async () => {
     const mockArticles = [
-      { id: 'article-1', title: 'Title 1', authorId, status: 'Draft', _count: { likes: 3, comments: 1 } },
+      {
+        id: 'article-1',
+        title: 'Title 1',
+        authorId,
+        status: 'Draft',
+        _count: { likes: 3, comments: 1 },
+      },
     ];
     mockFindMany.mockResolvedValue(mockArticles);
     mockCount.mockResolvedValue(1);

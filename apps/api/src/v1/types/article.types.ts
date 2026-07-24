@@ -122,4 +122,3 @@ export interface CreateArticleReviewInput {
   feedback: string | null;
   createdBy: string;
 }
-

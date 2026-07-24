@@ -21,7 +21,7 @@ import notificationService from '@services/notificationService.js';
 const getNotifications = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     // req.user is guaranteed to exist — authenticate middleware runs first
@@ -32,15 +32,24 @@ const getNotifications = async (
     const parsedLimit = Number(req.query.limit);
     const parsedOffset = Number(req.query.offset);
 
-    let limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.floor(parsedLimit) : 20;
-    const offset = Number.isFinite(parsedOffset) && parsedOffset >= 0 ? Math.floor(parsedOffset) : 0;
+    let limit =
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.floor(parsedLimit)
+        : 20;
+    const offset =
+      Number.isFinite(parsedOffset) && parsedOffset >= 0
+        ? Math.floor(parsedOffset)
+        : 0;
 
     // Clamp limit to max 100
     if (limit > 100) {
       limit = 100;
     }
 
-    const notifications = await notificationService.list(userId, { limit, offset });
+    const notifications = await notificationService.list(userId, {
+      limit,
+      offset,
+    });
 
     res.status(200).json({ success: true, data: notifications });
   } catch (error) {
@@ -51,7 +60,7 @@ const getNotifications = async (
 const markNotificationAsRead = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.user!.userId;
@@ -68,7 +77,7 @@ const markNotificationAsRead = async (
 const getUnreadCount = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.user!.userId;
@@ -79,32 +88,35 @@ const getUnreadCount = async (
   }
 };
 
-
-
 const testNotification = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.user!.userId;
 
     await notificationService.send({
       recipientId: userId,
-      notificationTitle: "Test Notification",
-      notificationReferenceType: "article",
-      referenceId: "00000000-0000-0000-0000-000000000000",
-      notificationType: "info",
-      message: "Hello from notification test route",
+      notificationTitle: 'Test Notification',
+      notificationReferenceType: 'article',
+      referenceId: '00000000-0000-0000-0000-000000000000',
+      notificationType: 'info',
+      message: 'Hello from notification test route',
     });
 
     res.status(200).json({
       success: true,
-      message: "Test notification sent"
+      message: 'Test notification sent',
     });
   } catch (error) {
     next(error);
   }
 };
 
-export default { getNotifications, markNotificationAsRead, getUnreadCount, testNotification };
+export default {
+  getNotifications,
+  markNotificationAsRead,
+  getUnreadCount,
+  testNotification,
+};

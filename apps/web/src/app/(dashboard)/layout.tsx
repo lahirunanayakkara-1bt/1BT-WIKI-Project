@@ -5,7 +5,10 @@ import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { UserProvider } from '@/lib/hooks/useUser';
-import { NotificationProvider, useNotificationContext } from '@/components/providers/NotificationProvider';
+import {
+  NotificationProvider,
+  useNotificationContext,
+} from '@/components/providers/NotificationProvider';
 import { isE2E } from '@/lib/e2e';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -20,7 +23,9 @@ interface DashboardLayoutProps {
 }
 
 // Inner layout component — must live inside NotificationProvider to consume context.
-function DashboardLayoutInner({ children }: DashboardLayoutProps): React.JSX.Element {
+function DashboardLayoutInner({
+  children,
+}: DashboardLayoutProps): React.JSX.Element {
   const pathname = usePathname();
   const isEditorRoute = pathname?.startsWith('/editor');
 
@@ -32,136 +37,168 @@ function DashboardLayoutInner({ children }: DashboardLayoutProps): React.JSX.Ele
   useLenisScroll(isEditorRoute ? null : 'main-scroll-container');
 
   // Initial App Preloader Animation
-  useGSAP(() => {
-    if (isE2E()) {
-      setIsAppLoading(false);
-      return;
-    }
-
-    const tl = gsap.timeline({
-      onComplete: () => {
+  useGSAP(
+    () => {
+      if (isE2E()) {
         setIsAppLoading(false);
+        return;
       }
-    });
 
-    // 1. Logo scale & rotation entry
-    tl.fromTo('.preloader-logo',
-      { scale: 0, rotation: -30, opacity: 0 },
-      { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.5)' }
-    );
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setIsAppLoading(false);
+        },
+      });
 
-    // 2. WIKI text slide up and fade
-    tl.fromTo('.preloader-text',
-      { y: 10, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
-      '-=0.3'
-    );
+      // 1. Logo scale & rotation entry
+      tl.fromTo(
+        '.preloader-logo',
+        { scale: 0, rotation: -30, opacity: 0 },
+        {
+          scale: 1,
+          rotation: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'back.out(1.5)',
+        }
+      );
 
-    // 3. Keep loading visible, then fade-out the preloader overlay
-    tl.to('.preloader', {
-      opacity: 0,
-      pointerEvents: 'none',
-      duration: 0.5,
-      ease: 'power3.inOut',
-      delay: 0.7,
-    });
-
-    // 4. Coordinated reveal of Sidebar, Navbar, and main page content
-    const sidebar = document.querySelector('[data-testid="sidebar"]');
-    const navbar = document.querySelector('[data-testid="navbar"]');
-    const mainContent = document.querySelector('[data-testid="main-content"]');
-
-    if (sidebar) {
-      tl.fromTo(sidebar,
-        { x: -240 },
-        { x: 0, duration: 0.5, ease: 'power3.out' },
+      // 2. WIKI text slide up and fade
+      tl.fromTo(
+        '.preloader-text',
+        { y: 10, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
         '-=0.3'
       );
-    }
-    if (navbar) {
-      tl.fromTo(navbar,
-        { y: -20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' },
-        '-=0.3'
+
+      // 3. Keep loading visible, then fade-out the preloader overlay
+      tl.to('.preloader', {
+        opacity: 0,
+        pointerEvents: 'none',
+        duration: 0.5,
+        ease: 'power3.inOut',
+        delay: 0.7,
+      });
+
+      // 4. Coordinated reveal of Sidebar, Navbar, and main page content
+      const sidebar = document.querySelector('[data-testid="sidebar"]');
+      const navbar = document.querySelector('[data-testid="navbar"]');
+      const mainContent = document.querySelector(
+        '[data-testid="main-content"]'
       );
-    }
-    if (mainContent) {
-      tl.fromTo(mainContent,
-        { y: 15, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
-        '-=0.4'
-      );
-    }
-  }, { scope: containerRef });
+
+      if (sidebar) {
+        tl.fromTo(
+          sidebar,
+          { x: -240 },
+          { x: 0, duration: 0.5, ease: 'power3.out' },
+          '-=0.3'
+        );
+      }
+      if (navbar) {
+        tl.fromTo(
+          navbar,
+          { y: -20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' },
+          '-=0.3'
+        );
+      }
+      if (mainContent) {
+        tl.fromTo(
+          mainContent,
+          { y: 15, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
+          '-=0.4'
+        );
+      }
+    },
+    { scope: containerRef }
+  );
 
   // Sidebar Open/Close Toggle Animation
-  useGSAP(() => {
-    if (isAppLoading || isE2E()) return; // Prevent initial layout conflicts
+  useGSAP(
+    () => {
+      if (isAppLoading || isE2E()) return; // Prevent initial layout conflicts
 
-    const sidebar = document.querySelector('[data-testid="sidebar"]');
-    const navbar = document.querySelector('[data-testid="navbar"]');
-    const mainWrapper = mainWrapperRef.current;
+      const sidebar = document.querySelector('[data-testid="sidebar"]');
+      const navbar = document.querySelector('[data-testid="navbar"]');
+      const mainWrapper = mainWrapperRef.current;
 
-    if (!sidebar || !navbar || !mainWrapper) return;
+      if (!sidebar || !navbar || !mainWrapper) return;
 
-    if (isSidebarOpen) {
-      // Slide sidebar IN
-      gsap.to(sidebar, {
-        x: 0,
-        opacity: 1,
-        duration: 0.4,
-        ease: 'power2.out',
-      });
-      // Slide navbar and main content area to make space
-      gsap.to(navbar, {
-        left: 240,
-        duration: 0.4,
-        ease: 'power2.out',
-      });
-      gsap.to(mainWrapper, {
-        marginLeft: 240,
-        duration: 0.4,
-        ease: 'power2.out',
-      });
+      if (isSidebarOpen) {
+        // Slide sidebar IN
+        gsap.to(sidebar, {
+          x: 0,
+          opacity: 1,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+        // Slide navbar and main content area to make space
+        gsap.to(navbar, {
+          left: 240,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+        gsap.to(mainWrapper, {
+          marginLeft: 240,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
 
-      // Stagger-in the sidebar navigation links
-      gsap.fromTo('.sidebar-item',
-        { x: -15, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.3, stagger: 0.04, ease: 'power2.out', delay: 0.05 }
-      );
-    } else {
-      // Slide sidebar OUT
-      gsap.to(sidebar, {
-        x: -240,
-        opacity: 0,
-        duration: 0.4,
-        ease: 'power2.inOut',
-      });
-      // Slide navbar and main content area to full width
-      gsap.to(navbar, {
-        left: 0,
-        duration: 0.4,
-        ease: 'power2.inOut',
-      });
-      gsap.to(mainWrapper, {
-        marginLeft: 0,
-        duration: 0.4,
-        ease: 'power2.inOut',
-      });
-    }
-  }, { dependencies: [isSidebarOpen, isAppLoading] });
+        // Stagger-in the sidebar navigation links
+        gsap.fromTo(
+          '.sidebar-item',
+          { x: -15, opacity: 0 },
+          {
+            x: 0,
+            opacity: 1,
+            duration: 0.3,
+            stagger: 0.04,
+            ease: 'power2.out',
+            delay: 0.05,
+          }
+        );
+      } else {
+        // Slide sidebar OUT
+        gsap.to(sidebar, {
+          x: -240,
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.inOut',
+        });
+        // Slide navbar and main content area to full width
+        gsap.to(navbar, {
+          left: 0,
+          duration: 0.4,
+          ease: 'power2.inOut',
+        });
+        gsap.to(mainWrapper, {
+          marginLeft: 0,
+          duration: 0.4,
+          ease: 'power2.inOut',
+        });
+      }
+    },
+    { dependencies: [isSidebarOpen, isAppLoading] }
+  );
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   const { unreadCount } = useNotificationContext();
 
   return (
-    <div ref={containerRef} className="flex h-screen overflow-hidden bg-brand-bg">
+    <div
+      ref={containerRef}
+      className="flex h-screen overflow-hidden bg-brand-bg"
+    >
       {/* Initial App Load Splash Screen */}
       {isAppLoading && (
         <div className="preloader fixed inset-0 bg-brand-dark z-[9999] flex flex-col items-center justify-center">
           <div className="preloader-logo h-16 w-16 bg-brand-red rounded-xl flex items-center justify-center shadow-2xl shadow-brand-red/15 border border-white/5">
-            <span className="text-white text-lg font-black leading-none tracking-tight">{BRAND_NAME}</span>
+            <span className="text-white text-lg font-black leading-none tracking-tight">
+              {BRAND_NAME}
+            </span>
           </div>
           <div className="preloader-text mt-4 text-white/90 font-bold tracking-[0.25em] text-xs uppercase opacity-0">
             {BRAND_SUB_NAME}
@@ -171,7 +208,10 @@ function DashboardLayoutInner({ children }: DashboardLayoutProps): React.JSX.Ele
       )}
 
       {!isEditorRoute && <Sidebar />}
-      <div ref={mainWrapperRef} className={cn('flex flex-col flex-1', !isEditorRoute && 'ml-60')}>
+      <div
+        ref={mainWrapperRef}
+        className={cn('flex flex-col flex-1', !isEditorRoute && 'ml-60')}
+      >
         {!isEditorRoute && (
           <Navbar
             notificationCount={unreadCount}
@@ -179,7 +219,14 @@ function DashboardLayoutInner({ children }: DashboardLayoutProps): React.JSX.Ele
             onToggleSidebar={toggleSidebar}
           />
         )}
-        <main id="main-scroll-container" className={cn('flex-1 overflow-y-auto bg-brand-bg', !isEditorRoute && 'pt-16')} data-testid="main-content">
+        <main
+          id="main-scroll-container"
+          className={cn(
+            'flex-1 overflow-y-auto bg-brand-bg',
+            !isEditorRoute && 'pt-16'
+          )}
+          data-testid="main-content"
+        >
           {children}
         </main>
       </div>
@@ -187,7 +234,9 @@ function DashboardLayoutInner({ children }: DashboardLayoutProps): React.JSX.Ele
   );
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps): React.JSX.Element {
+export default function DashboardLayout({
+  children,
+}: DashboardLayoutProps): React.JSX.Element {
   return (
     <UserProvider>
       <NotificationProvider>
@@ -196,4 +245,3 @@ export default function DashboardLayout({ children }: DashboardLayoutProps): Rea
     </UserProvider>
   );
 }
-

@@ -20,17 +20,22 @@ export default function EditorWorkspacePage() {
     <EditorDraftProvider>
       <div className="flex h-screen w-full flex-col overflow-hidden bg-brand-bg">
         <EditorHeader mode={mode} setMode={setMode} />
-        
+
         <div className="flex flex-1 overflow-hidden">
-          <DraftManagerSidebar 
-            isOpen={isSidebarOpen} 
-            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          <DraftManagerSidebar
+            isOpen={isSidebarOpen}
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
-          
-          <main className="flex-1 overflow-y-auto relative z-0" id="editor-scroll-container">
+
+          <main
+            className="flex-1 overflow-y-auto relative z-0"
+            id="editor-scroll-container"
+          >
             <div className="min-h-full">
               {mode === 'compose' ? (
-                <ComposerView onOpenImageEmbed={() => setIsImageModalOpen(true)} />
+                <ComposerView
+                  onOpenImageEmbed={() => setIsImageModalOpen(true)}
+                />
               ) : (
                 <ReadingPreview />
               )}
@@ -38,9 +43,9 @@ export default function EditorWorkspacePage() {
           </main>
         </div>
 
-        <ImageEmbedModal 
-          isOpen={isImageModalOpen} 
-          onClose={() => setIsImageModalOpen(false)} 
+        <ImageEmbedModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
         />
       </div>
     </EditorDraftProvider>

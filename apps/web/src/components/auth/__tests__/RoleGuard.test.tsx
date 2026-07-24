@@ -14,7 +14,12 @@ describe('RoleGuard', () => {
   });
 
   it('renders the loading state while user data is loading', () => {
-    mockUseUser.mockReturnValue({ user: null, loading: true, error: null, refetch: jest.fn() });
+    mockUseUser.mockReturnValue({
+      user: null,
+      loading: true,
+      error: null,
+      refetch: jest.fn(),
+    });
 
     render(
       <RoleGuard allowedRoles={['Admin']}>
@@ -27,7 +32,12 @@ describe('RoleGuard', () => {
   });
 
   it('renders the default no-permission message when there is no user', () => {
-    mockUseUser.mockReturnValue({ user: null, loading: false, error: null, refetch: jest.fn() });
+    mockUseUser.mockReturnValue({
+      user: null,
+      loading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
 
     render(
       <RoleGuard allowedRoles={['Admin']}>
@@ -35,14 +45,24 @@ describe('RoleGuard', () => {
       </RoleGuard>
     );
 
-    expect(screen.getByText(/you don't have permission to view this page/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/you don't have permission to view this page/i)
+    ).toBeInTheDocument();
     expect(screen.getByTestId('roleguard-home-link')).toBeInTheDocument();
     expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
   });
 
   it('renders a custom fallback when the user role is not allowed', () => {
     mockUseUser.mockReturnValue({
-      user: { id: 'u1', name: 'Test', email: 'test@1billiontech.com', role: 'User', avatarUrl: null, isActive: true, createdAt: '' },
+      user: {
+        id: 'u1',
+        name: 'Test',
+        email: 'test@1billiontech.com',
+        role: 'User',
+        avatarUrl: null,
+        isActive: true,
+        createdAt: '',
+      },
       loading: false,
       error: null,
       refetch: jest.fn(),
@@ -60,7 +80,15 @@ describe('RoleGuard', () => {
 
   it('renders children when the user role is in the allowed list (role assignment respected)', () => {
     mockUseUser.mockReturnValue({
-      user: { id: 'u1', name: 'Admin User', email: 'admin@1billiontech.com', role: 'Admin', avatarUrl: null, isActive: true, createdAt: '' },
+      user: {
+        id: 'u1',
+        name: 'Admin User',
+        email: 'admin@1billiontech.com',
+        role: 'Admin',
+        avatarUrl: null,
+        isActive: true,
+        createdAt: '',
+      },
       loading: false,
       error: null,
       refetch: jest.fn(),
@@ -73,6 +101,8 @@ describe('RoleGuard', () => {
     );
 
     expect(screen.getByText('Protected content')).toBeInTheDocument();
-    expect(screen.queryByText(/you don't have permission/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/you don't have permission/i)
+    ).not.toBeInTheDocument();
   });
 });

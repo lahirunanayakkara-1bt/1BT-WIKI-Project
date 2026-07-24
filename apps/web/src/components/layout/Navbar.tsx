@@ -28,41 +28,73 @@ export function Navbar({
   const containerRef = useRef<HTMLElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
 
-  useGSAP(() => {
-    if (isE2E()) return;
-    // [GSAP] Nav bar: fade-down (y: -20 -> 0, 0.5s)
-    gsap.from(containerRef.current, {
-      y: -20,
-      opacity: 0,
-      duration: 0.5,
-    });
+  useGSAP(
+    () => {
+      if (isE2E()) return;
+      // [GSAP] Nav bar: fade-down (y: -20 -> 0, 0.5s)
+      gsap.from(containerRef.current, {
+        y: -20,
+        opacity: 0,
+        duration: 0.5,
+      });
 
-    // [GSAP] Bell Notification Rubber-band shake on new notification (elastic ease)
-    if (notificationCount > 0 && bellRef.current) {
-      gsap.fromTo(
-        bellRef.current,
-        { scaleX: 1.25, scaleY: 0.75 },
-        { scaleX: 1, scaleY: 1, duration: 1, ease: 'elastic.out(1, 0.3)', delay: 0.5 }
-      );
-    }
-  }, { scope: containerRef, dependencies: [notificationCount] });
+      // [GSAP] Bell Notification Rubber-band shake on new notification (elastic ease)
+      if (notificationCount > 0 && bellRef.current) {
+        gsap.fromTo(
+          bellRef.current,
+          { scaleX: 1.25, scaleY: 0.75 },
+          {
+            scaleX: 1,
+            scaleY: 1,
+            duration: 1,
+            ease: 'elastic.out(1, 0.3)',
+            delay: 0.5,
+          }
+        );
+      }
+    },
+    { scope: containerRef, dependencies: [notificationCount] }
+  );
 
   // [GSAP] Burger menu icon lines morphing animation
-  useGSAP(() => {
-    const lines = gsap.utils.toArray('.burger-line') as HTMLElement[];
-    const [line1, line2, line3] = lines;
-    if (line1 && line2 && line3) {
-      if (isSidebarOpen) {
-        gsap.to(line1, { y: 5, rotation: 45, duration: 0.3, ease: 'power2.out' });
-        gsap.to(line2, { opacity: 0, scaleX: 0, duration: 0.2 });
-        gsap.to(line3, { y: -5, rotation: -45, duration: 0.3, ease: 'power2.out' });
-      } else {
-        gsap.to(line1, { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
-        gsap.to(line2, { opacity: 1, scaleX: 1, duration: 0.3 });
-        gsap.to(line3, { y: 0, rotation: 0, duration: 0.3, ease: 'power2.out' });
+  useGSAP(
+    () => {
+      const lines = gsap.utils.toArray('.burger-line') as HTMLElement[];
+      const [line1, line2, line3] = lines;
+      if (line1 && line2 && line3) {
+        if (isSidebarOpen) {
+          gsap.to(line1, {
+            y: 5,
+            rotation: 45,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+          gsap.to(line2, { opacity: 0, scaleX: 0, duration: 0.2 });
+          gsap.to(line3, {
+            y: -5,
+            rotation: -45,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+        } else {
+          gsap.to(line1, {
+            y: 0,
+            rotation: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+          gsap.to(line2, { opacity: 1, scaleX: 1, duration: 0.3 });
+          gsap.to(line3, {
+            y: 0,
+            rotation: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+        }
       }
-    }
-  }, { scope: containerRef, dependencies: [isSidebarOpen] });
+    },
+    { scope: containerRef, dependencies: [isSidebarOpen] }
+  );
 
   return (
     <header
@@ -91,9 +123,13 @@ export function Navbar({
         data-testid="logo"
       >
         <div className="h-10 w-10 bg-brand-red rounded flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-black leading-none">{BRAND_NAME}</span>
+          <span className="text-white text-xs font-black leading-none">
+            {BRAND_NAME}
+          </span>
         </div>
-        <span className="text-brand-text-secondary font-semibold text-base leading-none tracking-tight">{BRAND_SUB_NAME}</span>
+        <span className="text-brand-text-secondary font-semibold text-base leading-none tracking-tight">
+          {BRAND_SUB_NAME}
+        </span>
       </div>
 
       <div className="flex-1 px-4">
@@ -124,8 +160,10 @@ export function Navbar({
         >
           <BellIcon className="h-5 w-5" />
           {notificationCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-brand-red text-white text-[10px] font-bold
-                             rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
+            <span
+              className="absolute -top-1.5 -right-1.5 bg-brand-red text-white text-[10px] font-bold
+                             rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5"
+            >
               {notificationCount}
             </span>
           )}

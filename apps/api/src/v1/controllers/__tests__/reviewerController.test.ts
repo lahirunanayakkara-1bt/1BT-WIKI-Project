@@ -9,7 +9,9 @@ jest.unstable_mockModule('@services/reviewerService.js', () => ({
 
 const { ReviewerController } = await import('../reviewerController.js');
 
-const makeMockService = (): jest.Mocked<Pick<ReviewerService, 'listPending' | 'approveArticle' | 'rejectArticle'>> => ({
+const makeMockService = (): jest.Mocked<
+  Pick<ReviewerService, 'listPending' | 'approveArticle' | 'rejectArticle'>
+> => ({
   listPending: jest.fn(),
   approveArticle: jest.fn(),
   rejectArticle: jest.fn(),
@@ -30,7 +32,9 @@ describe('ReviewerController', () => {
     };
     next = jest.fn();
     mockService = makeMockService();
-    controller = new ReviewerController(mockService as unknown as ReviewerService);
+    controller = new ReviewerController(
+      mockService as unknown as ReviewerService
+    );
     jest.clearAllMocks();
   });
 
@@ -97,7 +101,10 @@ describe('ReviewerController', () => {
 
       await controller.approveArticle(req as Request, res as Response, next);
 
-      expect(mockService.approveArticle).toHaveBeenCalledWith('article-123', 'reviewer-1');
+      expect(mockService.approveArticle).toHaveBeenCalledWith(
+        'article-123',
+        'reviewer-1'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -134,7 +141,11 @@ describe('ReviewerController', () => {
 
       await controller.rejectArticle(req as Request, res as Response, next);
 
-      expect(mockService.rejectArticle).toHaveBeenCalledWith('article-123', 'reviewer-1', 'valid feedback text');
+      expect(mockService.rejectArticle).toHaveBeenCalledWith(
+        'article-123',
+        'reviewer-1',
+        'valid feedback text'
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -156,7 +167,11 @@ describe('ReviewerController', () => {
 
       await controller.rejectArticle(req as Request, res as Response, next);
 
-      expect(mockService.rejectArticle).toHaveBeenCalledWith('article-123', 'reviewer-1', '');
+      expect(mockService.rejectArticle).toHaveBeenCalledWith(
+        'article-123',
+        'reviewer-1',
+        ''
+      );
     });
 
     it('should pass errors to next', async () => {

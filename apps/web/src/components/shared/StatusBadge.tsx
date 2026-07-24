@@ -10,7 +10,11 @@ const statusBadgeClass: Record<ArticleStatus, string> = {
   Rejected: 'bg-brand-red/10 text-brand-red border-brand-red/20',
 };
 
-export function StatusBadge({ status }: { status: ArticleStatus }): React.JSX.Element {
+export function StatusBadge({
+  status,
+}: {
+  status: ArticleStatus;
+}): React.JSX.Element {
   return (
     <span
       className={cn(

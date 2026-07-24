@@ -34,7 +34,9 @@ export function ArticleCard({
       className="flex flex-col gap-4 p-6 bg-white border border-brand-border rounded-lg hover:shadow-md transition-shadow duration-200"
     >
       <div className="flex flex-col gap-2 flex-grow">
-        <h2 className="text-xl font-semibold text-brand-text-primary line-clamp-2">{title}</h2>
+        <h2 className="text-xl font-semibold text-brand-text-primary line-clamp-2">
+          {title}
+        </h2>
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag) => (
             <span
@@ -48,16 +50,26 @@ export function ArticleCard({
       </div>
       <div className="flex items-center justify-between mt-4 text-sm text-brand-text-secondary">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1" data-testid="article-like-count">
+          <div
+            className="flex items-center gap-1"
+            data-testid="article-like-count"
+          >
             <HeartIcon width="16" height="16" />
             <span>{likeCount}</span>
           </div>
-          <div className="flex items-center gap-1" data-testid="article-comment-count">
+          <div
+            className="flex items-center gap-1"
+            data-testid="article-comment-count"
+          >
             <CommentIcon width="16" height="16" />
             <span>{commentCount}</span>
           </div>
           {/* TODO(backend): wire real view count once the views field is exposed by GET /api/v1/articles */}
-          <div className="flex items-center gap-1 opacity-50 cursor-not-allowed" data-testid="article-view-count" title="View count coming soon">
+          <div
+            className="flex items-center gap-1 opacity-50 cursor-not-allowed"
+            data-testid="article-view-count"
+            title="View count coming soon"
+          >
             <EyeIcon width="16" height="16" />
             <span>—</span>
           </div>

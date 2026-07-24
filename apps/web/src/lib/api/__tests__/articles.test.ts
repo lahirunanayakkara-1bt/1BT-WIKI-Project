@@ -55,7 +55,10 @@ describe('fetchMyArticles', () => {
   });
 
   it('throws the returned error message when success is false', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: false, error: 'Not authenticated' });
+    mockApiFetch.mockResolvedValueOnce({
+      success: false,
+      error: 'Not authenticated',
+    });
 
     await expect(fetchMyArticles()).rejects.toThrow('Not authenticated');
   });

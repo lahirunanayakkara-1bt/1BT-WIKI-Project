@@ -35,7 +35,9 @@ interface NotificationContextValue {
   markAsRead: (id: string) => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextValue | undefined>(
+  undefined
+);
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -54,7 +56,9 @@ interface NotificationProviderProps {
  * When the user is not yet loaded (loading state) or not authenticated,
  * Pusher is not connected and the state defaults to empty.
  */
-export function NotificationProvider({ children }: NotificationProviderProps): React.JSX.Element {
+export function NotificationProvider({
+  children,
+}: NotificationProviderProps): React.JSX.Element {
   const { user } = useUser();
 
   const { notifications, unreadCount, loading, markAsRead } = useNotifications({
@@ -62,7 +66,9 @@ export function NotificationProvider({ children }: NotificationProviderProps): R
   });
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, loading, markAsRead }}>
+    <NotificationContext.Provider
+      value={{ notifications, unreadCount, loading, markAsRead }}
+    >
       {children}
     </NotificationContext.Provider>
   );
@@ -80,9 +86,9 @@ export function NotificationProvider({ children }: NotificationProviderProps): R
 export function useNotificationContext(): NotificationContextValue {
   const ctx = useContext(NotificationContext);
   if (ctx === undefined) {
-    throw new Error('useNotificationContext() must be used within a <NotificationProvider>');
+    throw new Error(
+      'useNotificationContext() must be used within a <NotificationProvider>'
+    );
   }
   return ctx;
 }
-
-

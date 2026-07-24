@@ -20,12 +20,27 @@ const router = Router();
 router.get('/getAllUsers', authenticate, AdminController.getAllUsers);
 
 // POST /api/v1/admin/users — Admin: onboard a new user
-router.post('/createUsers', authenticate, requireRole('Admin'), AdminController.adminCreateUser);
+router.post(
+  '/createUsers',
+  authenticate,
+  requireRole('Admin'),
+  AdminController.adminCreateUser
+);
 
 // PATCH /api/v1/admin/users/:userId/role — Admin: update a user's role
-router.patch('/users/:userId/role', authenticate, requireRole('Admin'), UserController.updateUserRole);
+router.patch(
+  '/users/:userId/role',
+  authenticate,
+  requireRole('Admin'),
+  UserController.updateUserRole
+);
 
 // PATCH /api/v1/admin/users/:userId/ban — Admin: deactivate/reactivate a user
-router.patch('/users/:userId/ban', authenticate, requireRole('Admin'), UserController.updateUserBanStatus);
+router.patch(
+  '/users/:userId/ban',
+  authenticate,
+  requireRole('Admin'),
+  UserController.updateUserBanStatus
+);
 
 export default router;

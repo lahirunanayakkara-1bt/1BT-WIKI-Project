@@ -7,9 +7,9 @@ declare global {
   }
 }
 
-Cypress.Commands.add("visitPage", (path: string) => {
+Cypress.Commands.add('visitPage', (path: string) => {
   cy.visit(path);
-  cy.url().should("include", path);
+  cy.url().should('include', path);
 });
 
 export {};

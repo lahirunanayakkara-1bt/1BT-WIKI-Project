@@ -46,7 +46,9 @@ describe('useUser / UserProvider', () => {
     );
 
     expect(screen.getByTestId('loading')).toHaveTextContent('true');
-    await waitFor(() => expect(screen.getByTestId('loading')).toHaveTextContent('false'));
+    await waitFor(() =>
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    );
 
     expect(mockApiFetch).toHaveBeenCalledWith('/users/me');
     expect(screen.getByTestId('user-role')).toHaveTextContent('Admin');
@@ -54,7 +56,10 @@ describe('useUser / UserProvider', () => {
   });
 
   it('leaves user as null (guest fallback) when the API responds with success: false', async () => {
-    mockApiFetch.mockResolvedValueOnce({ success: false, error: 'Unauthorized' });
+    mockApiFetch.mockResolvedValueOnce({
+      success: false,
+      error: 'Unauthorized',
+    });
 
     render(
       <UserProvider>
@@ -62,7 +67,9 @@ describe('useUser / UserProvider', () => {
       </UserProvider>
     );
 
-    await waitFor(() => expect(screen.getByTestId('loading')).toHaveTextContent('false'));
+    await waitFor(() =>
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    );
     expect(screen.getByTestId('user-role')).toHaveTextContent('none');
   });
 
@@ -75,7 +82,9 @@ describe('useUser / UserProvider', () => {
       </UserProvider>
     );
 
-    await waitFor(() => expect(screen.getByTestId('loading')).toHaveTextContent('false'));
+    await waitFor(() =>
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    );
     expect(screen.getByTestId('user-role')).toHaveTextContent('none');
     expect(screen.getByTestId('error')).toHaveTextContent('network down');
   });
@@ -89,20 +98,31 @@ describe('useUser / UserProvider', () => {
         <Consumer />
       </UserProvider>
     );
-    await waitFor(() => expect(screen.getByTestId('loading')).toHaveTextContent('false'));
+    await waitFor(() =>
+      expect(screen.getByTestId('loading')).toHaveTextContent('false')
+    );
     expect(mockApiFetch).toHaveBeenCalledTimes(1);
 
-    mockApiFetch.mockResolvedValueOnce({ success: true, data: { ...mockUser, role: 'Reviewer' } });
+    mockApiFetch.mockResolvedValueOnce({
+      success: true,
+      data: { ...mockUser, role: 'Reviewer' },
+    });
     await user.click(screen.getByRole('button', { name: 'refetch' }));
 
-    await waitFor(() => expect(screen.getByTestId('user-role')).toHaveTextContent('Reviewer'));
+    await waitFor(() =>
+      expect(screen.getByTestId('user-role')).toHaveTextContent('Reviewer')
+    );
     expect(mockApiFetch).toHaveBeenCalledTimes(2);
   });
 
   it('throws when useUser() is called outside a UserProvider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
-    expect(() => render(<Consumer />)).toThrow('useUser() must be used within a <UserProvider>');
+    expect(() => render(<Consumer />)).toThrow(
+      'useUser() must be used within a <UserProvider>'
+    );
 
     consoleError.mockRestore();
   });

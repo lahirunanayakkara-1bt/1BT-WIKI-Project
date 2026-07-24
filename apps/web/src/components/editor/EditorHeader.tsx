@@ -9,7 +9,10 @@ import { useEditorDraft } from '@/components/editor/EditorDraftContext';
 import { getStatusDotColor, getStatusText } from '@/lib/utils/saveStatus';
 import { BRAND_NAME, BRAND_SUB_NAME } from '@/lib/constants/brand';
 import { cn } from '@/lib/utils';
-import { useAutoDismissToast, DRAFT_SAVED_MESSAGE } from '@/lib/hooks/useAutoDismissToast';
+import {
+  useAutoDismissToast,
+  DRAFT_SAVED_MESSAGE,
+} from '@/lib/hooks/useAutoDismissToast';
 import { Toast } from '@/components/shared/Toast';
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import { EditIcon } from '@/components/shared/icons/EditIcon';
@@ -22,13 +25,27 @@ interface EditorHeaderProps {
 
 export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
   const router = useRouter();
-  const { articleStatus, initialStatus, saveStatus, lastSavedAt, lastError, saveDraft, submitForReview } = useEditorDraft();
+  const {
+    articleStatus,
+    initialStatus,
+    saveStatus,
+    lastSavedAt,
+    lastError,
+    saveDraft,
+    submitForReview,
+  } = useEditorDraft();
   const statusDotRef = useRef<HTMLDivElement>(null);
-  const { isVisible: isToastVisible, message: toastMessage, showToast } = useAutoDismissToast();
-  
+  const {
+    isVisible: isToastVisible,
+    message: toastMessage,
+    showToast,
+  } = useAutoDismissToast();
+
   const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [toastType, setToastType] = React.useState<'success' | 'error'>('success');
+  const [toastType, setToastType] = React.useState<'success' | 'error'>(
+    'success'
+  );
 
   // Animate the status dot based on save state
   useGSAP(() => {
@@ -60,7 +77,6 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
     }
   }, [saveStatus]);
 
-
   const handleSaveDraft = async () => {
     try {
       await saveDraft();
@@ -88,89 +104,105 @@ export function EditorHeader({ mode, setMode }: EditorHeaderProps) {
   };
 
   const isSaving = saveStatus === 'saving';
-  const isPublished = articleStatus !== null && articleStatus !== 'Draft' && articleStatus !== 'Rejected';
-  const submitLabel = initialStatus === 'Rejected' ? 'Re-submit for Review' : 'Submit for Review';
+  const isPublished =
+    articleStatus !== null &&
+    articleStatus !== 'Draft' &&
+    articleStatus !== 'Rejected';
+  const submitLabel =
+    initialStatus === 'Rejected' ? 'Re-submit for Review' : 'Submit for Review';
 
   return (
     <>
       <header className="flex h-16 w-full items-center justify-between border-b border-brand-border bg-white px-6 shrink-0 relative z-20 shadow-sm">
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4 border-r border-brand-border pr-6">
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <div className="h-10 w-10 bg-brand-red rounded flex items-center justify-center flex-shrink-0 shadow-sm">
-              <span className="text-white text-xs font-black leading-none">{BRAND_NAME}</span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 border-r border-brand-border pr-6">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <div className="h-10 w-10 bg-brand-red rounded flex items-center justify-center flex-shrink-0 shadow-sm">
+                <span className="text-white text-xs font-black leading-none">
+                  {BRAND_NAME}
+                </span>
+              </div>
+              <span className="text-brand-text-secondary font-semibold text-base leading-none tracking-tight">
+                {BRAND_SUB_NAME}
+              </span>
             </div>
-            <span className="text-brand-text-secondary font-semibold text-base leading-none tracking-tight">{BRAND_SUB_NAME}</span>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                Editor Workspace
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Editor Workspace
+
+          <button className="flex h-8 w-8 items-center justify-center rounded text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary transition-colors">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <div className="flex items-center gap-2 rounded-full border border-brand-border bg-brand-bg px-3 py-1">
+            <div
+              ref={statusDotRef}
+              className={cn(
+                'h-2 w-2 rounded-full',
+                getStatusDotColor(saveStatus)
+              )}
+            />
+            <span
+              className="text-xs font-medium text-brand-text-secondary max-w-[200px] truncate"
+              title={
+                saveStatus === 'error' && lastError ? lastError : undefined
+              }
+            >
+              {getStatusText(saveStatus, lastSavedAt)}
             </span>
           </div>
         </div>
 
-        <button className="flex h-8 w-8 items-center justify-center rounded text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary transition-colors">
-          <ChevronLeft className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Mode Toggles */}
+          <div className="flex rounded-lg border border-brand-border bg-white p-1 shadow-sm">
+            <button
+              onClick={() => setMode('compose')}
+              className={cn(
+                'flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
+                mode === 'compose'
+                  ? 'bg-red-50 text-brand-red'
+                  : 'text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary'
+              )}
+            >
+              <EditIcon className="h-4 w-4" />
+              Compose
+            </button>
+            <button
+              onClick={() => setMode('preview')}
+              className={cn(
+                'flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
+                mode === 'preview'
+                  ? 'bg-gray-100 text-brand-text-primary'
+                  : 'text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary'
+              )}
+            >
+              <EyeIcon className="h-4 w-4" />
+              Preview
+            </button>
+          </div>
 
-        <div className="flex items-center gap-2 rounded-full border border-brand-border bg-brand-bg px-3 py-1">
-          <div ref={statusDotRef} className={cn('h-2 w-2 rounded-full', getStatusDotColor(saveStatus))} />
-          <span
-            className="text-xs font-medium text-brand-text-secondary max-w-[200px] truncate"
-            title={saveStatus === 'error' && lastError ? lastError : undefined}
-          >
-            {getStatusText(saveStatus, lastSavedAt)}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        {/* Mode Toggles */}
-        <div className="flex rounded-lg border border-brand-border bg-white p-1 shadow-sm">
+          {/* Save Draft button (Correction 3: replaces the removed "Revert to Draft") */}
           <button
-            onClick={() => setMode('compose')}
-            className={cn(
-              'flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
-              mode === 'compose'
-                ? 'bg-red-50 text-brand-red'
-                : 'text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary'
-            )}
+            onClick={handleSaveDraft}
+            disabled={saveStatus === 'saving'}
+            className="flex items-center gap-2 rounded-lg border border-brand-border bg-white px-4 py-2 text-sm font-semibold text-brand-text-primary hover:bg-brand-hover transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <EditIcon className="h-4 w-4" />
-            Compose
+            <Save className="h-4 w-4 text-brand-text-secondary" />
+            Save Draft
           </button>
+
           <button
-            onClick={() => setMode('preview')}
-            className={cn(
-              'flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
-              mode === 'preview'
-                ? 'bg-gray-100 text-brand-text-primary'
-                : 'text-brand-text-secondary hover:bg-brand-hover hover:text-brand-text-primary'
-            )}
+            onClick={() => setIsConfirmModalOpen(true)}
+            disabled={isSaving || isPublished}
+            className="rounded-lg bg-brand-red px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-brand-red-hover disabled:bg-brand-red-disabled transition-colors"
           >
-            <EyeIcon className="h-4 w-4" />
-            Preview
+            {submitLabel}
           </button>
         </div>
-
-        {/* Save Draft button (Correction 3: replaces the removed "Revert to Draft") */}
-        <button
-          onClick={handleSaveDraft}
-          disabled={saveStatus === 'saving'}
-          className="flex items-center gap-2 rounded-lg border border-brand-border bg-white px-4 py-2 text-sm font-semibold text-brand-text-primary hover:bg-brand-hover transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Save className="h-4 w-4 text-brand-text-secondary" />
-          Save Draft
-        </button>
-
-        <button
-          onClick={() => setIsConfirmModalOpen(true)}
-          disabled={isSaving || isPublished}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-brand-red-hover disabled:bg-brand-red-disabled transition-colors"
-        >
-          {submitLabel}
-        </button>
-      </div>
       </header>
       <Toast visible={isToastVisible} message={toastMessage} type={toastType} />
       <ConfirmationModal

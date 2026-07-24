@@ -39,7 +39,9 @@ jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => {
   const mockFindLatest = jest.fn();
   return {
     default: { findLatestByArticleId: mockFindLatest },
-    ArticleReviewRepository: jest.fn().mockImplementation(() => ({ findLatestByArticleId: mockFindLatest })),
+    ArticleReviewRepository: jest
+      .fn()
+      .mockImplementation(() => ({ findLatestByArticleId: mockFindLatest })),
   };
 });
 
@@ -47,7 +49,9 @@ jest.unstable_mockModule('@repositories/articleAttachmentRepository.js', () => {
   const mockCreate = jest.fn();
   return {
     default: { create: mockCreate },
-    ArticleAttachmentRepository: jest.fn().mockImplementation(() => ({ create: mockCreate })),
+    ArticleAttachmentRepository: jest
+      .fn()
+      .mockImplementation(() => ({ create: mockCreate })),
   };
 });
 
@@ -58,12 +62,25 @@ jest.unstable_mockModule('@v1/lib/b2Client.js', () => ({
 }));
 
 const { ArticleService } = await import('../articleService.js');
-const { default: ArticleAttachmentRepository } = await import('@repositories/articleAttachmentRepository.js');
-const { default: ArticleReviewRepository } = await import('@repositories/articleReviewRepository.js');
+const { default: ArticleAttachmentRepository } =
+  await import('@repositories/articleAttachmentRepository.js');
+const { default: ArticleReviewRepository } =
+  await import('@repositories/articleReviewRepository.js');
 const { default: b2Client } = await import('../../lib/b2Client.js');
 
 // Build a typed mock repository object — injected directly into the service.
-const makeRepo = (): jest.Mocked<Pick<ArticleRepository, 'create' | 'findById' | 'update' | 'updateStatus' | 'findByStatus' | 'softDelete' | 'hardDelete'>> => ({
+const makeRepo = (): jest.Mocked<
+  Pick<
+    ArticleRepository,
+    | 'create'
+    | 'findById'
+    | 'update'
+    | 'updateStatus'
+    | 'findByStatus'
+    | 'softDelete'
+    | 'hardDelete'
+  >
+> => ({
   create: jest.fn(),
   findById: jest.fn(),
   update: jest.fn(),
@@ -96,62 +113,94 @@ describe('ArticleService.createArticle', () => {
   describe('Validation', () => {
     it('should throw AppError if more than 10 images are provided', async () => {
       const input = { title: 'Test Title', body: { type: 'doc' } };
-      const images = Array.from({ length: 11 }).map(() => ({}) as Express.Multer.File);
+      const images = Array.from({ length: 11 }).map(
+        () => ({}) as Express.Multer.File
+      );
 
-      await expect(service.createArticle(input, authorId, images))
-        .rejects.toThrow(new AppError('Maximum 10 images per article', 400));
+      await expect(
+        service.createArticle(input, authorId, images)
+      ).rejects.toThrow(new AppError('Maximum 10 images per article', 400));
     });
 
     it('should throw AppError if an image exceeds 5MB', async () => {
       const input = { title: 'Test Title', body: { type: 'doc' } };
-      const images = [{ size: 6 * 1024 * 1024, mimetype: 'image/jpeg' } as Express.Multer.File];
+      const images = [
+        {
+          size: 6 * 1024 * 1024,
+          mimetype: 'image/jpeg',
+        } as Express.Multer.File,
+      ];
 
-      await expect(service.createArticle(input, authorId, images))
-        .rejects.toThrow(new AppError('Image size cannot exceed 5MB', 400));
+      await expect(
+        service.createArticle(input, authorId, images)
+      ).rejects.toThrow(new AppError('Image size cannot exceed 5MB', 400));
     });
 
     it('should throw AppError if an image has invalid mimetype', async () => {
       const input = { title: 'Test Title', body: { type: 'doc' } };
-      const images = [{ size: 1024, mimetype: 'application/pdf' } as Express.Multer.File];
+      const images = [
+        { size: 1024, mimetype: 'application/pdf' } as Express.Multer.File,
+      ];
 
-      await expect(service.createArticle(input, authorId, images))
-        .rejects.toThrow(new AppError('Only jpeg, png, webp, and gif images are allowed', 400));
+      await expect(
+        service.createArticle(input, authorId, images)
+      ).rejects.toThrow(
+        new AppError('Only jpeg, png, webp, and gif images are allowed', 400)
+      );
     });
 
     it('should throw AppError if title is missing or empty', async () => {
       const input = { title: '   ', body: { type: 'doc' } };
-      await expect(service.createArticle(input, authorId))
-        .rejects.toThrow(new AppError('Title is required and cannot be empty', 400));
+      await expect(service.createArticle(input, authorId)).rejects.toThrow(
+        new AppError('Title is required and cannot be empty', 400)
+      );
     });
 
     it('should throw AppError if title exceeds 500 characters', async () => {
       const input = { title: 'a'.repeat(501), body: { type: 'doc' } };
-      await expect(service.createArticle(input, authorId))
-        .rejects.toThrow(new AppError('Title cannot exceed 500 characters', 400));
+      await expect(service.createArticle(input, authorId)).rejects.toThrow(
+        new AppError('Title cannot exceed 500 characters', 400)
+      );
     });
 
     it('should throw AppError if body is a string', async () => {
-      const input = { title: 'Valid Title', body: '<p>HTML body</p>' as unknown as never };
-      await expect(service.createArticle(input, authorId))
-        .rejects.toThrow(new AppError('Body must be valid JSONContent, raw HTML is not allowed', 400));
+      const input = {
+        title: 'Valid Title',
+        body: '<p>HTML body</p>' as unknown as never,
+      };
+      await expect(service.createArticle(input, authorId)).rejects.toThrow(
+        new AppError(
+          'Body must be valid JSONContent, raw HTML is not allowed',
+          400
+        )
+      );
     });
 
     it('should throw AppError if body is an array', async () => {
       const input = { title: 'Valid Title', body: [] as unknown as never };
-      await expect(service.createArticle(input, authorId))
-        .rejects.toThrow(new AppError('Body must be a valid JSON object', 400));
+      await expect(service.createArticle(input, authorId)).rejects.toThrow(
+        new AppError('Body must be a valid JSON object', 400)
+      );
     });
 
     it('should throw AppError if body is not empty and lacks a "type" field', async () => {
-      const input = { title: 'Valid Title', body: { content: 'hello' } as unknown as never };
-      await expect(service.createArticle(input, authorId))
-        .rejects.toThrow(new AppError('Body must have a "type" field', 400));
+      const input = {
+        title: 'Valid Title',
+        body: { content: 'hello' } as unknown as never,
+      };
+      await expect(service.createArticle(input, authorId)).rejects.toThrow(
+        new AppError('Body must have a "type" field', 400)
+      );
     });
   });
 
   describe('Creation', () => {
     it('should successfully create an article without images', async () => {
-      const input = { title: 'Valid Title', body: { type: 'doc' }, tags: ['test'] };
+      const input = {
+        title: 'Valid Title',
+        body: { type: 'doc' },
+        tags: ['test'],
+      };
       const createdArticle = { id: 'article-123', ...input, authorId };
 
       mockRepo.create.mockResolvedValue(createdArticle as never);
@@ -169,26 +218,38 @@ describe('ArticleService.createArticle', () => {
 
     it('should successfully create an article and upload valid images', async () => {
       const input = { title: 'Valid Title', body: { type: 'doc' } };
-      const images = [{
-        originalname: 'test image.png',
-        mimetype: 'image/png',
-        size: 1024,
-        buffer: Buffer.from('test'),
-      } as Express.Multer.File];
+      const images = [
+        {
+          originalname: 'test image.png',
+          mimetype: 'image/png',
+          size: 1024,
+          buffer: Buffer.from('test'),
+        } as Express.Multer.File,
+      ];
 
       const createdArticle = { id: 'article-123', ...input, authorId };
-      const uploadedFile = { fileId: 'file-123', fileUrl: 'http://example.com/file' };
-      const createdAttachment = { id: 'attachment-123', fileName: 'test image.png' };
+      const uploadedFile = {
+        fileId: 'file-123',
+        fileUrl: 'http://example.com/file',
+      };
+      const createdAttachment = {
+        id: 'attachment-123',
+        fileName: 'test image.png',
+      };
 
       mockRepo.create.mockResolvedValue(createdArticle as never);
       (b2Client.uploadFile as jest.Mock<any>).mockResolvedValue(uploadedFile);
-      (ArticleAttachmentRepository.create as jest.Mock<any>).mockResolvedValue(createdAttachment);
+      (ArticleAttachmentRepository.create as jest.Mock<any>).mockResolvedValue(
+        createdAttachment
+      );
 
       const result = await service.createArticle(input, authorId, images);
 
       expect(mockRepo.create).toHaveBeenCalled();
       expect(b2Client.uploadFile).toHaveBeenCalledWith(
-        expect.stringMatching(/^articles\/article-123\/[a-f0-9\-]+-test_image\.png$/),
+        expect.stringMatching(
+          /^articles\/article-123\/[a-f0-9\-]+-test_image\.png$/
+        ),
         images[0].buffer,
         images[0].mimetype
       );
@@ -213,17 +274,21 @@ describe('ArticleService.createArticle', () => {
 
     it('should return warnings if image upload fails', async () => {
       const input = { title: 'Valid Title', body: { type: 'doc' } };
-      const images = [{
-        originalname: 'fail.png',
-        mimetype: 'image/png',
-        size: 1024,
-        buffer: Buffer.from('test'),
-      } as Express.Multer.File];
+      const images = [
+        {
+          originalname: 'fail.png',
+          mimetype: 'image/png',
+          size: 1024,
+          buffer: Buffer.from('test'),
+        } as Express.Multer.File,
+      ];
 
       const createdArticle = { id: 'article-123', ...input, authorId };
 
       mockRepo.create.mockResolvedValue(createdArticle as never);
-      (b2Client.uploadFile as jest.Mock<any>).mockRejectedValue(new Error('Upload failed'));
+      (b2Client.uploadFile as jest.Mock<any>).mockRejectedValue(
+        new Error('Upload failed')
+      );
 
       const result = await service.createArticle(input, authorId, images);
 
@@ -260,54 +325,95 @@ describe('ArticleService.updateArticle', () => {
   it('should throw AppError if article is not found', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(service.updateArticle(articleId, {}, authorId))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(
+      service.updateArticle(articleId, {}, authorId)
+    ).rejects.toThrow(new AppError('Article not found', 404));
   });
 
   it('should throw AppError if user is not the author', async () => {
     mockRepo.findById.mockResolvedValue({ authorId: 'other-user' } as never);
 
-    await expect(service.updateArticle(articleId, {}, authorId))
-      .rejects.toThrow(new AppError('Only the author can edit this article', 403));
+    await expect(
+      service.updateArticle(articleId, {}, authorId)
+    ).rejects.toThrow(
+      new AppError('Only the author can edit this article', 403)
+    );
   });
 
   it('should throw AppError if article is not Draft or Rejected', async () => {
-    mockRepo.findById.mockResolvedValue({ authorId, status: 'Published' } as never);
-    (ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>).mockResolvedValue({ reviewStatus: 'Approved' });
+    mockRepo.findById.mockResolvedValue({
+      authorId,
+      status: 'Published',
+    } as never);
+    (
+      ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>
+    ).mockResolvedValue({ reviewStatus: 'Approved' });
 
-    await expect(service.updateArticle(articleId, {}, authorId))
-      .rejects.toThrow(new AppError('Only Draft or Rejected articles can be edited', 400));
+    await expect(
+      service.updateArticle(articleId, {}, authorId)
+    ).rejects.toThrow(
+      new AppError('Only Draft or Rejected articles can be edited', 400)
+    );
   });
 
   it('should allow editing if article is Draft', async () => {
-    const existingArticle = { id: articleId, authorId, status: 'Draft', title: 'Old Title' };
+    const existingArticle = {
+      id: articleId,
+      authorId,
+      status: 'Draft',
+      title: 'Old Title',
+    };
     mockRepo.findById.mockResolvedValue(existingArticle as never);
 
     const updatedArticle = { ...existingArticle, title: 'New Title' };
     mockRepo.update.mockResolvedValue(updatedArticle as never);
 
-    const result = await service.updateArticle(articleId, { title: 'New Title' }, authorId);
+    const result = await service.updateArticle(
+      articleId,
+      { title: 'New Title' },
+      authorId
+    );
 
-    expect(mockRepo.update).toHaveBeenCalledWith(articleId, { title: 'New Title' });
+    expect(mockRepo.update).toHaveBeenCalledWith(articleId, {
+      title: 'New Title',
+    });
     expect(result).toEqual(updatedArticle);
   });
 
   it('should reset status to Draft if article was Rejected', async () => {
     const existingArticle = { id: articleId, authorId, status: 'In Review' };
     mockRepo.findById.mockResolvedValue(existingArticle as never);
-    (ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>).mockResolvedValue({ reviewStatus: 'Rejected' });
+    (
+      ArticleReviewRepository.findLatestByArticleId as jest.Mock<any>
+    ).mockResolvedValue({ reviewStatus: 'Rejected' });
 
-    const updatedArticle = { ...existingArticle, status: 'Draft', title: 'New Title' };
+    const updatedArticle = {
+      ...existingArticle,
+      status: 'Draft',
+      title: 'New Title',
+    };
     mockRepo.update.mockResolvedValue(updatedArticle as never);
 
-    const result = await service.updateArticle(articleId, { title: 'New Title' }, authorId);
+    const result = await service.updateArticle(
+      articleId,
+      { title: 'New Title' },
+      authorId
+    );
 
-    expect(mockRepo.update).toHaveBeenCalledWith(articleId, { title: 'New Title', status: 'Draft' });
+    expect(mockRepo.update).toHaveBeenCalledWith(articleId, {
+      title: 'New Title',
+      status: 'Draft',
+    });
     expect(result).toEqual(updatedArticle);
   });
 
   it('should return existing article if no updates and no images provided', async () => {
-    const existingArticle = { id: articleId, authorId, status: 'Draft', title: 'Old Title' };
+    const existingArticle = {
+      id: articleId,
+      authorId,
+      status: 'Draft',
+      title: 'Old Title',
+    };
     mockRepo.findById.mockResolvedValue(existingArticle as never);
 
     const result = await service.updateArticle(articleId, {}, authorId);
@@ -317,21 +423,33 @@ describe('ArticleService.updateArticle', () => {
   });
 
   it('should successfully upload new images', async () => {
-    const existingArticle = { id: articleId, authorId, status: 'Draft', title: 'Old Title' };
+    const existingArticle = {
+      id: articleId,
+      authorId,
+      status: 'Draft',
+      title: 'Old Title',
+    };
     mockRepo.findById.mockResolvedValue(existingArticle as never);
 
-    const images = [{
-      originalname: 'test.png',
-      mimetype: 'image/png',
-      size: 1024,
-      buffer: Buffer.from('test'),
-    } as Express.Multer.File];
+    const images = [
+      {
+        originalname: 'test.png',
+        mimetype: 'image/png',
+        size: 1024,
+        buffer: Buffer.from('test'),
+      } as Express.Multer.File,
+    ];
 
-    const uploadedFile = { fileId: 'file-123', fileUrl: 'http://example.com/file' };
+    const uploadedFile = {
+      fileId: 'file-123',
+      fileUrl: 'http://example.com/file',
+    };
     const createdAttachment = { id: 'attachment-123', fileName: 'test.png' };
 
     (b2Client.uploadFile as jest.Mock<any>).mockResolvedValue(uploadedFile);
-    (ArticleAttachmentRepository.create as jest.Mock<any>).mockResolvedValue(createdAttachment);
+    (ArticleAttachmentRepository.create as jest.Mock<any>).mockResolvedValue(
+      createdAttachment
+    );
 
     const result = await service.updateArticle(articleId, {}, authorId, images);
 
@@ -362,22 +480,28 @@ describe('ArticleService.submitForReview', () => {
   it('should throw AppError if article is not found', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(service.submitForReview(articleId, authorId))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(service.submitForReview(articleId, authorId)).rejects.toThrow(
+      new AppError('Article not found', 404)
+    );
   });
 
   it('should throw AppError if user is not the author', async () => {
     mockRepo.findById.mockResolvedValue({ authorId: 'other-user' } as never);
 
-    await expect(service.submitForReview(articleId, authorId))
-      .rejects.toThrow(new AppError('Only the author can edit this article', 403));
+    await expect(service.submitForReview(articleId, authorId)).rejects.toThrow(
+      new AppError('Only the author can edit this article', 403)
+    );
   });
 
   it('should throw AppError if article status is not Draft', async () => {
-    mockRepo.findById.mockResolvedValue({ authorId, status: 'Pending' } as never);
+    mockRepo.findById.mockResolvedValue({
+      authorId,
+      status: 'Pending',
+    } as never);
 
-    await expect(service.submitForReview(articleId, authorId))
-      .rejects.toThrow(new AppError('Cannot transition from Pending to Pending', 400));
+    await expect(service.submitForReview(articleId, authorId)).rejects.toThrow(
+      new AppError('Cannot transition from Pending to Pending', 400)
+    );
   });
 
   it('should submit article for review successfully', async () => {
@@ -429,14 +553,19 @@ describe('ArticleService.listPublished', () => {
         createdAt: new Date('2023-01-02'),
         updatedAt: new Date('2023-01-02'),
         _count: { likes: 0, comments: 0 },
-      }
+      },
     ];
 
-    mockRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 2 } as never);
+    mockRepo.findByStatus.mockResolvedValue({
+      articles: mockArticles,
+      total: 2,
+    } as never);
 
     const result = await service.listPublished(1, 10);
 
-    expect(mockRepo.findByStatus).toHaveBeenCalledWith('Published', 1, 10, { includeCounts: true });
+    expect(mockRepo.findByStatus).toHaveBeenCalledWith('Published', 1, 10, {
+      includeCounts: true,
+    });
     expect(result).toEqual({
       articles: [
         {
@@ -460,7 +589,7 @@ describe('ArticleService.listPublished', () => {
           updatedAt: mockArticles[1].updatedAt,
           likeCount: 0,
           commentCount: 0,
-        }
+        },
       ],
       total: 2,
       page: 1,
@@ -478,10 +607,13 @@ describe('ArticleService.listPublished', () => {
         status: 'Published',
         createdAt: new Date(),
         updatedAt: new Date(),
-      }
+      },
     ];
 
-    mockRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 1 } as never);
+    mockRepo.findByStatus.mockResolvedValue({
+      articles: mockArticles,
+      total: 1,
+    } as never);
 
     const result = await service.listPublished(1, 10);
 
@@ -507,7 +639,12 @@ describe('ArticleService.getArticleById', () => {
   });
 
   it('should return the article when it exists and is Published', async () => {
-    const article = { id: articleId, status: 'Published', title: 'My Article', authorId: 'user-1' };
+    const article = {
+      id: articleId,
+      status: 'Published',
+      title: 'My Article',
+      authorId: 'user-1',
+    };
     mockRepo.findById.mockResolvedValue(article as never);
 
     const result = await service.getArticleById(articleId);
@@ -519,33 +656,56 @@ describe('ArticleService.getArticleById', () => {
   it('should throw 404 if article does not exist', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(service.getArticleById(articleId))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(service.getArticleById(articleId)).rejects.toThrow(
+      new AppError('Article not found', 404)
+    );
   });
 
   it('should throw 403 if article is Draft and no requesterId', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Draft', authorId } as never);
+    mockRepo.findById.mockResolvedValue({
+      id: articleId,
+      status: 'Draft',
+      authorId,
+    } as never);
 
-    await expect(service.getArticleById(articleId))
-      .rejects.toThrow(new AppError('Article not available', 403));
+    await expect(service.getArticleById(articleId)).rejects.toThrow(
+      new AppError('Article not available', 403)
+    );
   });
 
   it('should throw 403 if article is Pending and no requesterId', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Pending', authorId } as never);
+    mockRepo.findById.mockResolvedValue({
+      id: articleId,
+      status: 'Pending',
+      authorId,
+    } as never);
 
-    await expect(service.getArticleById(articleId))
-      .rejects.toThrow(new AppError('Article not available', 403));
+    await expect(service.getArticleById(articleId)).rejects.toThrow(
+      new AppError('Article not available', 403)
+    );
   });
 
   it('should throw 403 if article is Unpublished and no requesterId', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, status: 'Unpublished', authorId } as never);
+    mockRepo.findById.mockResolvedValue({
+      id: articleId,
+      status: 'Unpublished',
+      authorId,
+    } as never);
 
-    await expect(service.getArticleById(articleId))
-      .rejects.toThrow(new AppError('Article not available', 403));
+    await expect(service.getArticleById(articleId)).rejects.toThrow(
+      new AppError('Article not available', 403)
+    );
   });
 
   it('should return the article when the author requests their own Draft article', async () => {
-    const article = { id: articleId, status: 'Draft', title: 'My Draft', authorId, body: { type: 'doc' }, tags: ['test'] };
+    const article = {
+      id: articleId,
+      status: 'Draft',
+      title: 'My Draft',
+      authorId,
+      body: { type: 'doc' },
+      tags: ['test'],
+    };
     mockRepo.findById.mockResolvedValue(article as never);
 
     const result = await service.getArticleById(articleId, authorId);
@@ -555,7 +715,14 @@ describe('ArticleService.getArticleById', () => {
   });
 
   it('should return the article when the author requests their own Rejected article', async () => {
-    const article = { id: articleId, status: 'Rejected', title: 'My Rejected', authorId, body: { type: 'doc' }, tags: [] };
+    const article = {
+      id: articleId,
+      status: 'Rejected',
+      title: 'My Rejected',
+      authorId,
+      body: { type: 'doc' },
+      tags: [],
+    };
     mockRepo.findById.mockResolvedValue(article as never);
 
     const result = await service.getArticleById(articleId, authorId);
@@ -564,20 +731,32 @@ describe('ArticleService.getArticleById', () => {
     expect(result).toEqual(article);
   });
 
-  it('should throw 403 when a different user requests someone else\'s Draft article', async () => {
-    const article = { id: articleId, status: 'Draft', title: 'Someone Else Draft', authorId: 'other-author' };
+  it("should throw 403 when a different user requests someone else's Draft article", async () => {
+    const article = {
+      id: articleId,
+      status: 'Draft',
+      title: 'Someone Else Draft',
+      authorId: 'other-author',
+    };
     mockRepo.findById.mockResolvedValue(article as never);
 
-    await expect(service.getArticleById(articleId, authorId))
-      .rejects.toThrow(new AppError('Article not available', 403));
+    await expect(service.getArticleById(articleId, authorId)).rejects.toThrow(
+      new AppError('Article not available', 403)
+    );
   });
 
   it('should throw 403 when unauthenticated (null requesterId) for a Draft article', async () => {
-    const article = { id: articleId, status: 'Draft', title: 'Draft Article', authorId };
+    const article = {
+      id: articleId,
+      status: 'Draft',
+      title: 'Draft Article',
+      authorId,
+    };
     mockRepo.findById.mockResolvedValue(article as never);
 
-    await expect(service.getArticleById(articleId, null))
-      .rejects.toThrow(new AppError('Article not available', 403));
+    await expect(service.getArticleById(articleId, null)).rejects.toThrow(
+      new AppError('Article not available', 403)
+    );
   });
 });
 
@@ -601,7 +780,10 @@ describe('ArticleService.deleteArticle', () => {
   it('should soft-delete own Draft article as author', async () => {
     const article = { id: articleId, authorId, status: 'Draft' };
     mockRepo.findById.mockResolvedValue(article as never);
-    mockRepo.softDelete.mockResolvedValue({ ...article, deletedAt: new Date() } as never);
+    mockRepo.softDelete.mockResolvedValue({
+      ...article,
+      deletedAt: new Date(),
+    } as never);
 
     await service.deleteArticle(articleId, authorId, 'User');
 
@@ -612,40 +794,66 @@ describe('ArticleService.deleteArticle', () => {
   it.each(['Pending', 'Published', 'Rejected'] as const)(
     'should throw 400 when author tries to delete own %s article',
     async (status) => {
-      mockRepo.findById.mockResolvedValue({ id: articleId, authorId, status } as never);
+      mockRepo.findById.mockResolvedValue({
+        id: articleId,
+        authorId,
+        status,
+      } as never);
 
-      await expect(service.deleteArticle(articleId, authorId, 'User'))
-        .rejects.toThrow(new AppError('Only Draft articles can be deleted', 400));
+      await expect(
+        service.deleteArticle(articleId, authorId, 'User')
+      ).rejects.toThrow(
+        new AppError('Only Draft articles can be deleted', 400)
+      );
 
       expect(mockRepo.softDelete).not.toHaveBeenCalled();
       expect(mockRepo.hardDelete).not.toHaveBeenCalled();
     }
   );
 
-  it('should throw 403 when author tries to delete another user\'s Draft', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, authorId: otherUserId, status: 'Draft' } as never);
+  it("should throw 403 when author tries to delete another user's Draft", async () => {
+    mockRepo.findById.mockResolvedValue({
+      id: articleId,
+      authorId: otherUserId,
+      status: 'Draft',
+    } as never);
 
-    await expect(service.deleteArticle(articleId, authorId, 'User'))
-      .rejects.toThrow(new AppError('Not authorized', 403));
+    await expect(
+      service.deleteArticle(articleId, authorId, 'User')
+    ).rejects.toThrow(new AppError('Not authorized', 403));
 
     expect(mockRepo.softDelete).not.toHaveBeenCalled();
     expect(mockRepo.hardDelete).not.toHaveBeenCalled();
   });
 
   it('should throw 403 when author attempts hard delete', async () => {
-    mockRepo.findById.mockResolvedValue({ id: articleId, authorId, status: 'Draft' } as never);
+    mockRepo.findById.mockResolvedValue({
+      id: articleId,
+      authorId,
+      status: 'Draft',
+    } as never);
 
-    await expect(service.deleteArticle(articleId, authorId, 'User', true))
-      .rejects.toThrow(new AppError('Only Admins can permanently delete articles', 403));
+    await expect(
+      service.deleteArticle(articleId, authorId, 'User', true)
+    ).rejects.toThrow(
+      new AppError('Only Admins can permanently delete articles', 403)
+    );
 
     expect(mockRepo.softDelete).not.toHaveBeenCalled();
     expect(mockRepo.hardDelete).not.toHaveBeenCalled();
   });
 
   it('should soft-delete any status article as Admin', async () => {
-    const article = { id: articleId, authorId: otherUserId, status: 'Published' };
+    const article = {
+      id: articleId,
+      authorId: otherUserId,
+      status: 'Published',
+    };
     mockRepo.findById.mockResolvedValue(article as never);
-    mockRepo.softDelete.mockResolvedValue({ ...article, deletedAt: new Date() } as never);
+    mockRepo.softDelete.mockResolvedValue({
+      ...article,
+      deletedAt: new Date(),
+    } as never);
 
     await service.deleteArticle(articleId, authorId, 'Admin');
 
@@ -654,7 +862,11 @@ describe('ArticleService.deleteArticle', () => {
   });
 
   it('should hard-delete as Admin when hard=true', async () => {
-    const article = { id: articleId, authorId: otherUserId, status: 'Published' };
+    const article = {
+      id: articleId,
+      authorId: otherUserId,
+      status: 'Published',
+    };
     mockRepo.findById.mockResolvedValue(article as never);
     mockRepo.hardDelete.mockResolvedValue(undefined);
 
@@ -667,11 +879,11 @@ describe('ArticleService.deleteArticle', () => {
   it('should throw 404 when article does not exist', async () => {
     mockRepo.findById.mockResolvedValue(null);
 
-    await expect(service.deleteArticle(articleId, authorId, 'User'))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(
+      service.deleteArticle(articleId, authorId, 'User')
+    ).rejects.toThrow(new AppError('Article not found', 404));
 
     expect(mockRepo.softDelete).not.toHaveBeenCalled();
     expect(mockRepo.hardDelete).not.toHaveBeenCalled();
   });
 });
-

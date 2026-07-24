@@ -13,7 +13,9 @@ jest.mock('@gsap/react', () => ({
 
 import { CommentItem } from '@/components/article-detail/CommentItem';
 
-function makeComment(overrides: Partial<CommentWithAuthor> = {}): CommentWithAuthor {
+function makeComment(
+  overrides: Partial<CommentWithAuthor> = {}
+): CommentWithAuthor {
   return {
     id: 'c1',
     articleId: 'a1',
@@ -30,7 +32,12 @@ function makeComment(overrides: Partial<CommentWithAuthor> = {}): CommentWithAut
 describe('CommentItem', () => {
   it('renders the author, body, and time-ago label', () => {
     render(
-      <CommentItem comment={makeComment()} currentUserId="someone-else" onDelete={jest.fn()} onEdit={jest.fn()} />
+      <CommentItem
+        comment={makeComment()}
+        currentUserId="someone-else"
+        onDelete={jest.fn()}
+        onEdit={jest.fn()}
+      />
     );
 
     expect(screen.getByText('Test User')).toBeInTheDocument();
@@ -39,16 +46,26 @@ describe('CommentItem', () => {
 
   it('does not show edit or delete buttons for comments the current user does not own', () => {
     render(
-      <CommentItem comment={makeComment({ createdBy: 'other-user' })} currentUserId="test-user-1" onDelete={jest.fn()} onEdit={jest.fn()} />
+      <CommentItem
+        comment={makeComment({ createdBy: 'other-user' })}
+        currentUserId="test-user-1"
+        onDelete={jest.fn()}
+        onEdit={jest.fn()}
+      />
     );
 
     expect(screen.queryByTestId('edit-comment-btn')).not.toBeInTheDocument();
     expect(screen.queryByTestId('delete-comment-btn')).not.toBeInTheDocument();
   });
 
-  it('shows edit and delete buttons for the current user\'s own comment', () => {
+  it("shows edit and delete buttons for the current user's own comment", () => {
     render(
-      <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={jest.fn()} onEdit={jest.fn()} />
+      <CommentItem
+        comment={makeComment({ createdBy: 'test-user-1' })}
+        currentUserId="test-user-1"
+        onDelete={jest.fn()}
+        onEdit={jest.fn()}
+      />
     );
 
     expect(screen.getByTestId('edit-comment-btn')).toBeInTheDocument();
@@ -61,7 +78,12 @@ describe('CommentItem', () => {
       const user = userEvent.setup();
 
       render(
-        <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={onDelete} onEdit={jest.fn()} />
+        <CommentItem
+          comment={makeComment({ createdBy: 'test-user-1' })}
+          currentUserId="test-user-1"
+          onDelete={onDelete}
+          onEdit={jest.fn()}
+        />
       );
 
       await user.click(screen.getByTestId('delete-comment-btn'));
@@ -73,18 +95,29 @@ describe('CommentItem', () => {
     });
 
     it('keeps the modal open and shows an error when onDelete rejects', async () => {
-      const onDelete = jest.fn().mockRejectedValueOnce(new Error('Only the comment owner can delete this comment'));
+      const onDelete = jest
+        .fn()
+        .mockRejectedValueOnce(
+          new Error('Only the comment owner can delete this comment')
+        );
       const user = userEvent.setup();
 
       render(
-        <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={onDelete} onEdit={jest.fn()} />
+        <CommentItem
+          comment={makeComment({ createdBy: 'test-user-1' })}
+          currentUserId="test-user-1"
+          onDelete={onDelete}
+          onEdit={jest.fn()}
+        />
       );
 
       await user.click(screen.getByTestId('delete-comment-btn'));
       await user.click(screen.getByRole('button', { name: 'Delete' }));
 
       await waitFor(() =>
-        expect(screen.getByText('Only the comment owner can delete this comment')).toBeInTheDocument()
+        expect(
+          screen.getByText('Only the comment owner can delete this comment')
+        ).toBeInTheDocument()
       );
     });
   });
@@ -94,12 +127,19 @@ describe('CommentItem', () => {
       const user = userEvent.setup();
 
       render(
-        <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={jest.fn()} onEdit={jest.fn()} />
+        <CommentItem
+          comment={makeComment({ createdBy: 'test-user-1' })}
+          currentUserId="test-user-1"
+          onDelete={jest.fn()}
+          onEdit={jest.fn()}
+        />
       );
 
       await user.click(screen.getByTestId('edit-comment-btn'));
 
-      expect(screen.getByTestId('edit-comment-input')).toHaveValue('Great article!');
+      expect(screen.getByTestId('edit-comment-input')).toHaveValue(
+        'Great article!'
+      );
     });
 
     it('calls onEdit with the trimmed draft and exits edit mode on success', async () => {
@@ -107,7 +147,12 @@ describe('CommentItem', () => {
       const user = userEvent.setup();
 
       render(
-        <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={jest.fn()} onEdit={onEdit} />
+        <CommentItem
+          comment={makeComment({ createdBy: 'test-user-1' })}
+          currentUserId="test-user-1"
+          onDelete={jest.fn()}
+          onEdit={onEdit}
+        />
       );
 
       await user.click(screen.getByTestId('edit-comment-btn'));
@@ -116,16 +161,31 @@ describe('CommentItem', () => {
       await user.type(textarea, '  Updated text  ');
       await user.click(screen.getByTestId('save-edit-comment-btn'));
 
-      await waitFor(() => expect(onEdit).toHaveBeenCalledWith('c1', 'Updated text'));
-      await waitFor(() => expect(screen.queryByTestId('edit-comment-input')).not.toBeInTheDocument());
+      await waitFor(() =>
+        expect(onEdit).toHaveBeenCalledWith('c1', 'Updated text')
+      );
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('edit-comment-input')
+        ).not.toBeInTheDocument()
+      );
     });
 
     it('keeps the textarea open and shows an error when onEdit rejects', async () => {
-      const onEdit = jest.fn().mockRejectedValueOnce(new Error('Only the comment owner can edit this comment'));
+      const onEdit = jest
+        .fn()
+        .mockRejectedValueOnce(
+          new Error('Only the comment owner can edit this comment')
+        );
       const user = userEvent.setup();
 
       render(
-        <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={jest.fn()} onEdit={onEdit} />
+        <CommentItem
+          comment={makeComment({ createdBy: 'test-user-1' })}
+          currentUserId="test-user-1"
+          onDelete={jest.fn()}
+          onEdit={onEdit}
+        />
       );
 
       await user.click(screen.getByTestId('edit-comment-btn'));
@@ -135,9 +195,13 @@ describe('CommentItem', () => {
       await user.click(screen.getByTestId('save-edit-comment-btn'));
 
       await waitFor(() =>
-        expect(screen.getByTestId('edit-comment-error')).toHaveTextContent('Only the comment owner can edit this comment')
+        expect(screen.getByTestId('edit-comment-error')).toHaveTextContent(
+          'Only the comment owner can edit this comment'
+        )
       );
-      expect(screen.getByTestId('edit-comment-input')).toHaveValue('Updated text');
+      expect(screen.getByTestId('edit-comment-input')).toHaveValue(
+        'Updated text'
+      );
     });
 
     it('discards the draft and exits edit mode on cancel without calling onEdit', async () => {
@@ -145,7 +209,12 @@ describe('CommentItem', () => {
       const user = userEvent.setup();
 
       render(
-        <CommentItem comment={makeComment({ createdBy: 'test-user-1' })} currentUserId="test-user-1" onDelete={jest.fn()} onEdit={onEdit} />
+        <CommentItem
+          comment={makeComment({ createdBy: 'test-user-1' })}
+          currentUserId="test-user-1"
+          onDelete={jest.fn()}
+          onEdit={onEdit}
+        />
       );
 
       await user.click(screen.getByTestId('edit-comment-btn'));
@@ -155,7 +224,9 @@ describe('CommentItem', () => {
       await user.click(screen.getByTestId('cancel-edit-comment-btn'));
 
       expect(onEdit).not.toHaveBeenCalled();
-      expect(screen.queryByTestId('edit-comment-input')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('edit-comment-input')
+      ).not.toBeInTheDocument();
       expect(screen.getByText('Great article!')).toBeInTheDocument();
     });
   });
