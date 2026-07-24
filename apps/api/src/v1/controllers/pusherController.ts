@@ -13,18 +13,31 @@ import { pusherChannelName } from '@v1/lib/pusherEvents.js';
  *
  * Requires: `authenticate` middleware upstream (sets req.user).
  *
+ * @description
  * Security:
- *   - Only allows a user to subscribe to their own private channel.
- *   - channel_name must equal `private-user-{req.user.userId}`.
- *   - Any mismatch is a 403 — prevents subscribing to another user's channel.
- *
- * Request body (application/json):
- *   { socket_id: string, channel_name: string }
- *
- * Response: 200 { success: true, data: { auth: "key:signature" } }
+ * - Only allows a user to subscribe to their own private channel.
+ * - channel_name must equal `private-user-{req.user.userId}`.
+ * - Any mismatch is a 403 — prevents subscribing to another user's channel.
  *
  * The response is wrapped in the project's standard envelope so the frontend
  * custom authorizer can extract `response.data` and pass it to pusher-js.
+ *
+ * @param {Request} req - The Express request object.
+ * @param {Object} req.body - The JSON payload (application/json).
+ * @param {string} req.body.socket_id - The Pusher socket ID.
+ * @param {string} req.body.channel_name - The private channel name requested.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next middleware function.
+ * @returns {Promise<void>} Resolves when the response is sent.
+ *
+ * @example
+ * // Response: 200 OK
+ * // {
+ * //   "success": true,
+ * //   "data": {
+ * //     "auth": "key:signature"
+ * //   }
+ * // }
  */
 const auth = async (
   req: Request,
