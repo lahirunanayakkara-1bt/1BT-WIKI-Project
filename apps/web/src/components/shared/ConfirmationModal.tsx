@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { X } from 'lucide-react';
@@ -28,9 +29,14 @@ export function ConfirmationModal({
 }: ConfirmationModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useGSAP(() => {
-    if (!overlayRef.current || !modalRef.current) return;
+    if (!mounted || !overlayRef.current || !modalRef.current) return;
 
     if (isOpen) {
       gsap.to(overlayRef.current, {
@@ -57,9 +63,11 @@ export function ConfirmationModal({
         ease: 'power2.in',
       });
     }
-  }, [isOpen]);
+  }, [isOpen, mounted]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/60 backdrop-blur-sm opacity-0 pointer-events-none"
@@ -107,6 +115,7 @@ export function ConfirmationModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

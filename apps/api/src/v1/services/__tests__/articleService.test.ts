@@ -540,6 +540,7 @@ describe('ArticleService.listPublished', () => {
         authorId: 'user1',
         tags: ['test'],
         status: 'Published',
+        views: 120,
         createdAt: new Date('2023-01-01'),
         updatedAt: new Date('2023-01-01'),
         _count: { likes: 5, comments: 2 },
@@ -550,6 +551,7 @@ describe('ArticleService.listPublished', () => {
         authorId: 'user2',
         tags: [],
         status: 'Published',
+        views: 0,
         createdAt: new Date('2023-01-02'),
         updatedAt: new Date('2023-01-02'),
         _count: { likes: 0, comments: 0 },
@@ -563,9 +565,17 @@ describe('ArticleService.listPublished', () => {
 
     const result = await service.listPublished(1, 10);
 
-    expect(mockRepo.findByStatus).toHaveBeenCalledWith('Published', 1, 10, {
-      includeCounts: true,
-    });
+    expect(mockRepo.findByStatus).toHaveBeenCalledWith(
+      'Published',
+      1,
+      10,
+      {
+        includeCounts: true,
+        search: undefined,
+        sort: undefined,
+        order: undefined,
+      }
+    );
     expect(result).toEqual({
       articles: [
         {
@@ -574,6 +584,7 @@ describe('ArticleService.listPublished', () => {
           authorId: 'user1',
           tags: ['test'],
           status: 'Published',
+          views: 120,
           createdAt: mockArticles[0].createdAt,
           updatedAt: mockArticles[0].updatedAt,
           likeCount: 5,
@@ -585,6 +596,7 @@ describe('ArticleService.listPublished', () => {
           authorId: 'user2',
           tags: [],
           status: 'Published',
+          views: 0,
           createdAt: mockArticles[1].createdAt,
           updatedAt: mockArticles[1].updatedAt,
           likeCount: 0,
@@ -605,6 +617,7 @@ describe('ArticleService.listPublished', () => {
         authorId: 'user1',
         tags: [],
         status: 'Published',
+        views: 5,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -619,6 +632,35 @@ describe('ArticleService.listPublished', () => {
 
     expect(result.articles[0].likeCount).toBe(0);
     expect(result.articles[0].commentCount).toBe(0);
+    expect(result.articles[0].views).toBe(5);
+  });
+
+  it('should throw AppError 400 when an invalid sort parameter is provided', async () => {
+    await expect(service.listPublished(1, 10, undefined, 'invalidField', 'asc'))
+      .rejects.toThrow(new AppError('Invalid sort field. Allowed: title, createdAt, views', 400));
+  });
+
+  it('should throw AppError 400 when an invalid order parameter is provided', async () => {
+    await expect(service.listPublished(1, 10, undefined, 'views', 'invalidOrder'))
+      .rejects.toThrow(new AppError('Invalid sort order. Allowed: asc, desc', 400));
+  });
+
+  it('should pass search, sort, and order parameters to repository findByStatus', async () => {
+    mockRepo.findByStatus.mockResolvedValue({ articles: [], total: 0 } as never);
+
+    await service.listPublished(1, 10, 'search-term', 'views', 'asc');
+
+    expect(mockRepo.findByStatus).toHaveBeenCalledWith(
+      'Published',
+      1,
+      10,
+      {
+        includeCounts: true,
+        search: 'search-term',
+        sort: 'views',
+        order: 'asc',
+      }
+    );
   });
 });
 

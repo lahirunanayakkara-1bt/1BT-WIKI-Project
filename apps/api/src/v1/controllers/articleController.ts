@@ -102,8 +102,11 @@ export class ArticleController {
     try {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 20;
+      const search = req.query.search as string | undefined;
+      const sort = req.query.sort as string | undefined;
+      const order = req.query.order as string | undefined;
 
-      const result = await this.service.listPublished(page, limit);
+      const result = await this.service.listPublished(page, limit, search, sort, order);
 
       res
         .status(200)

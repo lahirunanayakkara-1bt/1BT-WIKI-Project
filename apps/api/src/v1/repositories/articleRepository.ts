@@ -1,11 +1,9 @@
 import { prisma } from '@repo/db';
-import type {
-  Article,
-  CreateArticleInput,
-  JSONContent,
-} from '@models/article.types.js';
+import type { Article, CreateArticleInput, JSONContent } from '@models/article.types.js';
+import { ARTICLE_SORT_FIELDS } from '@models/article.types.js';
 import type { Prisma } from '@repo/db';
 import { ArticleStatus } from '@repo/db/generated/prisma/index.js';
+import { buildSearchFilter, buildSortOrder } from '@utils/queryHelpers.js';
 
 const ARTICLE_SELECT = {
   id: true,
@@ -13,6 +11,7 @@ const ARTICLE_SELECT = {
   body: true,
   status: true,
   authorId: true,
+  views: true,
   tags: true,
   createdAt: true,
   updatedAt: true,
@@ -107,14 +106,24 @@ export class ArticleRepository {
     status: ArticleStatus,
     page: number,
     limit: number,
-    options?: { includeCounts?: boolean }
+    options?: {
+      includeCounts?: boolean;
+      search?: string;
+      sort?: string;
+      order?: string;
+    }
   ): Promise<{ articles: Article[]; total: number }> {
-    const where = { status, deletedAt: null };
+    const where = {
+      status,
+      deletedAt: null,
+      ...buildSearchFilter('title', options?.search),
+    };
+    const orderBy = buildSortOrder(ARTICLE_SORT_FIELDS, options?.sort, options?.order, 'createdAt');
     const includeCounts = options?.includeCounts ?? status === 'Published';
     const [articles, total] = await Promise.all([
       prisma.article.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
         ...(includeCounts && {
@@ -133,7 +142,7 @@ export class ArticleRepository {
     return { articles: articles as unknown as Article[], total };
   }
 
-  async findByAuthor(authorId: string, page: number, limit: number) {
+  async findByAuthor(authorId: string, page: number, limit: number): Promise<{ articles: Article[]; total: number }> {
     const where = { authorId, deletedAt: null };
     const [articles, total] = await Promise.all([
       prisma.article.findMany({
@@ -152,7 +161,7 @@ export class ArticleRepository {
       }),
       prisma.article.count({ where }),
     ]);
-    return { articles, total };
+    return { articles: articles as unknown as Article[], total };
   }
 }
 

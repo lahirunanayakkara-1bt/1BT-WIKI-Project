@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Check, X, Info } from 'lucide-react';
@@ -16,9 +17,14 @@ interface ToastProps {
 
 export function Toast({ visible, message, type = 'success' }: ToastProps) {
   const toastRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useGSAP(() => {
-    if (!toastRef.current) return;
+    if (!mounted || !toastRef.current) return;
 
     if (visible) {
       // Enter animation: slide up and fade in
@@ -37,9 +43,11 @@ export function Toast({ visible, message, type = 'success' }: ToastProps) {
         ease: 'power2.in',
       });
     }
-  }, [visible]);
+  }, [visible, mounted]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       ref={toastRef}
       data-testid={`${type}-toast`}
@@ -67,6 +75,7 @@ export function Toast({ visible, message, type = 'success' }: ToastProps) {
         {type === 'info' && <Info className="h-3.5 w-3.5" strokeWidth={3} />}
       </div>
       <span className="text-sm font-semibold tracking-wide">{message}</span>
-    </div>
+    </div>,
+    document.body
   );
 }

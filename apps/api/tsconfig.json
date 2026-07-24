@@ -22,7 +22,8 @@
       "@routes/*": ["src/v1/routes/*"],
       "@services/*": ["src/v1/services/*"],
       "@models/*": ["src/v1/types/*"],
-      "@middleware/*": ["src/middleware/*"]
+      "@middleware/*": ["src/middleware/*"],
+      "@utils/*": ["src/v1/utils/*"]
     },
   },
   "include": ["src/**/*"]

@@ -38,3 +38,11 @@ export async function fetchMyArticles(
   }
   return result.data;
 }
+
+export async function deleteArticle(id: string, hard = false): Promise<void> {
+  const url = hard ? `/articles/${id}?hard=true` : `/articles/${id}`;
+  const result = await apiFetch(url, { method: 'DELETE' });
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete article');
+  }
+}
