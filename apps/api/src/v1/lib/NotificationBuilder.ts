@@ -53,6 +53,15 @@ export class NotificationBuilder {
     return this;
   }
 
+  testNotification(message: string): this {
+    this.payload.notificationType = 'info';
+    this.payload.notificationTitle = 'Test Notification';
+    this.payload.message = message;
+    this.payload.notificationReferenceType = 'article';
+    this.payload.referenceId = '00000000-0000-0000-0000-000000000000';
+    return this;
+  }
+
   build(): CreateNotificationInput {
     // Basic runtime validation to ensure all required fields are populated
     const missingFields: string[] = [];

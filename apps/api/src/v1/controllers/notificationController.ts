@@ -99,8 +99,7 @@ const testNotification = async (
 
     const notificationPayload = new NotificationBuilder()
       .forUser(userId)
-      .regardingArticle('00000000-0000-0000-0000-000000000000')
-      .withInfo('Test Notification', 'Hello from notification test route')
+      .testNotification('Hello from notification test route')
       .build();
 
     await notificationService.send(notificationPayload);
