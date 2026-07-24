@@ -10,11 +10,12 @@ jest.unstable_mockModule('@services/reviewerService.js', () => ({
 const { ReviewerController } = await import('../reviewerController.js');
 
 const makeMockService = (): jest.Mocked<
-  Pick<ReviewerService, 'listPending' | 'approveArticle' | 'rejectArticle'>
+  Pick<ReviewerService, 'listPending' | 'approveArticle' | 'rejectArticle' | 'getArticleForReview'>
 > => ({
   listPending: jest.fn(),
   approveArticle: jest.fn(),
   rejectArticle: jest.fn(),
+  getArticleForReview: jest.fn(),
 });
 
 describe('ReviewerController', () => {
@@ -179,6 +180,43 @@ describe('ReviewerController', () => {
       mockService.rejectArticle.mockRejectedValue(error as never);
 
       await controller.rejectArticle(req as Request, res as Response, next);
+
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('getArticleForReview', () => {
+    beforeEach(() => {
+      req.params = { id: 'article-123' };
+    });
+
+    it('should call service.getArticleForReview with id and return 200 with article', async () => {
+      const pendingArticle = {
+        id: 'article-123',
+        title: 'Pending Article',
+        body: { type: 'doc' },
+        status: 'Pending',
+        authorId: 'user-1',
+      };
+      mockService.getArticleForReview.mockResolvedValue(pendingArticle as never);
+
+      await controller.getArticleForReview(req as Request, res as Response, next);
+
+      expect(mockService.getArticleForReview).toHaveBeenCalledWith('article-123');
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: pendingArticle,
+        message: 'Article retrieved for review',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should pass errors to next', async () => {
+      const error = new AppError('Only Pending articles can be reviewed', 400);
+      mockService.getArticleForReview.mockRejectedValue(error as never);
+
+      await controller.getArticleForReview(req as Request, res as Response, next);
 
       expect(next).toHaveBeenCalledWith(error);
     });

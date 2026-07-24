@@ -338,3 +338,63 @@ describe('ReviewerService.rejectArticle', () => {
     expect(result).toEqual(rejectedArticle);
   });
 });
+
+describe('ReviewerService.getArticleForReview', () => {
+  const articleId = 'article-123';
+  let mockArticleRepo: ReturnType<typeof makeMockArticleRepo>;
+  let mockReviewRepo: ReturnType<typeof makeMockReviewRepo>;
+  let service: InstanceType<typeof ReviewerService>;
+
+  beforeEach(() => {
+    mockArticleRepo = makeMockArticleRepo();
+    mockReviewRepo = makeMockReviewRepo();
+    service = new ReviewerService(
+      mockArticleRepo as unknown as ArticleRepository,
+      mockReviewRepo as unknown as ArticleReviewRepository
+    );
+    jest.clearAllMocks();
+  });
+
+  it('should return full article when Pending', async () => {
+    const pendingArticle = {
+      id: articleId,
+      title: 'Pending Article Title',
+      body: { type: 'doc', content: [] },
+      status: 'Pending',
+      authorId: 'user-1',
+      tags: ['test'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockArticleRepo.findById.mockResolvedValue(pendingArticle as never);
+
+    const result = await service.getArticleForReview(articleId);
+
+    expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
+    expect(result).toEqual(pendingArticle);
+  });
+
+  it('should throw 404 when article does not exist', async () => {
+    mockArticleRepo.findById.mockResolvedValue(null);
+
+    await expect(service.getArticleForReview(articleId))
+      .rejects.toThrow(new AppError('Article not found', 404));
+
+    expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
+  });
+
+  it.each(['Draft', 'Published', 'Unpublished', 'Rejected'] as const)(
+    'should throw 400 when article status is %s',
+    async (status) => {
+      mockArticleRepo.findById.mockResolvedValue({
+        id: articleId,
+        status,
+        authorId: 'user-1',
+      } as never);
+
+      await expect(service.getArticleForReview(articleId))
+        .rejects.toThrow(new AppError('Only Pending articles can be reviewed', 400));
+    }
+  );
+});
