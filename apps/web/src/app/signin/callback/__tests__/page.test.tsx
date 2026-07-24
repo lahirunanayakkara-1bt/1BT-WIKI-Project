@@ -13,7 +13,8 @@ import SignInCallbackPageImpl from '@/app/signin/callback/page';
 // SignInCallbackPage has no return statement (implicit `void`) since it never
 // renders anything of its own — it only redirects via a side effect. Cast it
 // to a valid component type so it can be rendered in tests.
-const SignInCallbackPage = SignInCallbackPageImpl as unknown as () => React.JSX.Element;
+const SignInCallbackPage =
+  SignInCallbackPageImpl as unknown as () => React.JSX.Element;
 
 describe('SignInCallbackPage', () => {
   beforeEach(() => {
@@ -34,7 +35,9 @@ describe('SignInCallbackPage', () => {
 
     render(<SignInCallbackPage />);
 
-    await waitFor(() => expect(window.location.href).toBe('http://localhost/signin'));
+    await waitFor(() =>
+      expect(window.location.href).toBe('http://localhost/signin')
+    );
   });
 
   it('redirects to "/signin" when session data has no user', async () => {
@@ -42,7 +45,9 @@ describe('SignInCallbackPage', () => {
 
     render(<SignInCallbackPage />);
 
-    await waitFor(() => expect(window.location.href).toBe('http://localhost/signin'));
+    await waitFor(() =>
+      expect(window.location.href).toBe('http://localhost/signin')
+    );
   });
 
   it('calls getSession exactly once on mount', async () => {

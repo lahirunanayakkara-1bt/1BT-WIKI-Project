@@ -24,7 +24,10 @@ const CORS_HEADERS = {
 };
 
 const base64url = (value: object): string =>
-  btoa(JSON.stringify(value)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+  btoa(JSON.stringify(value))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '');
 
 // Shape-only fake JWT — apps/web's apiFetch only checks JWT *shape* and the
 // `exp` claim client-side (decodeJwtExpiry throws without it); real signature
@@ -32,7 +35,10 @@ const base64url = (value: object): string =>
 // stubbing /users/me.
 function fakeJwt(): string {
   const header = base64url({ alg: 'HS256', typ: 'JWT' });
-  const payload = base64url({ sub: 'test-user-1', exp: Math.floor(Date.now() / 1000) + 3600 });
+  const payload = base64url({
+    sub: 'test-user-1',
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  });
   return `${header}.${payload}.fake-signature`;
 }
 
@@ -81,14 +87,20 @@ export function stubAuthSession(initialRole: StubRole): void {
     statusCode: 200,
     // `url` feeds the SDK's iframe/popup flow; `redirect: false` stops the
     // SDK's core fetch plugin from also navigating the page to that URL.
-    body: { url: 'https://accounts.google.com/o/oauth2/e2e-stub', redirect: false },
+    body: {
+      url: 'https://accounts.google.com/o/oauth2/e2e-stub',
+      redirect: false,
+    },
   }).as('signInSocial');
 
   cy.intercept('GET', '**/api/auth/get-session*', (req) => {
     req.reply({
       statusCode: 200,
       body: role
-        ? { session: { id: 'test-session-1', userId: 'test-user-1' }, user: mockUserFor(role) }
+        ? {
+            session: { id: 'test-session-1', userId: 'test-user-1' },
+            user: mockUserFor(role),
+          }
         : null,
     });
   }).as('getSession');
@@ -130,8 +142,14 @@ export function stubAuthSession(initialRole: StubRole): void {
   if (initialRole) {
     const user = mockUserFor(initialRole);
     cy.task<string>('mintSessionData', { user }).then((sessionDataJwt) => {
-      cy.setCookie(SESSION_TOKEN_COOKIE, 'e2e-session-token', { secure: true, path: '/' });
-      cy.setCookie(SESSION_DATA_COOKIE, sessionDataJwt, { secure: true, path: '/' });
+      cy.setCookie(SESSION_TOKEN_COOKIE, 'e2e-session-token', {
+        secure: true,
+        path: '/',
+      });
+      cy.setCookie(SESSION_DATA_COOKIE, sessionDataJwt, {
+        secure: true,
+        path: '/',
+      });
     });
   }
 }
@@ -150,12 +168,19 @@ export function stubOAuthPopup(): void {
       setTimeout(() => {
         win.dispatchEvent(
           new win.MessageEvent('message', {
-            data: { type: 'neon-auth:oauth-complete', verifier: 'e2e-verifier' },
+            data: {
+              type: 'neon-auth:oauth-complete',
+              verifier: 'e2e-verifier',
+            },
             origin: win.location.origin,
-          }),
+          })
         );
       }, 50);
-      return { closed: false, close: () => {}, focus: () => {} } as unknown as Window;
+      return {
+        closed: false,
+        close: () => {},
+        focus: () => {},
+      } as unknown as Window;
     });
   });
 }

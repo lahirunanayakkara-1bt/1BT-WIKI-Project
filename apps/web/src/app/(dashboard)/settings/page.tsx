@@ -38,39 +38,89 @@ export default function ProfileSettingsPage() {
   }, [user]);
 
   // GSAP: Initial mount animation
-  useGSAP(() => {
-    if (cardRef.current) {
-      gsap.from(cardRef.current, {
-        y: 12,
-        opacity: 0,
-        duration: 0.4,
-        ease: 'power2.out',
-      });
-    }
-  }, { scope: containerRef });
+  useGSAP(
+    () => {
+      if (cardRef.current) {
+        gsap.from(cardRef.current, {
+          y: 12,
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+      }
+    },
+    { scope: containerRef }
+  );
 
   // GSAP: Edit Mode transitions
-  useGSAP(() => {
-    if (isEditing) {
-      gsap.to(cameraBadgeRef.current, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(1.5)' });
-      gsap.to(photoButtonsRef.current, { width: 'auto', opacity: 1, duration: 0.3, ease: 'power2.out' });
-      gsap.to(footerRef.current, { height: 'auto', opacity: 1, marginTop: '24px', duration: 0.3, ease: 'power2.out' });
-    } else {
-      gsap.to(cameraBadgeRef.current, { scale: 0, opacity: 0, duration: 0.2 });
-      gsap.to(photoButtonsRef.current, { width: 0, opacity: 0, duration: 0.2 });
-      gsap.to(footerRef.current, { height: 0, opacity: 0, marginTop: 0, duration: 0.2 });
-      setShowPhotoInput(false);
-    }
-  }, { scope: containerRef, dependencies: [isEditing] });
+  useGSAP(
+    () => {
+      if (isEditing) {
+        gsap.to(cameraBadgeRef.current, {
+          scale: 1,
+          opacity: 1,
+          duration: 0.3,
+          ease: 'back.out(1.5)',
+        });
+        gsap.to(photoButtonsRef.current, {
+          width: 'auto',
+          opacity: 1,
+          duration: 0.3,
+          ease: 'power2.out',
+        });
+        gsap.to(footerRef.current, {
+          height: 'auto',
+          opacity: 1,
+          marginTop: '24px',
+          duration: 0.3,
+          ease: 'power2.out',
+        });
+      } else {
+        gsap.to(cameraBadgeRef.current, {
+          scale: 0,
+          opacity: 0,
+          duration: 0.2,
+        });
+        gsap.to(photoButtonsRef.current, {
+          width: 0,
+          opacity: 0,
+          duration: 0.2,
+        });
+        gsap.to(footerRef.current, {
+          height: 0,
+          opacity: 0,
+          marginTop: 0,
+          duration: 0.2,
+        });
+        setShowPhotoInput(false);
+      }
+    },
+    { scope: containerRef, dependencies: [isEditing] }
+  );
 
   // GSAP: Photo Input URL reveal transition
-  useGSAP(() => {
-    if (showPhotoInput && isEditing) {
-      gsap.to(urlInputRef.current, { height: 'auto', opacity: 1, marginTop: '16px', duration: 0.3, ease: 'power2.out' });
-    } else {
-      gsap.to(urlInputRef.current, { height: 0, opacity: 0, marginTop: 0, duration: 0.3, ease: 'power2.out' });
-    }
-  }, { scope: containerRef, dependencies: [showPhotoInput, isEditing] });
+  useGSAP(
+    () => {
+      if (showPhotoInput && isEditing) {
+        gsap.to(urlInputRef.current, {
+          height: 'auto',
+          opacity: 1,
+          marginTop: '16px',
+          duration: 0.3,
+          ease: 'power2.out',
+        });
+      } else {
+        gsap.to(urlInputRef.current, {
+          height: 0,
+          opacity: 0,
+          marginTop: 0,
+          duration: 0.3,
+          ease: 'power2.out',
+        });
+      }
+    },
+    { scope: containerRef, dependencies: [showPhotoInput, isEditing] }
+  );
 
   if (loading) {
     return (
@@ -82,9 +132,7 @@ export default function ProfileSettingsPage() {
 
   if (!user) {
     return (
-      <div className="p-8 text-brand-red">
-        Failed to load user profile.
-      </div>
+      <div className="p-8 text-brand-red">Failed to load user profile.</div>
     );
   }
 
@@ -121,12 +169,21 @@ export default function ProfileSettingsPage() {
       if (result.success) {
         setIsEditing(false);
         await refetch(); // Update sidebar/navbar
-        
+
         // Success pulse animation
         if (cardRef.current) {
-          gsap.fromTo(cardRef.current, 
-            { borderColor: '#CC0000', boxShadow: '0 0 0 2px rgba(204,0,0,0.1)' },
-            { borderColor: 'var(--color-brand-border)', boxShadow: 'var(--shadow-sm)', duration: 0.6, ease: 'power2.out' }
+          gsap.fromTo(
+            cardRef.current,
+            {
+              borderColor: '#CC0000',
+              boxShadow: '0 0 0 2px rgba(204,0,0,0.1)',
+            },
+            {
+              borderColor: 'var(--color-brand-border)',
+              boxShadow: 'var(--shadow-sm)',
+              duration: 0.6,
+              ease: 'power2.out',
+            }
           );
         }
       } else {
@@ -144,35 +201,53 @@ export default function ProfileSettingsPage() {
       <h1 className="text-2xl font-semibold text-brand-text-primary mb-8">
         Account Settings
       </h1>
-      
+
       <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar Tabs */}
         <div className="w-full md:w-56 flex-shrink-0 space-y-1">
-          <div className="flex items-center gap-3 px-3 py-2.5 bg-brand-red/10 text-brand-red font-medium rounded-r border-l-4 border-brand-red" data-testid="tab-profile">
+          <div
+            className="flex items-center gap-3 px-3 py-2.5 bg-brand-red/10 text-brand-red font-medium rounded-r border-l-4 border-brand-red"
+            data-testid="tab-profile"
+          >
             <ProfileIcon className="w-5 h-5" />
             <span>Profile Settings</span>
           </div>
-          <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-brand-text-secondary opacity-50 cursor-not-allowed rounded border-l-4 border-transparent" data-testid="tab-password-disabled">
+          <div
+            className="flex items-center justify-between gap-3 px-3 py-2.5 text-brand-text-secondary opacity-50 cursor-not-allowed rounded border-l-4 border-transparent"
+            data-testid="tab-password-disabled"
+          >
             <div className="flex items-center gap-3">
               <LockIcon className="w-5 h-5" />
               <span>Password</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-bg px-1.5 py-0.5 rounded">Soon</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-bg px-1.5 py-0.5 rounded">
+              Soon
+            </span>
           </div>
-          <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-brand-text-secondary opacity-50 cursor-not-allowed rounded border-l-4 border-transparent" data-testid="tab-notifications-disabled">
+          <div
+            className="flex items-center justify-between gap-3 px-3 py-2.5 text-brand-text-secondary opacity-50 cursor-not-allowed rounded border-l-4 border-transparent"
+            data-testid="tab-notifications-disabled"
+          >
             <div className="flex items-center gap-3">
               <BellIcon className="w-5 h-5" />
               <span>Notifications</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-bg px-1.5 py-0.5 rounded">Soon</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-bg px-1.5 py-0.5 rounded">
+              Soon
+            </span>
           </div>
         </div>
 
         {/* Main Content Card */}
         <div className="flex-1">
-          <div ref={cardRef} className="bg-brand-surface border border-brand-border rounded shadow-sm">
+          <div
+            ref={cardRef}
+            className="bg-brand-surface border border-brand-border rounded shadow-sm"
+          >
             <div className="p-6 border-b border-brand-border flex justify-between items-center">
-              <h2 className="text-lg font-medium text-brand-text-primary">Profile Details</h2>
+              <h2 className="text-lg font-medium text-brand-text-primary">
+                Profile Details
+              </h2>
               <button
                 data-testid="edit-toggle-btn"
                 onClick={() => {
@@ -192,7 +267,10 @@ export default function ProfileSettingsPage() {
 
             <div className="p-6">
               {errorMsg && (
-                <div className="mb-6 p-4 bg-brand-red/10 border border-brand-red/20 rounded text-brand-red text-sm" data-testid="error-message">
+                <div
+                  className="mb-6 p-4 bg-brand-red/10 border border-brand-red/20 rounded text-brand-red text-sm"
+                  data-testid="error-message"
+                >
                   {errorMsg}
                 </div>
               )}
@@ -204,12 +282,13 @@ export default function ProfileSettingsPage() {
                     <div className="relative">
                       {avatarUrl || user.avatarUrl ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img 
-                          src={isEditing ? avatarUrl : (user.avatarUrl || '')} 
-                          alt="Avatar" 
+                        <img
+                          src={isEditing ? avatarUrl : user.avatarUrl || ''}
+                          alt="Avatar"
                           className="w-24 h-24 rounded-full object-cover border-2 border-brand-border bg-brand-bg"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%239CA3AF"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
+                            (e.target as HTMLImageElement).src =
+                              'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%239CA3AF"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
                           }}
                         />
                       ) : (
@@ -217,8 +296,8 @@ export default function ProfileSettingsPage() {
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      
-                      <button 
+
+                      <button
                         ref={cameraBadgeRef}
                         type="button"
                         onClick={() => setShowPhotoInput(!showPhotoInput)}
@@ -229,9 +308,12 @@ export default function ProfileSettingsPage() {
                       </button>
                     </div>
 
-                    <div ref={photoButtonsRef} className="overflow-hidden w-0 opacity-0 whitespace-nowrap">
+                    <div
+                      ref={photoButtonsRef}
+                      className="overflow-hidden w-0 opacity-0 whitespace-nowrap"
+                    >
                       <div className="flex items-center gap-3">
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setShowPhotoInput(!showPhotoInput)}
                           data-testid="change-photo-btn"
@@ -239,9 +321,12 @@ export default function ProfileSettingsPage() {
                         >
                           Change Photo
                         </button>
-                        <button 
+                        <button
                           type="button"
-                          onClick={() => { setAvatarUrl(''); setShowPhotoInput(false); }}
+                          onClick={() => {
+                            setAvatarUrl('');
+                            setShowPhotoInput(false);
+                          }}
                           data-testid="remove-photo-btn"
                           className="px-4 py-2 border border-brand-border text-brand-text-secondary text-sm rounded font-medium hover:bg-brand-bg transition-colors"
                         >
@@ -252,7 +337,10 @@ export default function ProfileSettingsPage() {
                   </div>
 
                   {/* URL Input Reveal */}
-                  <div ref={urlInputRef} className="overflow-hidden h-0 opacity-0">
+                  <div
+                    ref={urlInputRef}
+                    className="overflow-hidden h-0 opacity-0"
+                  >
                     <label className="block text-sm font-medium text-brand-text-primary mb-2">
                       Direct Image URL
                     </label>
@@ -300,7 +388,7 @@ export default function ProfileSettingsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-brand-text-primary mb-2">
                     Account Role

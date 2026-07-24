@@ -7,7 +7,9 @@ let mockErrorParam: string | null = null;
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
-  useSearchParams: () => ({ get: (key: string) => (key === 'error' ? mockErrorParam : null) }),
+  useSearchParams: () => ({
+    get: (key: string) => (key === 'error' ? mockErrorParam : null),
+  }),
 }));
 
 jest.mock('@/lib/auth/client', () => ({
@@ -31,7 +33,9 @@ describe('SignInPage', () => {
     const user = userEvent.setup();
 
     render(<SignInPage />);
-    await user.click(screen.getByRole('button', { name: /sign in with google/i }));
+    await user.click(
+      screen.getByRole('button', { name: /sign in with google/i })
+    );
 
     expect(mockSignInSocial).toHaveBeenCalledWith({
       provider: 'google',
@@ -46,17 +50,23 @@ describe('SignInPage', () => {
     const user = userEvent.setup();
 
     render(<SignInPage />);
-    await user.click(screen.getByRole('button', { name: /sign in with google/i }));
+    await user.click(
+      screen.getByRole('button', { name: /sign in with google/i })
+    );
 
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
   });
 
   it('does not redirect when signIn.social returns an error', async () => {
-    mockSignInSocial.mockResolvedValueOnce({ error: { message: 'domain not allowed' } });
+    mockSignInSocial.mockResolvedValueOnce({
+      error: { message: 'domain not allowed' },
+    });
     const user = userEvent.setup();
 
     render(<SignInPage />);
-    await user.click(screen.getByRole('button', { name: /sign in with google/i }));
+    await user.click(
+      screen.getByRole('button', { name: /sign in with google/i })
+    );
 
     await waitFor(() => expect(mockSignInSocial).toHaveBeenCalledTimes(1));
     expect(mockPush).not.toHaveBeenCalled();
@@ -86,11 +96,15 @@ describe('SignInPage', () => {
     const user = userEvent.setup();
 
     render(<SignInPage />);
-    await user.click(screen.getByRole('button', { name: /sign in with google/i }));
+    await user.click(
+      screen.getByRole('button', { name: /sign in with google/i })
+    );
 
     await waitFor(() => expect(mockSignInSocial).toHaveBeenCalledTimes(1));
     expect(mockPush).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: /sign in with google/i })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: /sign in with google/i })
+    ).toBeEnabled();
   });
 
   it('does not show the Access Denied banner when no error query param is present', () => {
@@ -106,7 +120,9 @@ describe('SignInPage', () => {
 
     expect(screen.getByText(/access denied/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/please sign in using your verified 1bt company email address/i)
+      screen.getByText(
+        /please sign in using your verified 1bt company email address/i
+      )
     ).toBeInTheDocument();
   });
 });

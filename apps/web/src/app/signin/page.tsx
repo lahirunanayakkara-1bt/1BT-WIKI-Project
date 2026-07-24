@@ -65,7 +65,8 @@ function SignInContent() {
                 Welcome to {BRAND_FULL_NAME}
               </h2>
               <p className="max-w-md text-sm leading-6 text-white/80">
-                Browse internal guides, articles, and team knowledge once you sign in.
+                Browse internal guides, articles, and team knowledge once you
+                sign in.
               </p>
             </div>
           </div>
@@ -93,23 +94,27 @@ function SignInContent() {
                       <XCircleSolidIcon className="h-5 w-5 text-red-400" />
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">Access Denied</h3>
+                      <h3 className="text-sm font-medium text-red-800">
+                        Access Denied
+                      </h3>
                       <div className="mt-1 text-sm text-red-700">
                         <p>
-                          Please sign in using your verified {BRAND_NAME} company email address.
+                          Please sign in using your verified {BRAND_NAME}{' '}
+                          company email address.
                         </p>
                       </div>
                       <div className="mt-3">
-                        <a 
-                          href="https://accounts.google.com/AccountChooser" 
-                          target="_blank" 
+                        <a
+                          href="https://accounts.google.com/AccountChooser"
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center rounded-md bg-red-100 px-3 py-2 text-sm font-semibold text-red-800 shadow-sm hover:bg-red-200 transition-colors"
                         >
                           Switch Google Account
                         </a>
                         <p className="mt-2 text-xs text-red-600">
-                          (Opens in a new tab. After switching, come back here and try again)
+                          (Opens in a new tab. After switching, come back here
+                          and try again)
                         </p>
                       </div>
                     </div>
@@ -146,13 +151,17 @@ function SignInContent() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center bg-[var(--color-brand-bg)] px-4 py-8">
-        <div className="w-full max-w-6xl overflow-hidden rounded-[32px] bg-[var(--color-brand-surface)] shadow-[0_20px_70px_rgba(0,0,0,0.08)] flex items-center justify-center min-h-[560px]">
-          <p className="text-[var(--color-brand-text-secondary)]">Loading...</p>
-        </div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-[var(--color-brand-bg)] px-4 py-8">
+          <div className="w-full max-w-6xl overflow-hidden rounded-[32px] bg-[var(--color-brand-surface)] shadow-[0_20px_70px_rgba(0,0,0,0.08)] flex items-center justify-center min-h-[560px]">
+            <p className="text-[var(--color-brand-text-secondary)]">
+              Loading...
+            </p>
+          </div>
+        </main>
+      }
+    >
       <SignInContent />
     </Suspense>
   );

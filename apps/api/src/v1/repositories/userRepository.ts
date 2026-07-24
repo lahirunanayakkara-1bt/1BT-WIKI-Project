@@ -8,17 +8,17 @@ import type { User } from '@/types/userTypes.js';
 // ---------------------------------------------------------------------------
 
 const USER_SELECT = {
-  id:            true,
-  name:          true,
-  email:         true,
+  id: true,
+  name: true,
+  email: true,
   emailVerified: true,
-  image:         true,
-  createdAt:     true,
-  updatedAt:     true,
-  role:          true,
-  banned:        true,
-  banReason:     true,
-  banExpires:    true,
+  image: true,
+  createdAt: true,
+  updatedAt: true,
+  role: true,
+  banned: true,
+  banReason: true,
+  banExpires: true,
 } as const;
 
 /**
@@ -27,7 +27,7 @@ const USER_SELECT = {
  */
 const findByEmail = async (email: string): Promise<User | null> => {
   const user = await prisma.user.findFirst({
-    where:  { email },
+    where: { email },
     select: USER_SELECT,
   });
   return user ?? null;
@@ -39,7 +39,7 @@ const findByEmail = async (email: string): Promise<User | null> => {
  */
 const findById = async (userId: string): Promise<User | null> => {
   const user = await prisma.user.findFirst({
-    where:  { id: userId },
+    where: { id: userId },
     select: USER_SELECT,
   });
   return user ?? null;
@@ -47,8 +47,8 @@ const findById = async (userId: string): Promise<User | null> => {
 
 const updateRole = async (id: string, role: string): Promise<User> => {
   const user = await prisma.user.update({
-    where:  { id },
-    data:   { role },
+    where: { id },
+    data: { role },
     select: USER_SELECT,
   });
   return user;
@@ -59,9 +59,9 @@ const updateBanStatus = async (
   data: { banned: boolean; banReason: string | null }
 ): Promise<User> => {
   const user = await prisma.user.update({
-    where:  { id },
-    data:   {
-      banned:    data.banned,
+    where: { id },
+    data: {
+      banned: data.banned,
       banReason: data.banReason,
     },
     select: USER_SELECT,
@@ -78,15 +78,21 @@ const updateById = async (
   }
 
   const data: { name?: string; image?: string | null } = {};
-  if (updates.name  !== undefined) data.name  = updates.name;
+  if (updates.name !== undefined) data.name = updates.name;
   if (updates.image !== undefined) data.image = updates.image;
 
   const user = await prisma.user.update({
-    where:  { id: userId },
+    where: { id: userId },
     data,
     select: USER_SELECT,
   });
   return user ?? null;
 };
 
-export default { findByEmail, findById, updateRole, updateBanStatus, updateById };
+export default {
+  findByEmail,
+  findById,
+  updateRole,
+  updateBanStatus,
+  updateById,
+};

@@ -86,36 +86,44 @@ interface EditorDraftContextValue {
 // ── Context & hook ──────────────────────────────────────────────────────────
 
 const EditorDraftContext = createContext<EditorDraftContextValue | undefined>(
-  undefined,
+  undefined
 );
 
 export function useEditorDraft(): EditorDraftContextValue {
   const ctx = useContext(EditorDraftContext);
   if (!ctx) {
-    throw new Error('useEditorDraft must be used within an EditorDraftProvider');
+    throw new Error(
+      'useEditorDraft must be used within an EditorDraftProvider'
+    );
   }
   return ctx;
 }
 
 // ── Provider ────────────────────────────────────────────────────────────────
 
-export function EditorDraftProvider({ 
+export function EditorDraftProvider({
   children,
-  initialArticle 
-}: { 
+  initialArticle,
+}: {
   children: ReactNode;
   initialArticle?: ArticleResponse;
 }) {
   // ── Reactive state ──
-  const [articleId, setArticleId] = useState<string | null>(initialArticle?.id ?? null);
-  const [articleStatus, setArticleStatus] = useState<string | null>(initialArticle?.status ?? null);
+  const [articleId, setArticleId] = useState<string | null>(
+    initialArticle?.id ?? null
+  );
+  const [articleStatus, setArticleStatus] = useState<string | null>(
+    initialArticle?.status ?? null
+  );
   const [title, setTitleState] = useState(initialArticle?.title ?? '');
   const [tags, setTagsState] = useState<string[]>(initialArticle?.tags ?? []);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
   const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(null);
-  const [attachments, setAttachmentsState] = useState<ArticleAttachment[]>(initialArticle?.attachments ?? []);
+  const [attachments, setAttachmentsState] = useState<ArticleAttachment[]>(
+    initialArticle?.attachments ?? []
+  );
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [contentChangeCounter, setContentChangeCounter] = useState(0);
@@ -127,9 +135,15 @@ export function EditorDraftProvider({
   const titleRef = useRef(initialArticle?.title ?? '');
   const tagsRef = useRef<string[]>(initialArticle?.tags ?? []);
   const editorRef = useRef<Editor | null>(null);
-  const attachmentsRef = useRef<ArticleAttachment[]>(initialArticle?.attachments ?? []);
-  const initialBodyRef = useRef<Record<string, unknown> | null>(initialArticle?.body ?? null);
-  const initialStatusRef = useRef<string | null>(initialArticle?.status ?? null);
+  const attachmentsRef = useRef<ArticleAttachment[]>(
+    initialArticle?.attachments ?? []
+  );
+  const initialBodyRef = useRef<Record<string, unknown> | null>(
+    initialArticle?.body ?? null
+  );
+  const initialStatusRef = useRef<string | null>(
+    initialArticle?.status ?? null
+  );
 
   // ── Concurrency control (Correction 2) ──
   const creatingDraftRef = useRef<Promise<string> | null>(null);
@@ -200,7 +214,7 @@ export function EditorDraftProvider({
         }
       }
     },
-    [],
+    []
   );
 
   // ── ensureDraftExists ─────────────────────────────────────────────────
@@ -232,7 +246,7 @@ export function EditorDraftProvider({
             title: titleForCreate,
             body: editorRef.current?.getJSON() ?? {},
             tags: tagsRef.current,
-          }),
+          })
         );
 
         try {
@@ -264,8 +278,7 @@ export function EditorDraftProvider({
           return id;
         } catch (error) {
           setSaveStatus('error');
-          const msg =
-            error instanceof Error ? error.message : String(error);
+          const msg = error instanceof Error ? error.message : String(error);
           setLastError(msg);
           throw error;
         }
@@ -306,7 +319,7 @@ export function EditorDraftProvider({
           title: safeTitle,
           body: editorRef.current?.getJSON() ?? {},
           tags: tagsRef.current,
-        }),
+        })
       );
 
       try {
@@ -323,11 +336,9 @@ export function EditorDraftProvider({
         // (PATCH without images returns attachments: undefined)
         if (result.data?.attachments) {
           // Merge: keep existing attachments, add any genuinely new ones
-          const existingIds = new Set(
-            attachmentsRef.current.map((a) => a.id),
-          );
+          const existingIds = new Set(attachmentsRef.current.map((a) => a.id));
           const trulyNew = result.data.attachments.filter(
-            (a) => !existingIds.has(a.id),
+            (a) => !existingIds.has(a.id)
           );
           const merged = [...attachmentsRef.current, ...trulyNew];
           setAttachmentsState(merged);
@@ -339,8 +350,7 @@ export function EditorDraftProvider({
         setLastError(null);
       } catch (error) {
         setSaveStatus('error');
-        const msg =
-          error instanceof Error ? error.message : String(error);
+        const msg = error instanceof Error ? error.message : String(error);
         setLastError(msg);
         throw error;
       }
@@ -366,9 +376,7 @@ export function EditorDraftProvider({
         setSaveStatus('saving');
 
         // Snapshot current attachment IDs BEFORE the request (Correction 1)
-        const preUploadIds = new Set(
-          attachmentsRef.current.map((a) => a.id),
-        );
+        const preUploadIds = new Set(attachmentsRef.current.map((a) => a.id));
 
         // BUG FIX: Guard against sending an empty title on upload PATCH
         const safeTitle = titleRef.current.trim() || 'Untitled Draft';
@@ -380,15 +388,15 @@ export function EditorDraftProvider({
             title: safeTitle,
             body: editorRef.current?.getJSON() ?? {},
             tags: tagsRef.current,
-          }),
+          })
         );
         formData.append('images', file);
 
         try {
-          const result = await apiFetch<ArticleResponse>(
-            `/articles/${id}`,
-            { method: 'PATCH', body: formData },
-          );
+          const result = await apiFetch<ArticleResponse>(`/articles/${id}`, {
+            method: 'PATCH',
+            body: formData,
+          });
 
           if (result.data?.status) {
             setArticleStatus(result.data.status);
@@ -397,11 +405,9 @@ export function EditorDraftProvider({
           const returnedAttachments = result.data?.attachments ?? [];
 
           // Merge into state (handles both full-list and new-only responses)
-          const existingIds = new Set(
-            attachmentsRef.current.map((a) => a.id),
-          );
+          const existingIds = new Set(attachmentsRef.current.map((a) => a.id));
           const trulyNewForState = returnedAttachments.filter(
-            (a) => !existingIds.has(a.id),
+            (a) => !existingIds.has(a.id)
           );
           const merged = [...attachmentsRef.current, ...trulyNewForState];
           setAttachmentsState(merged);
@@ -413,36 +419,34 @@ export function EditorDraftProvider({
 
           // Correction 1: find the genuinely new attachment by diffing IDs
           const newAttachments = returnedAttachments.filter(
-            (a) => !preUploadIds.has(a.id),
+            (a) => !preUploadIds.has(a.id)
           );
 
           if (newAttachments.length === 0) {
             throw new Error(
-              'Image upload succeeded but no new attachment was returned',
+              'Image upload succeeded but no new attachment was returned'
             );
           }
 
           if (newAttachments.length > 1) {
             console.warn(
               `[EditorDraft] Unexpected: ${newAttachments.length} new attachments ` +
-                'found after single-file upload. Using the last one.',
+                'found after single-file upload. Using the last one.'
             );
           }
 
           // Take the last new attachment (safest if multiple unexpectedly appear)
-          const newAttachment =
-            newAttachments[newAttachments.length - 1]!;
+          const newAttachment = newAttachments[newAttachments.length - 1]!;
           return newAttachment.fileUrl;
         } catch (error) {
           setSaveStatus('error');
-          const msg =
-            error instanceof Error ? error.message : String(error);
+          const msg = error instanceof Error ? error.message : String(error);
           setLastError(msg);
           throw error;
         }
       });
     },
-    [ensureDraftExists, withRequestLock],
+    [ensureDraftExists, withRequestLock]
   );
 
   // ── submitForReview ───────────────────────────────────────────────────
@@ -461,9 +465,12 @@ export function EditorDraftProvider({
       setSaveStatus('saving');
 
       try {
-        const result = await apiFetch<ArticleResponse>(`/articles/${id}/submit`, {
-          method: 'POST',
-        });
+        const result = await apiFetch<ArticleResponse>(
+          `/articles/${id}/submit`,
+          {
+            method: 'POST',
+          }
+        );
 
         if (result.data?.status) {
           setArticleStatus(result.data.status);
@@ -582,7 +589,7 @@ export function EditorDraftProvider({
       insertEditorImage,
       handleTitleBlur,
       notifyContentChanged,
-    ],
+    ]
   );
 
   return (

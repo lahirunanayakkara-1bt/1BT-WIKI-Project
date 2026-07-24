@@ -28,7 +28,12 @@ function timeAgo(dateStr: string) {
   return `${days} days ago`;
 }
 
-export function CommentItem({ comment, currentUserId, onDelete, onEdit }: CommentItemProps) {
+export function CommentItem({
+  comment,
+  currentUserId,
+  onDelete,
+  onEdit,
+}: CommentItemProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -83,14 +88,29 @@ export function CommentItem({ comment, currentUserId, onDelete, onEdit }: Commen
   };
 
   return (
-    <div data-testid="comment-item" className="flex gap-4 py-6 border-b border-brand-border last:border-0">
-      <img src={comment.authorImage || DEFAULT_AVATAR} alt={comment.authorName} className="w-10 h-10 rounded-full bg-brand-border object-cover" />
+    <div
+      data-testid="comment-item"
+      className="flex gap-4 py-6 border-b border-brand-border last:border-0"
+    >
+      <img
+        src={comment.authorImage || DEFAULT_AVATAR}
+        alt={comment.authorName}
+        className="w-10 h-10 rounded-full bg-brand-border object-cover"
+      />
       <div className="flex-1">
         <div className="flex justify-between items-start">
           <div>
-            <span className="font-semibold text-brand-dark">{comment.authorName}</span>
-            <span className="ml-2 text-sm text-brand-text-secondary">{timeAgo(comment.createdAt)}</span>
-            {isEdited && <span className="ml-2 text-xs text-brand-text-secondary">(edited)</span>}
+            <span className="font-semibold text-brand-dark">
+              {comment.authorName}
+            </span>
+            <span className="ml-2 text-sm text-brand-text-secondary">
+              {timeAgo(comment.createdAt)}
+            </span>
+            {isEdited && (
+              <span className="ml-2 text-xs text-brand-text-secondary">
+                (edited)
+              </span>
+            )}
           </div>
           {isMine && !isEditing && (
             <div className="flex items-center gap-1">
@@ -123,7 +143,10 @@ export function CommentItem({ comment, currentUserId, onDelete, onEdit }: Commen
               className="w-full bg-brand-bg border border-brand-border rounded-lg p-3 text-brand-text-primary focus:outline-none focus:border-brand-red resize-none min-h-[80px] transition-colors"
             />
             {editError && (
-              <p data-testid="edit-comment-error" className="text-sm text-brand-red">
+              <p
+                data-testid="edit-comment-error"
+                className="text-sm text-brand-red"
+              >
                 {editError}
               </p>
             )}
@@ -138,7 +161,11 @@ export function CommentItem({ comment, currentUserId, onDelete, onEdit }: Commen
               </button>
               <button
                 onClick={handleSaveEdit}
-                disabled={isSaving || !draftBody.trim() || draftBody.trim() === comment.body}
+                disabled={
+                  isSaving ||
+                  !draftBody.trim() ||
+                  draftBody.trim() === comment.body
+                }
                 data-testid="save-edit-comment-btn"
                 className="px-4 py-1.5 text-sm font-medium bg-brand-dark text-brand-surface rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-red transition-colors"
               >
@@ -147,14 +174,19 @@ export function CommentItem({ comment, currentUserId, onDelete, onEdit }: Commen
             </div>
           </div>
         ) : (
-          <p className="mt-2 text-brand-text-primary whitespace-pre-wrap">{comment.body}</p>
+          <p className="mt-2 text-brand-text-primary whitespace-pre-wrap">
+            {comment.body}
+          </p>
         )}
       </div>
 
       <ConfirmationModal
         isOpen={isModalOpen}
         title="Delete this comment?"
-        message={deleteError || 'Are you sure you want to delete this comment? This action cannot be undone.'}
+        message={
+          deleteError ||
+          'Are you sure you want to delete this comment? This action cannot be undone.'
+        }
         confirmText="Delete"
         cancelText="Cancel"
         isConfirming={isDeleting}

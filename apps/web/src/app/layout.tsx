@@ -15,12 +15,12 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
+export default function RootLayout({
+  children,
+}: RootLayoutProps): React.JSX.Element {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-brand-bg">
-        {children}
-      </body>
+      <body className="font-sans antialiased bg-brand-bg">{children}</body>
     </html>
   );
 }

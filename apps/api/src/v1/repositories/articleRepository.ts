@@ -17,10 +17,17 @@ const ARTICLE_SELECT = {
   updatedAt: true,
 } as const;
 
-type ArticleBody = { title: string; body: JSONContent; tags: string[]; status: ArticleStatus };
+type ArticleBody = {
+  title: string;
+  body: JSONContent;
+  tags: string[];
+  status: ArticleStatus;
+};
 
 export class ArticleRepository {
-  async create(data: CreateArticleInput & { authorId: string }): Promise<Article> {
+  async create(
+    data: CreateArticleInput & { authorId: string }
+  ): Promise<Article> {
     const { title, body, tags, authorId } = data;
 
     // Default values
@@ -55,7 +62,9 @@ export class ArticleRepository {
     // Prisma will update updatedAt automatically via @updatedAt
     const updateData: Prisma.articleUpdateInput = {
       ...(fields.title !== undefined && { title: fields.title }),
-      ...(fields.body !== undefined && { body: fields.body as Prisma.InputJsonValue }),
+      ...(fields.body !== undefined && {
+        body: fields.body as Prisma.InputJsonValue,
+      }),
       ...(fields.tags !== undefined && { tags: fields.tags }),
       ...(fields.status !== undefined && { status: fields.status }),
     };

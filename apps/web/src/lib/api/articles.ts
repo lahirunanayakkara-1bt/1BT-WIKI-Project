@@ -1,6 +1,11 @@
 import { apiFetch } from '@/lib/api/client';
 
-export type ArticleStatus = 'Draft' | 'Pending' | 'Published' | 'Unpublished' | 'Rejected';
+export type ArticleStatus =
+  | 'Draft'
+  | 'Pending'
+  | 'Published'
+  | 'Unpublished'
+  | 'Rejected';
 
 export interface ArticleListItem {
   id: string;
@@ -21,8 +26,13 @@ export interface ListMineResult {
   limit: number;
 }
 
-export async function fetchMyArticles(page = 1, limit = 20): Promise<ListMineResult> {
-  const result = await apiFetch<ListMineResult>(`/articles/mine?page=${page}&limit=${limit}`);
+export async function fetchMyArticles(
+  page = 1,
+  limit = 20
+): Promise<ListMineResult> {
+  const result = await apiFetch<ListMineResult>(
+    `/articles/mine?page=${page}&limit=${limit}`
+  );
   if (!result.success || !result.data) {
     throw new Error(result.error || 'Failed to load articles');
   }

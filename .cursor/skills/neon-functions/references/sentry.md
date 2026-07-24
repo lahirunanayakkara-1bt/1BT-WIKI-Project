@@ -20,7 +20,7 @@ Put `Sentry.init` in its own module and import it as the very first import of yo
 
 ```typescript
 // src/instrument.ts
-import * as Sentry from "@sentry/node";
+import * as Sentry from '@sentry/node';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -30,9 +30,10 @@ Sentry.init({
   // can't be used as a truthy "is this a branch?" flag. Treat the project's default branch as
   // "production" (its name passed in via neon.ts env) and tag every other branch by its name.
   environment:
-    process.env.NEON_BRANCH && process.env.NEON_BRANCH !== process.env.PRODUCTION_BRANCH
+    process.env.NEON_BRANCH &&
+    process.env.NEON_BRANCH !== process.env.PRODUCTION_BRANCH
       ? process.env.NEON_BRANCH
-      : "production",
+      : 'production',
 });
 
 export { Sentry };
@@ -40,9 +41,9 @@ export { Sentry };
 
 ```typescript
 // src/index.ts
-import "./instrument"; // MUST be the first import, before the framework/agent
-import { Sentry } from "./instrument";
-import { Hono } from "hono";
+import './instrument'; // MUST be the first import, before the framework/agent
+import { Sentry } from './instrument';
+import { Hono } from 'hono';
 // ... rest of the function
 ```
 
@@ -77,8 +78,8 @@ Wire a top-level error handler in your HTTP framework so any error thrown in a r
 ```typescript
 app.onError((err, c) => {
   Sentry.captureException(err);
-  c.header("access-control-allow-origin", "*"); // cors() doesn't run on error responses
-  return c.json({ error: "internal_error" }, 500);
+  c.header('access-control-allow-origin', '*'); // cors() doesn't run on error responses
+  return c.json({ error: 'internal_error' }, 500);
 });
 ```
 
@@ -91,22 +92,22 @@ A representative agent that parses a page across several models reports three di
 ```typescript
 // Recoverable: one model attempt failed, the agent will try the next model.
 Sentry.captureException(err, {
-  level: "warning",
-  tags: { component: "agent", phase: "parse-attempt", model },
+  level: 'warning',
+  tags: { component: 'agent', phase: 'parse-attempt', model },
   extra: { url, source },
 });
 
 // Terminal: every model failed.
 Sentry.captureException(err, {
-  level: "error",
-  tags: { component: "agent", phase: "parse-all-failed" },
+  level: 'error',
+  tags: { component: 'agent', phase: 'parse-all-failed' },
   extra: { url, source },
 });
 
 // Non-exception failure: the agent couldn't fetch the input page at all.
-Sentry.captureMessage("agent could not fetch page", {
-  level: "warning",
-  tags: { component: "agent", phase: "fetch" },
+Sentry.captureMessage('agent could not fetch page', {
+  level: 'warning',
+  tags: { component: 'agent', phase: 'fetch' },
   extra: { url, source },
 });
 ```

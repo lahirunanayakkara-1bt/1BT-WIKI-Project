@@ -21,7 +21,6 @@ const getAllUsers = async (
   }
 };
 
-
 // ---------------------------------------------------------------------------
 // POST /api/v1/admin/users  (Admin only)
 // ---------------------------------------------------------------------------
@@ -43,12 +42,7 @@ const adminCreateUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {
-      name,
-      email,
-      role,
-      image,
-    } = req.body as {
+    const { name, email, role, image } = req.body as {
       name: unknown;
       email: unknown;
       role: unknown;
@@ -56,9 +50,9 @@ const adminCreateUser = async (
     };
 
     const newUser = await adminService.adminCreateUser({
-      name:  String(name  ?? ''),
+      name: String(name ?? ''),
       email: String(email ?? ''),
-      role:  role  ? (String(role)  as UserRole) : undefined,
+      role: role ? (String(role) as UserRole) : undefined,
       image: image ? String(image) : undefined,
     });
 

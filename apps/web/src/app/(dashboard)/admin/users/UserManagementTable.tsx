@@ -27,12 +27,18 @@ interface UserManagementTableProps {
 const ROLES: UserRole[] = ['Admin', 'Reviewer', 'User'];
 
 const roleBadgeClass: Record<UserRole, string> = {
-  Admin:    'bg-brand-red/10 text-brand-red border-brand-red/20',
+  Admin: 'bg-brand-red/10 text-brand-red border-brand-red/20',
   Reviewer: 'bg-amber-50 text-amber-700 border-amber-200',
-  User:     'bg-brand-bg text-brand-text-secondary border-brand-border',
+  User: 'bg-brand-bg text-brand-text-secondary border-brand-border',
 };
 
-function UserInitialAvatar({ name, image }: { name: string; image: string | null }) {
+function UserInitialAvatar({
+  name,
+  image,
+}: {
+  name: string;
+  image: string | null;
+}) {
   const [imgFailed, setImgFailed] = React.useState(false);
   const src = image && image.trim().length > 0 ? image : null;
 
@@ -57,7 +63,9 @@ function UserInitialAvatar({ name, image }: { name: string; image: string | null
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   } catch {
     return '—';
@@ -72,7 +80,10 @@ export function UserManagementTable({
 }: UserManagementTableProps): React.JSX.Element {
   if (users.length === 0) {
     return (
-      <div className="py-16 text-center text-brand-text-secondary text-sm" data-testid="empty-users">
+      <div
+        className="py-16 text-center text-brand-text-secondary text-sm"
+        data-testid="empty-users"
+      >
         No users found.
       </div>
     );
@@ -83,11 +94,21 @@ export function UserManagementTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-border bg-brand-bg/60">
-            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider">User</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider">Role</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider hidden md:table-cell">Status</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider hidden lg:table-cell">Joined</th>
-            <th className="text-right px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider">Actions</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider">
+              User
+            </th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider">
+              Role
+            </th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider hidden md:table-cell">
+              Status
+            </th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider hidden lg:table-cell">
+              Joined
+            </th>
+            <th className="text-right px-4 py-3 text-xs font-semibold text-brand-text-secondary uppercase tracking-wider">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-brand-border">
@@ -98,7 +119,10 @@ export function UserManagementTable({
             return (
               <tr
                 key={user.id}
-                className={cn('user-row transition-colors hover:bg-brand-bg/50', isBanned && 'opacity-60')}
+                className={cn(
+                  'user-row transition-colors hover:bg-brand-bg/50',
+                  isBanned && 'opacity-60'
+                )}
                 data-testid={`user-row-${user.id}`}
               >
                 {/* User info */}
@@ -106,8 +130,12 @@ export function UserManagementTable({
                   <div className="flex items-center gap-3">
                     <UserInitialAvatar name={user.name} image={user.image} />
                     <div className="min-w-0">
-                      <p className="font-medium text-brand-text-primary truncate">{user.name}</p>
-                      <p className="text-xs text-brand-text-secondary truncate">{user.email}</p>
+                      <p className="font-medium text-brand-text-primary truncate">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-brand-text-secondary truncate">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                 </td>
@@ -118,7 +146,9 @@ export function UserManagementTable({
                     value={user.role}
                     disabled={isUpdating}
                     data-testid={`role-select-${user.id}`}
-                    onChange={(e) => onRoleChange(user.id, e.target.value as UserRole)}
+                    onChange={(e) =>
+                      onRoleChange(user.id, e.target.value as UserRole)
+                    }
                     className={cn(
                       'text-xs font-medium border rounded px-2 py-1 pr-6 cursor-pointer focus:outline-none focus:border-brand-red transition-colors appearance-none bg-no-repeat disabled:cursor-not-allowed disabled:opacity-60',
                       roleBadgeClass[user.role]
@@ -130,7 +160,13 @@ export function UserManagementTable({
                     }}
                   >
                     {ROLES.map((r) => (
-                      <option key={r} value={r} className="text-brand-text-primary bg-brand-surface">{r}</option>
+                      <option
+                        key={r}
+                        value={r}
+                        className="text-brand-text-primary bg-brand-surface"
+                      >
+                        {r}
+                      </option>
                     ))}
                   </select>
                 </td>
@@ -181,7 +217,11 @@ export function UserManagementTable({
                         <SpinnerIcon className="w-3 h-3 animate-spin" />
                         Saving...
                       </span>
-                    ) : isBanned ? 'Reactivate' : 'Deactivate'}
+                    ) : isBanned ? (
+                      'Reactivate'
+                    ) : (
+                      'Deactivate'
+                    )}
                   </button>
                 </td>
               </tr>

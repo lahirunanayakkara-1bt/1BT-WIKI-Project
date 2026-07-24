@@ -1,207 +1,260 @@
-import { stubAuthSession } from "../support/auth";
+import { stubAuthSession } from '../support/auth';
 
 function makeComment(overrides: Record<string, unknown> = {}) {
   return {
-    id: "c1",
-    articleId: "a1",
-    createdBy: "other-user",
-    body: "Great read!",
-    authorName: "Other User",
+    id: 'c1',
+    articleId: 'a1',
+    createdBy: 'other-user',
+    body: 'Great read!',
+    authorName: 'Other User',
     authorImage: null,
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   };
 }
 
-describe("Article comments", () => {
+describe('Article comments', () => {
   it("lists comments and only shows edit/delete on the current user's own comment", () => {
-    stubAuthSession("User");
+    stubAuthSession('User');
 
-    cy.intercept("GET", "**/api/v1/articles/a1/comments", {
+    cy.intercept('GET', '**/api/v1/articles/a1/comments', {
       statusCode: 200,
       body: {
         success: true,
         data: [
-          makeComment({ id: "mine", createdBy: "test-user-1", authorName: "Test User", body: "My own comment" }),
-          makeComment({ id: "theirs", createdBy: "other-user", authorName: "Other User", body: "Someone else's comment" }),
+          makeComment({
+            id: 'mine',
+            createdBy: 'test-user-1',
+            authorName: 'Test User',
+            body: 'My own comment',
+          }),
+          makeComment({
+            id: 'theirs',
+            createdBy: 'other-user',
+            authorName: 'Other User',
+            body: "Someone else's comment",
+          }),
         ],
       },
-    }).as("commentsList");
+    }).as('commentsList');
 
-    cy.visitPage("/articles/a1");
-    cy.wait("@usersMe");
-    cy.wait("@commentsList");
+    cy.visitPage('/articles/a1');
+    cy.wait('@usersMe');
+    cy.wait('@commentsList');
 
-    cy.contains("My own comment").scrollIntoView().should("be.visible");
-    cy.contains("Someone else's comment").scrollIntoView().should("be.visible");
-    cy.get('[data-testid="delete-comment-btn"]').should("have.length", 1);
-    cy.get('[data-testid="edit-comment-btn"]').should("have.length", 1);
+    cy.contains('My own comment').scrollIntoView().should('be.visible');
+    cy.contains("Someone else's comment").scrollIntoView().should('be.visible');
+    cy.get('[data-testid="delete-comment-btn"]').should('have.length', 1);
+    cy.get('[data-testid="edit-comment-btn"]').should('have.length', 1);
   });
 
-  it("posts a new comment and shows it at the top of the list", () => {
-    stubAuthSession("User");
+  it('posts a new comment and shows it at the top of the list', () => {
+    stubAuthSession('User');
 
-    cy.intercept("GET", "**/api/v1/articles/a1/comments", {
+    cy.intercept('GET', '**/api/v1/articles/a1/comments', {
       statusCode: 200,
       body: { success: true, data: [] },
-    }).as("commentsList");
+    }).as('commentsList');
 
-    cy.intercept("POST", "**/api/v1/articles/a1/comments", {
+    cy.intercept('POST', '**/api/v1/articles/a1/comments', {
       statusCode: 201,
       body: {
         success: true,
         data: {
-          id: "new-1",
-          articleId: "a1",
-          createdBy: "test-user-1",
-          body: "This is a great article!",
-          createdAt: "2026-01-10T00:00:00.000Z",
-          updatedAt: "2026-01-10T00:00:00.000Z",
+          id: 'new-1',
+          articleId: 'a1',
+          createdBy: 'test-user-1',
+          body: 'This is a great article!',
+          createdAt: '2026-01-10T00:00:00.000Z',
+          updatedAt: '2026-01-10T00:00:00.000Z',
         },
       },
-    }).as("createComment");
+    }).as('createComment');
 
-    cy.visitPage("/articles/a1");
-    cy.wait("@usersMe");
-    cy.wait("@commentsList");
+    cy.visitPage('/articles/a1');
+    cy.wait('@usersMe');
+    cy.wait('@commentsList');
 
-    cy.get('[data-testid="comments-empty"]').scrollIntoView().should("be.visible");
+    cy.get('[data-testid="comments-empty"]')
+      .scrollIntoView()
+      .should('be.visible');
 
-    cy.get("textarea[placeholder='Add a comment...']").type("This is a great article!");
-    cy.contains("button", "Post Comment").click();
+    cy.get("textarea[placeholder='Add a comment...']").type(
+      'This is a great article!'
+    );
+    cy.contains('button', 'Post Comment').click();
 
-    cy.wait("@createComment");
-    cy.contains("This is a great article!").scrollIntoView().should("be.visible");
-    cy.get('[data-testid="success-toast"]').should("be.visible");
+    cy.wait('@createComment');
+    cy.contains('This is a great article!')
+      .scrollIntoView()
+      .should('be.visible');
+    cy.get('[data-testid="success-toast"]').should('be.visible');
   });
 
-  it("edits an own comment and shows the updated body", () => {
-    stubAuthSession("User");
+  it('edits an own comment and shows the updated body', () => {
+    stubAuthSession('User');
 
-    cy.intercept("GET", "**/api/v1/articles/a1/comments", {
+    cy.intercept('GET', '**/api/v1/articles/a1/comments', {
       statusCode: 200,
       body: {
         success: true,
-        data: [makeComment({ id: "mine", createdBy: "test-user-1", authorName: "Test User", body: "Old body" })],
+        data: [
+          makeComment({
+            id: 'mine',
+            createdBy: 'test-user-1',
+            authorName: 'Test User',
+            body: 'Old body',
+          }),
+        ],
       },
-    }).as("commentsList");
+    }).as('commentsList');
 
-    cy.intercept("PATCH", "**/api/v1/articles/a1/comments/mine", {
+    cy.intercept('PATCH', '**/api/v1/articles/a1/comments/mine', {
       statusCode: 200,
       body: {
         success: true,
         data: {
-          id: "mine",
-          articleId: "a1",
-          createdBy: "test-user-1",
-          body: "Updated body",
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-02T00:00:00.000Z",
+          id: 'mine',
+          articleId: 'a1',
+          createdBy: 'test-user-1',
+          body: 'Updated body',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-02T00:00:00.000Z',
         },
       },
-    }).as("editComment");
+    }).as('editComment');
 
-    cy.visitPage("/articles/a1");
-    cy.wait("@usersMe");
-    cy.wait("@commentsList");
+    cy.visitPage('/articles/a1');
+    cy.wait('@usersMe');
+    cy.wait('@commentsList');
 
     cy.get('[data-testid="edit-comment-btn"]').click();
-    cy.get('[data-testid="edit-comment-input"]').clear().type("Updated body");
+    cy.get('[data-testid="edit-comment-input"]').clear().type('Updated body');
     cy.get('[data-testid="save-edit-comment-btn"]').click();
 
-    cy.wait("@editComment");
-    cy.contains("Updated body").should("be.visible");
-    cy.get('[data-testid="edit-comment-input"]').should("not.exist");
+    cy.wait('@editComment');
+    cy.contains('Updated body').should('be.visible');
+    cy.get('[data-testid="edit-comment-input"]').should('not.exist');
   });
 
-  it("keeps the edit form open and shows an error when editing fails", () => {
-    stubAuthSession("User");
+  it('keeps the edit form open and shows an error when editing fails', () => {
+    stubAuthSession('User');
 
-    cy.intercept("GET", "**/api/v1/articles/a1/comments", {
+    cy.intercept('GET', '**/api/v1/articles/a1/comments', {
       statusCode: 200,
       body: {
         success: true,
-        data: [makeComment({ id: "mine", createdBy: "test-user-1", authorName: "Test User", body: "Old body" })],
+        data: [
+          makeComment({
+            id: 'mine',
+            createdBy: 'test-user-1',
+            authorName: 'Test User',
+            body: 'Old body',
+          }),
+        ],
       },
-    }).as("commentsList");
+    }).as('commentsList');
 
-    cy.intercept("PATCH", "**/api/v1/articles/a1/comments/mine", {
+    cy.intercept('PATCH', '**/api/v1/articles/a1/comments/mine', {
       statusCode: 403,
-      body: { success: false, error: "Only the comment owner can edit this comment" },
-    }).as("editComment");
+      body: {
+        success: false,
+        error: 'Only the comment owner can edit this comment',
+      },
+    }).as('editComment');
 
-    cy.visitPage("/articles/a1");
-    cy.wait("@usersMe");
-    cy.wait("@commentsList");
+    cy.visitPage('/articles/a1');
+    cy.wait('@usersMe');
+    cy.wait('@commentsList');
 
     cy.get('[data-testid="edit-comment-btn"]').click();
-    cy.get('[data-testid="edit-comment-input"]').clear().type("Attempted edit");
+    cy.get('[data-testid="edit-comment-input"]').clear().type('Attempted edit');
     cy.get('[data-testid="save-edit-comment-btn"]').click();
 
-    cy.wait("@editComment");
+    cy.wait('@editComment');
     cy.get('[data-testid="edit-comment-error"]').should(
-      "contain.text",
-      "Only the comment owner can edit this comment"
+      'contain.text',
+      'Only the comment owner can edit this comment'
     );
-    cy.get('[data-testid="edit-comment-input"]').should("have.value", "Attempted edit");
+    cy.get('[data-testid="edit-comment-input"]').should(
+      'have.value',
+      'Attempted edit'
+    );
   });
 
-  it("deletes an own comment and removes it from the list", () => {
-    stubAuthSession("User");
+  it('deletes an own comment and removes it from the list', () => {
+    stubAuthSession('User');
 
-    cy.intercept("GET", "**/api/v1/articles/a1/comments", {
+    cy.intercept('GET', '**/api/v1/articles/a1/comments', {
       statusCode: 200,
       body: {
         success: true,
-        data: [makeComment({ id: "mine", createdBy: "test-user-1", authorName: "Test User", body: "Delete me" })],
+        data: [
+          makeComment({
+            id: 'mine',
+            createdBy: 'test-user-1',
+            authorName: 'Test User',
+            body: 'Delete me',
+          }),
+        ],
       },
-    }).as("commentsList");
+    }).as('commentsList');
 
-    cy.intercept("DELETE", "**/api/v1/articles/a1/comments/mine", {
+    cy.intercept('DELETE', '**/api/v1/articles/a1/comments/mine', {
       statusCode: 200,
       body: { success: true, data: null },
-    }).as("deleteComment");
+    }).as('deleteComment');
 
-    cy.visitPage("/articles/a1");
-    cy.wait("@usersMe");
-    cy.wait("@commentsList");
+    cy.visitPage('/articles/a1');
+    cy.wait('@usersMe');
+    cy.wait('@commentsList');
 
     cy.get('[data-testid="delete-comment-btn"]').click();
-    cy.contains("button", "Delete").click();
+    cy.contains('button', 'Delete').click();
 
-    cy.wait("@deleteComment");
-    cy.get('[data-testid="comments-empty"]').should("be.visible");
+    cy.wait('@deleteComment');
+    cy.get('[data-testid="comments-empty"]').should('be.visible');
   });
 
-  it("keeps the comment and shows an error toast when deleting fails", () => {
-    stubAuthSession("User");
+  it('keeps the comment and shows an error toast when deleting fails', () => {
+    stubAuthSession('User');
 
-    cy.intercept("GET", "**/api/v1/articles/a1/comments", {
+    cy.intercept('GET', '**/api/v1/articles/a1/comments', {
       statusCode: 200,
       body: {
         success: true,
-        data: [makeComment({ id: "mine", createdBy: "test-user-1", authorName: "Test User", body: "Keep me" })],
+        data: [
+          makeComment({
+            id: 'mine',
+            createdBy: 'test-user-1',
+            authorName: 'Test User',
+            body: 'Keep me',
+          }),
+        ],
       },
-    }).as("commentsList");
+    }).as('commentsList');
 
-    cy.intercept("DELETE", "**/api/v1/articles/a1/comments/mine", {
+    cy.intercept('DELETE', '**/api/v1/articles/a1/comments/mine', {
       statusCode: 403,
-      body: { success: false, error: "Only the comment owner can delete this comment" },
-    }).as("deleteComment");
+      body: {
+        success: false,
+        error: 'Only the comment owner can delete this comment',
+      },
+    }).as('deleteComment');
 
-    cy.visitPage("/articles/a1");
-    cy.wait("@usersMe");
-    cy.wait("@commentsList");
+    cy.visitPage('/articles/a1');
+    cy.wait('@usersMe');
+    cy.wait('@commentsList');
 
     cy.get('[data-testid="delete-comment-btn"]').click();
-    cy.contains("button", "Delete").click();
+    cy.contains('button', 'Delete').click();
 
-    cy.wait("@deleteComment");
+    cy.wait('@deleteComment');
     cy.get('[data-testid="error-toast"]').should(
-      "contain.text",
-      "Only the comment owner can delete this comment"
+      'contain.text',
+      'Only the comment owner can delete this comment'
     );
-    cy.contains("Keep me").should("be.visible");
+    cy.contains('Keep me').should('be.visible');
   });
 });

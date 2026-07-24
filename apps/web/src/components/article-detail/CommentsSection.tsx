@@ -2,7 +2,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CommentWithAuthor, fetchComments, postComment, updateComment, deleteComment } from '@/lib/api/comments';
+import {
+  CommentWithAuthor,
+  fetchComments,
+  postComment,
+  updateComment,
+  deleteComment,
+} from '@/lib/api/comments';
 import { useUser } from '@/lib/hooks/useUser';
 import { CommentItem } from './CommentItem';
 import { Toast } from '@/components/shared/Toast';
@@ -23,7 +29,9 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   const [postError, setPostError] = useState<string | null>(null);
 
   const [toastVisible, setToastVisible] = useState(false);
-  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(null);
+  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +107,11 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   const handleEditComment = async (id: string, body: string) => {
     const updated = await updateComment(articleId, id, body);
     setComments((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, body: updated.body, updatedAt: updated.updatedAt } : c))
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, body: updated.body, updatedAt: updated.updatedAt }
+          : c
+      )
     );
   };
 
@@ -111,7 +123,11 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
 
       {user && (
         <form onSubmit={handlePostComment} className="mb-8 flex gap-4">
-          <img src={user.avatarUrl || 'https://i.pravatar.cc/150?u=default'} alt={user.name} className="w-10 h-10 rounded-full bg-brand-border hidden sm:block object-cover" />
+          <img
+            src={user.avatarUrl || 'https://i.pravatar.cc/150?u=default'}
+            alt={user.name}
+            className="w-10 h-10 rounded-full bg-brand-border hidden sm:block object-cover"
+          />
           <div className="flex-1 flex flex-col items-end gap-3">
             <textarea
               value={newComment}
@@ -121,7 +137,10 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
               placeholder:text-brand-text-secondary focus:outline-none focus:border-brand-red resize-none min-h-[100px] transition-colors"
             />
             {postError && (
-              <p data-testid="post-comment-error" className="text-sm text-brand-red self-start">
+              <p
+                data-testid="post-comment-error"
+                className="text-sm text-brand-red self-start"
+              >
                 {postError}
               </p>
             )}
@@ -138,20 +157,26 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       )}
 
       {loading && (
-        <p data-testid="comments-loading" className="text-brand-text-secondary text-center py-8">
+        <p
+          data-testid="comments-loading"
+          className="text-brand-text-secondary text-center py-8"
+        >
           Loading comments...
         </p>
       )}
 
       {!loading && error && (
-        <p data-testid="comments-error" className="text-brand-red text-center py-8">
+        <p
+          data-testid="comments-error"
+          className="text-brand-red text-center py-8"
+        >
           {error}
         </p>
       )}
 
       {!loading && !error && (
         <div data-testid="comments-list" className="flex flex-col">
-          {comments.map(comment => (
+          {comments.map((comment) => (
             <CommentItem
               key={comment.id}
               comment={comment}
@@ -161,18 +186,17 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
             />
           ))}
           {comments.length === 0 && (
-            <p data-testid="comments-empty" className="text-brand-text-secondary text-center py-8">
+            <p
+              data-testid="comments-empty"
+              className="text-brand-text-secondary text-center py-8"
+            >
               No comments yet. Be the first to share your thoughts!
             </p>
           )}
         </div>
       )}
 
-      <Toast
-        visible={toastVisible}
-        message="Comment posted"
-        type="success"
-      />
+      <Toast visible={toastVisible} message="Comment posted" type="success" />
       <Toast
         visible={!!errorToastMessage}
         message={errorToastMessage || ''}

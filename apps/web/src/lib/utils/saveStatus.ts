@@ -15,7 +15,10 @@ export const getStatusDotColor = (status: SaveStatus): string => {
   }
 };
 
-export const getStatusText = (status: SaveStatus, lastSavedAt: Date | null): string => {
+export const getStatusText = (
+  status: SaveStatus,
+  lastSavedAt: Date | null
+): string => {
   switch (status) {
     case 'saving':
       return 'Saving...';

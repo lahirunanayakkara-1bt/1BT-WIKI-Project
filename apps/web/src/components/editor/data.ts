@@ -7,5 +7,5 @@ export const POPULAR_TAGS = [
   'Productivity',
   'Inspiration',
   'Programming',
-  'Craftsmanship'
+  'Craftsmanship',
 ];

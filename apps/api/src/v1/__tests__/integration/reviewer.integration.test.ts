@@ -1,11 +1,29 @@
 // apps/api/src/v1/__tests__/integration/reviewer.integration.test.ts
 
-import { jest, describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+} from '@jest/globals';
 
 await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
-    user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
-    article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn(), count: jest.fn() },
+    user: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+    },
+    article: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
+      create: jest.fn(),
+      count: jest.fn(),
+    },
     articleReview: { create: jest.fn(), findFirst: jest.fn() },
   },
 }));
@@ -18,8 +36,8 @@ await jest.unstable_mockModule('@middleware/auth.middleware.js', () => ({
       next: import('express').NextFunction
     ) => {
       const userId = req.headers['x-test-user-id'] as string | undefined;
-      const email  = req.headers['x-test-user-email'] as string | undefined;
-      const role   = req.headers['x-test-user-role'] as string | undefined;
+      const email = req.headers['x-test-user-email'] as string | undefined;
+      const role = req.headers['x-test-user-role'] as string | undefined;
 
       if (userId && email && role) {
         req.user = { userId, email, role };
@@ -27,13 +45,17 @@ await jest.unstable_mockModule('@middleware/auth.middleware.js', () => ({
         return;
       }
 
-      res.status(401).json({ success: false, error: 'Authentication required' });
+      res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
   ),
 }));
 
 const MockArticleRepository = {
-  findByStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({ articles: [], total: 0 }),
+  findByStatus: jest
+    .fn<() => Promise<unknown>>()
+    .mockResolvedValue({ articles: [], total: 0 }),
   findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
   updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
 };
@@ -51,15 +73,25 @@ await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
-await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
-  ArticleReviewRepository: jest.fn().mockImplementation(() => MockArticleReviewRepository),
-  default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
-}));
+await jest.unstable_mockModule(
+  '@repositories/articleReviewRepository.js',
+  () => ({
+    ArticleReviewRepository: jest
+      .fn()
+      .mockImplementation(() => MockArticleReviewRepository),
+    default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+  })
+);
 
-await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
-  ArticleReviewRepository: jest.fn().mockImplementation(() => MockArticleReviewRepository),
-  default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
-}));
+await jest.unstable_mockModule(
+  '@repositories/articleReviewRepository.js',
+  () => ({
+    ArticleReviewRepository: jest
+      .fn()
+      .mockImplementation(() => MockArticleReviewRepository),
+    default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+  })
+);
 
 const { default: app, appReady } = await import('../../../app.js');
 const { default: request } = await import('supertest');
@@ -71,15 +103,15 @@ const mockReviewCreate = MockArticleReviewRepository.create as jest.Mock<any>;
 const mockDate = new Date().toISOString();
 
 const reviewerHeaders = {
-  'x-test-user-id':    'reviewer-1',
+  'x-test-user-id': 'reviewer-1',
   'x-test-user-email': 'reviewer@example.com',
-  'x-test-user-role':  'Reviewer',
+  'x-test-user-role': 'Reviewer',
 };
 
 const userHeaders = {
-  'x-test-user-id':    'user-123',
+  'x-test-user-id': 'user-123',
   'x-test-user-email': 'user@example.com',
-  'x-test-user-role':  'User',
+  'x-test-user-role': 'User',
 };
 
 describe('Reviewer API Integration', () => {
@@ -97,7 +129,9 @@ describe('Reviewer API Integration', () => {
 
   describe('GET /api/v1/reviewer/articles/pending', () => {
     it('should return 401 if unauthenticated', async () => {
-      const response = await request(app).get('/api/v1/reviewer/articles/pending');
+      const response = await request(app).get(
+        '/api/v1/reviewer/articles/pending'
+      );
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
@@ -127,7 +161,10 @@ describe('Reviewer API Integration', () => {
         },
       ];
 
-      mockFindByStatus.mockResolvedValueOnce({ articles: mockArticles, total: 1 });
+      mockFindByStatus.mockResolvedValueOnce({
+        articles: mockArticles,
+        total: 1,
+      });
 
       const response = await request(app)
         .get('/api/v1/reviewer/articles/pending')
@@ -135,7 +172,9 @@ describe('Reviewer API Integration', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Pending articles retrieved successfully');
+      expect(response.body.message).toBe(
+        'Pending articles retrieved successfully'
+      );
       expect(response.body.data.articles).toHaveLength(1);
       expect(response.body.data.articles[0].status).toBe('Pending');
       expect(response.body.data.total).toBe(1);
@@ -157,9 +196,7 @@ describe('Reviewer API Integration', () => {
     });
 
     it('should return 403 for a non-Reviewer non-Admin role', async () => {
-      const response = await request(app)
-        .patch(approvePath)
-        .set(userHeaders);
+      const response = await request(app).patch(approvePath).set(userHeaders);
 
       expect(response.status).toBe(403);
       expect(response.body.error).toBe('Insufficient permissions');
@@ -269,7 +306,9 @@ describe('Reviewer API Integration', () => {
         .send({ feedback: 'short' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Rejection feedback must be at least 10 characters');
+      expect(response.body.error).toBe(
+        'Rejection feedback must be at least 10 characters'
+      );
       expect(mockFindById).not.toHaveBeenCalled();
     });
 
@@ -428,5 +467,3 @@ describe('Reviewer API Integration', () => {
     });
   });
 });
-
-

@@ -25,15 +25,19 @@ const NOTIFICATION_SELECT = {
   createdAt: true,
 } as const;
 
-type PrismaNotification = typeof prisma.notification extends { findFirst: (...args: any) => Promise<infer R> } ? NonNullable<R> : any;
-
-
+type PrismaNotification = typeof prisma.notification extends {
+  findFirst: (...args: any) => Promise<infer R>;
+}
+  ? NonNullable<R>
+  : any;
 
 // ---------------------------------------------------------------------------
 // Create
 // ---------------------------------------------------------------------------
 
-const create = async (input: CreateNotificationInput): Promise<Notification> => {
+const create = async (
+  input: CreateNotificationInput
+): Promise<Notification> => {
   try {
     const result = await prisma.notification.create({
       data: {
@@ -76,7 +80,7 @@ const findById = async (id: string): Promise<Notification | null> => {
 
 const list = async (
   recipientId: string,
-  options: { limit: number; offset: number },
+  options: { limit: number; offset: number }
 ): Promise<Notification[]> => {
   try {
     const results = await prisma.notification.findMany({
@@ -95,7 +99,7 @@ const list = async (
 
 const markAsRead = async (
   id: string,
-  recipientId: string,
+  recipientId: string
 ): Promise<Notification | null> => {
   try {
     // We must ensure the notification belongs to the user and isn't deleted.
@@ -114,11 +118,23 @@ const markAsRead = async (
     });
 
     return result ? (result as unknown as Notification) : null;
-
   } catch (error) {
     throw new AppError('Database is unavailable', 503);
   }
 };
 
-export default { create, findById, list, markAsRead };
+// ---------------------------------------------------------------------------
+// Count
+// ---------------------------------------------------------------------------
 
+const countUnread = async (recipientId: string): Promise<number> => {
+  try {
+    return await prisma.notification.count({
+      where: { recipientId, isRead: false, deletedAt: null },
+    });
+  } catch (error) {
+    throw new AppError('Database is unavailable', 503);
+  }
+};
+
+export default { create, findById, list, markAsRead, countUnread };

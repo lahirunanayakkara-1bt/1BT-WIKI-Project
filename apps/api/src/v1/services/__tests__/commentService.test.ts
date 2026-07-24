@@ -24,9 +24,12 @@ jest.unstable_mockModule('../notificationService.js', () => ({
 }));
 
 const { default: CommentService } = await import('../commentService.js');
-const { default: ArticleRepository } = await import('@repositories/articleRepository.js');
-const { default: CommentRepository } = await import('@repositories/commentRepository.js');
-const { default: NotificationService } = await import('../notificationService.js');
+const { default: ArticleRepository } =
+  await import('@repositories/articleRepository.js');
+const { default: CommentRepository } =
+  await import('@repositories/commentRepository.js');
+const { default: NotificationService } =
+  await import('../notificationService.js');
 
 describe('CommentService.addComment', () => {
   const articleId = 'article-123';
@@ -38,21 +41,28 @@ describe('CommentService.addComment', () => {
   });
 
   it('should throw AppError if body is missing or empty', async () => {
-    await expect(CommentService.addComment(articleId, authorId, '   '))
-      .rejects.toThrow(new AppError('Comment body is required and cannot be empty', 400));
+    await expect(
+      CommentService.addComment(articleId, authorId, '   ')
+    ).rejects.toThrow(
+      new AppError('Comment body is required and cannot be empty', 400)
+    );
   });
 
   it('should throw AppError if body exceeds 5000 characters', async () => {
     const body = 'a'.repeat(5001);
-    await expect(CommentService.addComment(articleId, authorId, body))
-      .rejects.toThrow(new AppError('Comment cannot exceed 5000 characters', 400));
+    await expect(
+      CommentService.addComment(articleId, authorId, body)
+    ).rejects.toThrow(
+      new AppError('Comment cannot exceed 5000 characters', 400)
+    );
   });
 
   it('should throw AppError if article is not found', async () => {
     (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
 
-    await expect(CommentService.addComment(articleId, authorId, 'Nice article'))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(
+      CommentService.addComment(articleId, authorId, 'Nice article')
+    ).rejects.toThrow(new AppError('Article not found', 404));
   });
 
   it.each(['Draft', 'Pending', 'Rejected', 'Unpublished'])(
@@ -65,13 +75,19 @@ describe('CommentService.addComment', () => {
         status,
       });
 
-      await expect(CommentService.addComment(articleId, authorId, 'Nice article'))
-        .rejects.toThrow(new AppError('Cannot comment on this article', 403));
+      await expect(
+        CommentService.addComment(articleId, authorId, 'Nice article')
+      ).rejects.toThrow(new AppError('Cannot comment on this article', 403));
     }
   );
 
   it('should create the comment and notify the article author', async () => {
-    const article = { id: articleId, authorId: 'other-user', title: 'Test Article', status: 'Published' };
+    const article = {
+      id: articleId,
+      authorId: 'other-user',
+      title: 'Test Article',
+      status: 'Published',
+    };
     const createdComment = {
       id: 'comment-123',
       articleId,
@@ -82,9 +98,15 @@ describe('CommentService.addComment', () => {
     };
 
     (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
-    (CommentRepository.create as jest.Mock<any>).mockResolvedValue(createdComment);
+    (CommentRepository.create as jest.Mock<any>).mockResolvedValue(
+      createdComment
+    );
 
-    const result = await CommentService.addComment(articleId, authorId, '  Nice article  ');
+    const result = await CommentService.addComment(
+      articleId,
+      authorId,
+      '  Nice article  '
+    );
 
     expect(CommentRepository.create).toHaveBeenCalledWith({
       articleId,
@@ -102,7 +124,12 @@ describe('CommentService.addComment', () => {
   });
 
   it('should not send a notification when the author comments on their own article', async () => {
-    const article = { id: articleId, authorId, title: 'Test Article', status: 'Published' };
+    const article = {
+      id: articleId,
+      authorId,
+      title: 'Test Article',
+      status: 'Published',
+    };
     const createdComment = {
       id: 'comment-123',
       articleId,
@@ -113,7 +140,9 @@ describe('CommentService.addComment', () => {
     };
 
     (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(article);
-    (CommentRepository.create as jest.Mock<any>).mockResolvedValue(createdComment);
+    (CommentRepository.create as jest.Mock<any>).mockResolvedValue(
+      createdComment
+    );
 
     await CommentService.addComment(articleId, authorId, 'Nice article');
 
@@ -132,8 +161,9 @@ describe('CommentService.listComments', () => {
   it('should throw AppError if article is not found', async () => {
     (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue(null);
 
-    await expect(CommentService.listComments(articleId, requesterId))
-      .rejects.toThrow(new AppError('Article not found', 404));
+    await expect(
+      CommentService.listComments(articleId, requesterId)
+    ).rejects.toThrow(new AppError('Article not found', 404));
   });
 
   it('should throw AppError if article is not Published and requester is not its author', async () => {
@@ -143,18 +173,25 @@ describe('CommentService.listComments', () => {
       status: 'Draft',
     });
 
-    await expect(CommentService.listComments(articleId, requesterId))
-      .rejects.toThrow(new AppError('Cannot view comments on this article', 403));
+    await expect(
+      CommentService.listComments(articleId, requesterId)
+    ).rejects.toThrow(
+      new AppError('Cannot view comments on this article', 403)
+    );
   });
 
   it('should return comments if article is not Published but requester is its author', async () => {
-    const comments = [{ id: 'comment-1', authorName: 'Jane', authorImage: null }];
+    const comments = [
+      { id: 'comment-1', authorName: 'Jane', authorImage: null },
+    ];
     (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({
       id: articleId,
       authorId: requesterId,
       status: 'Draft',
     });
-    (CommentRepository.findByArticleId as jest.Mock<any>).mockResolvedValue(comments);
+    (CommentRepository.findByArticleId as jest.Mock<any>).mockResolvedValue(
+      comments
+    );
 
     const result = await CommentService.listComments(articleId, requesterId);
 
@@ -163,13 +200,21 @@ describe('CommentService.listComments', () => {
   });
 
   it('should return comments for a Published article regardless of requester', async () => {
-    const comments = [{ id: 'comment-1', authorName: 'Jane', authorImage: 'https://example.com/pic.png' }];
+    const comments = [
+      {
+        id: 'comment-1',
+        authorName: 'Jane',
+        authorImage: 'https://example.com/pic.png',
+      },
+    ];
     (ArticleRepository.findById as jest.Mock<any>).mockResolvedValue({
       id: articleId,
       authorId: 'other-user',
       status: 'Published',
     });
-    (CommentRepository.findByArticleId as jest.Mock<any>).mockResolvedValue(comments);
+    (CommentRepository.findByArticleId as jest.Mock<any>).mockResolvedValue(
+      comments
+    );
 
     const result = await CommentService.listComments(articleId, requesterId);
 
@@ -187,21 +232,28 @@ describe('CommentService.updateComment', () => {
   });
 
   it('should throw AppError if body is missing or empty', async () => {
-    await expect(CommentService.updateComment(commentId, userId, '   '))
-      .rejects.toThrow(new AppError('Comment body is required and cannot be empty', 400));
+    await expect(
+      CommentService.updateComment(commentId, userId, '   ')
+    ).rejects.toThrow(
+      new AppError('Comment body is required and cannot be empty', 400)
+    );
   });
 
   it('should throw AppError if body exceeds 5000 characters', async () => {
     const body = 'a'.repeat(5001);
-    await expect(CommentService.updateComment(commentId, userId, body))
-      .rejects.toThrow(new AppError('Comment cannot exceed 5000 characters', 400));
+    await expect(
+      CommentService.updateComment(commentId, userId, body)
+    ).rejects.toThrow(
+      new AppError('Comment cannot exceed 5000 characters', 400)
+    );
   });
 
   it('should throw AppError if comment is not found', async () => {
     (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(null);
 
-    await expect(CommentService.updateComment(commentId, userId, 'Updated body'))
-      .rejects.toThrow(new AppError('Comment not found', 404));
+    await expect(
+      CommentService.updateComment(commentId, userId, 'Updated body')
+    ).rejects.toThrow(new AppError('Comment not found', 404));
   });
 
   it('should throw AppError if requester is not the comment owner', async () => {
@@ -214,8 +266,11 @@ describe('CommentService.updateComment', () => {
       updatedAt: new Date(),
     });
 
-    await expect(CommentService.updateComment(commentId, userId, 'Updated body'))
-      .rejects.toThrow(new AppError('Only the comment owner can edit this comment', 403));
+    await expect(
+      CommentService.updateComment(commentId, userId, 'Updated body')
+    ).rejects.toThrow(
+      new AppError('Only the comment owner can edit this comment', 403)
+    );
   });
 
   it('should update the comment when requester is its owner', async () => {
@@ -229,12 +284,23 @@ describe('CommentService.updateComment', () => {
     };
     const updatedComment = { ...existingComment, body: 'Updated body' };
 
-    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(existingComment);
-    (CommentRepository.update as jest.Mock<any>).mockResolvedValue(updatedComment);
+    (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(
+      existingComment
+    );
+    (CommentRepository.update as jest.Mock<any>).mockResolvedValue(
+      updatedComment
+    );
 
-    const result = await CommentService.updateComment(commentId, userId, '  Updated body  ');
+    const result = await CommentService.updateComment(
+      commentId,
+      userId,
+      '  Updated body  '
+    );
 
-    expect(CommentRepository.update).toHaveBeenCalledWith(commentId, 'Updated body');
+    expect(CommentRepository.update).toHaveBeenCalledWith(
+      commentId,
+      'Updated body'
+    );
     expect(result).toEqual(updatedComment);
   });
 });
@@ -250,8 +316,9 @@ describe('CommentService.deleteComment', () => {
   it('should throw AppError if comment is not found', async () => {
     (CommentRepository.findById as jest.Mock<any>).mockResolvedValue(null);
 
-    await expect(CommentService.deleteComment(commentId, userId))
-      .rejects.toThrow(new AppError('Comment not found', 404));
+    await expect(
+      CommentService.deleteComment(commentId, userId)
+    ).rejects.toThrow(new AppError('Comment not found', 404));
   });
 
   it('should throw AppError if requester is not the comment owner', async () => {
@@ -264,8 +331,11 @@ describe('CommentService.deleteComment', () => {
       updatedAt: new Date(),
     });
 
-    await expect(CommentService.deleteComment(commentId, userId))
-      .rejects.toThrow(new AppError('Only the comment owner can delete this comment', 403));
+    await expect(
+      CommentService.deleteComment(commentId, userId)
+    ).rejects.toThrow(
+      new AppError('Only the comment owner can delete this comment', 403)
+    );
 
     expect(CommentRepository.remove).not.toHaveBeenCalled();
   });

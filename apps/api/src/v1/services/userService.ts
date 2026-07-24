@@ -10,7 +10,10 @@ import type {
 // Accepted role values
 const VALID_ROLES: UserRole[] = ['Admin', 'Reviewer', 'User'];
 
-const updateUserRole = async (userId: string, role: UserRole): Promise<User> => {
+const updateUserRole = async (
+  userId: string,
+  role: UserRole
+): Promise<User> => {
   if (!VALID_ROLES.includes(role)) {
     throw new AppError(`Role must be one of: ${VALID_ROLES.join(', ')}`, 400);
   }
@@ -40,7 +43,7 @@ const updateUserBanStatus = async (
 
   return UserRepository.updateBanStatus(userId, {
     banned: input.banned,
-    banReason: input.banned ? input.banReason?.trim() ?? '' : null,
+    banReason: input.banned ? (input.banReason?.trim() ?? '') : null,
   });
 };
 
