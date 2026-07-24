@@ -1,6 +1,7 @@
 import ArticleRepository from '@repositories/articleRepository.js';
 import CommentRepository from '@repositories/commentRepository.js';
 import NotificationService from './notificationService.js';
+import { NotificationBuilder } from '@v1/lib/NotificationBuilder.js';
 import { AppError } from '@errors/AppError.js';
 import type { Comment, CommentWithAuthor } from '@models/comment.types.js';
 
@@ -40,14 +41,13 @@ const addComment = async (
   });
 
   if (article.authorId !== authorId) {
-    NotificationService.send({
-      recipientId: article.authorId,
-      notificationTitle: 'New comment on your article',
-      notificationReferenceType: 'comment',
-      referenceId: comment.id,
-      notificationType: 'info',
-      message: `Someone commented on your article "${article.title}"`,
-    }).catch((error: unknown) => {
+    const notificationPayload = new NotificationBuilder()
+      .forUser(article.authorId)
+      .regardingComment(comment.id)
+      .withInfo('New comment on your article', `Someone commented on your article "${article.title}"`)
+      .build();
+
+    NotificationService.send(notificationPayload).catch((error: unknown) => {
       console.error('Failed to send new_comment notification:', error);
     });
   }

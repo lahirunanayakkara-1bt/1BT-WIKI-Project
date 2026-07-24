@@ -1,6 +1,7 @@
 import ArticleRepository from '@repositories/articleRepository.js';
 import LikeRepository from '@repositories/likeRepository.js';
 import NotificationService from '@services/notificationService.js';
+import { NotificationBuilder } from '@v1/lib/NotificationBuilder.js';
 import { AppError } from '@/errors/AppError.js';
 
 const likeArticle = async (
@@ -20,14 +21,13 @@ const likeArticle = async (
   const like = await LikeRepository.upsert(articleId, userId);
 
   if (article.authorId !== userId) {
-    NotificationService.send({
-      recipientId: article.authorId,
-      notificationTitle: 'New like on your article',
-      notificationReferenceType: 'like',
-      referenceId: like.id,
-      notificationType: 'info',
-      message: `Someone liked your article "${article.title}"`,
-    }).catch((error: unknown) => {
+    const notificationPayload = new NotificationBuilder()
+      .forUser(article.authorId)
+      .regardingLike(like.id)
+      .withInfo('New like on your article', `Someone liked your article "${article.title}"`)
+      .build();
+
+    NotificationService.send(notificationPayload).catch((error: unknown) => {
       console.error('Failed to send new_like notification:', error);
     });
   }

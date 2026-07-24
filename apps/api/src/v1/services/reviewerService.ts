@@ -5,6 +5,7 @@ import type { Article } from '@models/article.types.js';
 import { ArticleStatusValue } from '@models/article.types.js';
 import { ReviewStatus } from '@repo/db/generated/prisma/index.js';
 import notificationService from '@services/notificationService.js';
+import { NotificationBuilder } from '@v1/lib/NotificationBuilder.js';
 
 export class ReviewerService {
   constructor(
@@ -54,21 +55,21 @@ export class ReviewerService {
 
     // Notify the author that their article has been approved and published.
     // Fire-and-forget — a notification failure must not roll back the approval.
-    notificationService
-      .send({
-        recipientId: article.authorId,
-        notificationTitle: 'Article Approved',
-        notificationReferenceType: 'article',
-        referenceId: articleId,
-        notificationType: 'success',
-        message: `Your article "${article.title}" has been approved and is now published.`,
-      })
-      .catch((err: unknown) => {
-        console.error(
-          '[NotificationService] Failed to send approval notification:',
-          err
-        );
-      });
+    const notificationPayload = new NotificationBuilder()
+      .forUser(article.authorId)
+      .regardingArticle(articleId)
+      .withSuccess(
+        'Article Approved',
+        `Your article "${article.title}" has been approved and is now published.`
+      )
+      .build();
+
+    notificationService.send(notificationPayload).catch((err: unknown) => {
+      console.error(
+        '[NotificationService] Failed to send approval notification:',
+        err
+      );
+    });
 
     return approved;
   }
@@ -106,21 +107,21 @@ export class ReviewerService {
 
     // Notify the author that their article has been rejected, including feedback.
     // Fire-and-forget — a notification failure must not roll back the rejection.
-    notificationService
-      .send({
-        recipientId: article.authorId,
-        notificationTitle: 'Article Rejected',
-        notificationReferenceType: 'article',
-        referenceId: articleId,
-        notificationType: 'failure',
-        message: `Your article "${article.title}" was rejected. Feedback: ${feedback.trim()}`,
-      })
-      .catch((err: unknown) => {
-        console.error(
-          '[NotificationService] Failed to send rejection notification:',
-          err
-        );
-      });
+    const notificationPayload = new NotificationBuilder()
+      .forUser(article.authorId)
+      .regardingArticle(articleId)
+      .withFailure(
+        'Article Rejected',
+        `Your article "${article.title}" was rejected. Feedback: ${feedback.trim()}`
+      )
+      .build();
+
+    notificationService.send(notificationPayload).catch((err: unknown) => {
+      console.error(
+        '[NotificationService] Failed to send rejection notification:',
+        err
+      );
+    });
 
     return rejected;
   }

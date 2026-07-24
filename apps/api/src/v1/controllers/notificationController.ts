@@ -2,6 +2,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import notificationService from '@services/notificationService.js';
+import { NotificationBuilder } from '@v1/lib/NotificationBuilder.js';
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/notifications
@@ -96,14 +97,13 @@ const testNotification = async (
   try {
     const userId = req.user!.userId;
 
-    await notificationService.send({
-      recipientId: userId,
-      notificationTitle: 'Test Notification',
-      notificationReferenceType: 'article',
-      referenceId: '00000000-0000-0000-0000-000000000000',
-      notificationType: 'info',
-      message: 'Hello from notification test route',
-    });
+    const notificationPayload = new NotificationBuilder()
+      .forUser(userId)
+      .regardingArticle('00000000-0000-0000-0000-000000000000')
+      .withInfo('Test Notification', 'Hello from notification test route')
+      .build();
+
+    await notificationService.send(notificationPayload);
 
     res.status(200).json({
       success: true,
