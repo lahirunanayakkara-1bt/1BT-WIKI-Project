@@ -6,11 +6,24 @@
 
 import Pusher from 'pusher';
 
+const {
+  PUSHER_APP_ID,
+  PUSHER_KEY,
+  PUSHER_SECRET,
+  PUSHER_CLUSTER,
+} = process.env;
+
+if (!PUSHER_APP_ID || !PUSHER_KEY || !PUSHER_SECRET || !PUSHER_CLUSTER) {
+  throw new Error(
+    'Missing one or more required Pusher environment variables (PUSHER_APP_ID, PUSHER_KEY, PUSHER_SECRET, PUSHER_CLUSTER).'
+  );
+}
+
 const pusherClient = new Pusher({
-  appId: process.env.PUSHER_APP_ID ?? '',
-  key: process.env.PUSHER_KEY ?? '',
-  secret: process.env.PUSHER_SECRET ?? '',
-  cluster: process.env.PUSHER_CLUSTER ?? '',
+  appId: PUSHER_APP_ID,
+  key: PUSHER_KEY,
+  secret: PUSHER_SECRET,
+  cluster: PUSHER_CLUSTER,
   useTLS: true,
 });
 
