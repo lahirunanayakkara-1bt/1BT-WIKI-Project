@@ -74,6 +74,15 @@ export class ReviewerService {
 
     return rejected;
   }
+
+  async getArticleForReview(articleId: string): Promise<Article> {
+    const article = await this.articleRepository.findById(articleId);
+    if (!article) throw new AppError('Article not found', 404);
+    if (article.status !== 'Pending') {
+      throw new AppError('Only Pending articles can be reviewed', 400);
+    }
+    return article;
+  }
 }
 
 export default new ReviewerService();
