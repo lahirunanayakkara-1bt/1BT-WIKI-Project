@@ -9,11 +9,18 @@ import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 
+const {
+  testNotification,
+  getNotifications,
+  getUnreadCount,
+  markNotificationAsRead,
+} = NotificationController;
+
 // POST /api/v1/notifications/test — helper route for development/testing
-router.post('/test', authenticate, NotificationController.testNotification);
+router.post('/test', authenticate, testNotification);
 
 // GET /api/v1/notifications — list authenticated user's notifications (NO-02)
-router.get('/', authenticate, NotificationController.getNotifications);
+router.get('/', authenticate, getNotifications);
 
 // GET /api/v1/notifications/unread-count — unread badge count
 // IMPORTANT: must be registered before /:id routes to avoid Express treating
@@ -21,13 +28,13 @@ router.get('/', authenticate, NotificationController.getNotifications);
 router.get(
   '/unread-count',
   authenticate,
-  NotificationController.getUnreadCount
+  getUnreadCount
 );
 
 router.patch(
   '/:id/read',
   authenticate,
-  NotificationController.markNotificationAsRead
+  markNotificationAsRead
 );
 
 export default router;

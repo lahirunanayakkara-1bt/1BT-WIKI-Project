@@ -8,8 +8,10 @@ import { authenticate } from '@/middleware/auth.middleware.js';
 
 const router = Router();
 
+const { auth } = PusherController;
+
 // POST /api/v1/pusher/auth — private channel authentication
 // pusher-js calls this endpoint when subscribing to a private-user-{id} channel.
-router.post('/auth', authenticate, PusherController.auth);
+router.post('/auth', authenticate, auth);
 
 export default router;
