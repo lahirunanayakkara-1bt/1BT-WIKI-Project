@@ -2,17 +2,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Pencil, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { fetchMyArticles, type ArticleListItem, type ArticleStatus } from '@/lib/api/articles';
+import Link from 'next/link';
+import { fetchMyArticles, deleteArticle, type ArticleListItem } from '@/lib/api/articles';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
+import { Toast } from '@/components/shared/Toast';
+import { useUser } from '@/lib/hooks/useUser';
+import { useToast } from '@/lib/hooks/useToast';
 
 type SortOption = 'newest' | 'oldest' | 'title';
-
-const statusBadgeClass: Record<ArticleStatus, string> = {
-  Draft: 'bg-brand-bg text-brand-text-secondary border-brand-border',
-  Pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  Published: 'bg-green-50 text-green-700 border-green-200',
-  Unpublished: 'bg-brand-red/10 text-brand-red border-brand-red/20',
-};
 
 function formatDate(iso: string): string {
   try {
@@ -24,23 +22,11 @@ function formatDate(iso: string): string {
   }
 }
 
-function StatusBadge({ status }: { status: ArticleStatus }): React.JSX.Element {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border',
-        statusBadgeClass[status]
-      )}
-      data-testid="article-status-badge"
-    >
-      {status}
-    </span>
-  );
-}
-
-function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Element {
+function ArticleCard({ article, onDeleteClick, isAdmin }: { article: ArticleListItem; onDeleteClick: (article: ArticleListItem) => void; isAdmin: boolean }): React.JSX.Element {
   const dateLabel = article.status === 'Published' ? 'Published' : 'Last updated';
   const dateValue = article.status === 'Published' ? article.updatedAt : article.createdAt;
+  const canEdit = article.status === 'Draft' || article.status === 'Rejected';
+  const canDelete = article.status === 'Draft' || isAdmin;
 
   return (
     <div
@@ -60,35 +46,80 @@ function ArticleCard({ article }: { article: ArticleListItem }): React.JSX.Eleme
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          type="button"
-          disabled
-          aria-label="Edit article"
-          data-testid={`edit-article-${article.id}`}
-          className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          disabled
-          aria-label="Delete article"
-          data-testid={`delete-article-${article.id}`}
-          className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {canEdit ? (
+          <Link
+            href={`/editor/${article.id}`}
+            aria-label="Edit article"
+            data-testid={`edit-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:border-brand-text-primary transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            aria-label="Edit article"
+            data-testid={`edit-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
+        {canDelete ? (
+          <button
+            type="button"
+            onClick={() => onDeleteClick(article)}
+            aria-label="Delete article"
+            data-testid={`delete-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary hover:text-brand-red hover:border-brand-red transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled
+            aria-label="Delete article"
+            data-testid={`delete-article-${article.id}`}
+            className="p-2 rounded border border-brand-border text-brand-text-secondary opacity-50 cursor-not-allowed"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
 export function MyArticlesList(): React.JSX.Element {
+  const { user } = useUser();
+  const isAdmin = user?.role === 'Admin';
+  
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortOption>('newest');
+
+  const [articleToDelete, setArticleToDelete] = useState<ArticleListItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast, showToast } = useToast();
+
+  const handleDeleteConfirm = async () => {
+    if (!articleToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteArticle(articleToDelete.id, isAdmin);
+      setArticles(prev => prev.filter(a => a.id !== articleToDelete.id));
+      showToast('Article deleted successfully', 'success');
+      setArticleToDelete(null);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err), 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -182,10 +213,29 @@ export function MyArticlesList(): React.JSX.Element {
       ) : (
         <div className="flex flex-col gap-3">
           {visibleArticles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
+            <ArticleCard key={article.id} article={article} onDeleteClick={setArticleToDelete} isAdmin={isAdmin} />
           ))}
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={!!articleToDelete}
+        title={isAdmin ? "Permanently Delete Article" : "Delete Draft"}
+        message={isAdmin 
+          ? "Are you sure you want to permanently delete this article? This action cannot be undone."
+          : "Are you sure you want to delete this draft? This action cannot be undone."}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setArticleToDelete(null)}
+        isConfirming={isDeleting}
+      />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+      />
     </div>
   );
 }

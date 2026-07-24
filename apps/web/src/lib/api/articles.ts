@@ -1,6 +1,6 @@
 import { apiFetch } from '@/lib/api/client';
 
-export type ArticleStatus = 'Draft' | 'Pending' | 'Published' | 'Unpublished';
+export type ArticleStatus = 'Draft' | 'Pending' | 'Published' | 'Unpublished' | 'Rejected';
 
 export interface ArticleListItem {
   id: string;
@@ -27,4 +27,12 @@ export async function fetchMyArticles(page = 1, limit = 20): Promise<ListMineRes
     throw new Error(result.error || 'Failed to load articles');
   }
   return result.data;
+}
+
+export async function deleteArticle(id: string, hard = false): Promise<void> {
+  const url = hard ? `/articles/${id}?hard=true` : `/articles/${id}`;
+  const result = await apiFetch(url, { method: 'DELETE' });
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete article');
+  }
 }

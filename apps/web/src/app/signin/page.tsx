@@ -6,12 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth/client';
 import { BRAND_FULL_NAME, BRAND_NAME } from '@/lib/constants/brand';
 import { XCircleSolidIcon } from '@/components/shared/icons/XCircleSolidIcon';
+import { useLenisScroll } from '@/lib/hooks/useLenisScroll';
 
 function SignInContent() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorParam = searchParams.get('error');
+
+  useLenisScroll();
 
   const handleClick = async () => {
     try {

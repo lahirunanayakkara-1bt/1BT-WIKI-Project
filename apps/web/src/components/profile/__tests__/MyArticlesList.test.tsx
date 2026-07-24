@@ -183,7 +183,7 @@ describe('MyArticlesList', () => {
 
   it('renders disabled edit and delete buttons', async () => {
     mockFetchMyArticles.mockResolvedValueOnce({
-      articles: [makeArticle({ id: 'a1' })],
+      articles: [makeArticle({ id: 'a1', status: 'Pending' })],
       total: 1,
       page: 1,
       limit: 20,
@@ -194,6 +194,23 @@ describe('MyArticlesList', () => {
 
     expect(screen.getByTestId('edit-article-a1')).toBeDisabled();
     expect(screen.getByTestId('delete-article-a1')).toBeDisabled();
+  });
+
+  it('renders a link for editing Draft articles', async () => {
+    mockFetchMyArticles.mockResolvedValueOnce({
+      articles: [makeArticle({ id: 'a2', status: 'Draft' })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+
+    render(<MyArticlesList />);
+    await screen.findByTestId('article-card-a2');
+
+    const editLink = screen.getByTestId('edit-article-a2');
+    expect(editLink.tagName).toBe('A');
+    expect(editLink).toHaveAttribute('href', '/editor/a2');
+    expect(screen.getByTestId('delete-article-a2')).toBeDisabled();
   });
 
   it('does not update state after unmount (cancelled fetch)', async () => {

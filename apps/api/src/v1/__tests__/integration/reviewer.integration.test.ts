@@ -6,10 +6,11 @@ await jest.unstable_mockModule('@repo/db', () => ({
   prisma: {
     user: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
     article: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn(), count: jest.fn() },
+    articleReview: { create: jest.fn(), findFirst: jest.fn() },
   },
 }));
 
-await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => ({
+await jest.unstable_mockModule('@middleware/auth.middleware.js', () => ({
   authenticate: jest.fn(
     async (
       req: import('express').Request,
@@ -33,9 +34,15 @@ await jest.unstable_mockModule('../../../middleware/auth.middleware.js', () => (
 
 const MockArticleRepository = {
   findByStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({ articles: [], total: 0 }),
+  findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+  updateStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
 };
 
-await jest.unstable_mockModule('../../repositories/articleRepository.js', () => ({
+const MockArticleReviewRepository = {
+  create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+};
+
+await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
@@ -44,10 +51,24 @@ await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   default: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
 
+await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
+  ArticleReviewRepository: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+  default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+}));
+
+await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
+  ArticleReviewRepository: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+  default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+}));
+
 const { default: app, appReady } = await import('../../../app.js');
 const { default: request } = await import('supertest');
 
 const mockFindByStatus = MockArticleRepository.findByStatus as jest.Mock<any>;
+const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
+const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
+const mockReviewCreate = MockArticleReviewRepository.create as jest.Mock<any>;
+const mockDate = new Date().toISOString();
 
 const reviewerHeaders = {
   'x-test-user-id':    'reviewer-1',
@@ -69,6 +90,9 @@ describe('Reviewer API Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFindByStatus.mockResolvedValue({ articles: [], total: 0 });
+    mockFindById.mockResolvedValue(null);
+    mockUpdateStatus.mockResolvedValue({});
+    mockReviewCreate.mockResolvedValue({});
   });
 
   describe('GET /api/v1/reviewer/articles/pending', () => {
@@ -98,8 +122,8 @@ describe('Reviewer API Integration', () => {
           status: 'Pending',
           authorId: 'user-1',
           tags: ['review'],
-          createdAt: new Date('2023-01-01').toISOString(),
-          updatedAt: new Date('2023-01-01').toISOString(),
+          createdAt: mockDate,
+          updatedAt: mockDate,
         },
       ];
 
@@ -120,4 +144,210 @@ describe('Reviewer API Integration', () => {
       expect(mockFindByStatus).toHaveBeenCalledWith('Pending', 1, 20);
     });
   });
+
+  describe('PATCH /api/v1/reviewer/articles/:id/approve', () => {
+    const articleId = 'article-123';
+    const approvePath = `/api/v1/reviewer/articles/${articleId}/approve`;
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).patch(approvePath);
+
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should return 403 for a non-Reviewer non-Admin role', async () => {
+      const response = await request(app)
+        .patch(approvePath)
+        .set(userHeaders);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+      expect(mockFindById).not.toHaveBeenCalled();
+    });
+
+    it('should return 404 when article does not exist', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .patch(approvePath)
+        .set(reviewerHeaders);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Article not found');
+      expect(mockUpdateStatus).not.toHaveBeenCalled();
+      expect(mockReviewCreate).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when article is not Pending', async () => {
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        title: 'Draft Article',
+        status: 'Draft',
+        authorId: 'user-1',
+      });
+
+      const response = await request(app)
+        .patch(approvePath)
+        .set(reviewerHeaders);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Only Pending articles can be approved');
+      expect(mockUpdateStatus).not.toHaveBeenCalled();
+      expect(mockReviewCreate).not.toHaveBeenCalled();
+    });
+
+    it('should return 200 and publish a Pending article for a Reviewer', async () => {
+      const pendingArticle = {
+        id: articleId,
+        title: 'Pending Article',
+        body: { type: 'doc' },
+        status: 'Pending',
+        authorId: 'user-1',
+        tags: [],
+        createdAt: mockDate,
+        updatedAt: mockDate,
+      };
+      const publishedArticle = { ...pendingArticle, status: 'Published' };
+
+      mockFindById.mockResolvedValueOnce(pendingArticle);
+      mockUpdateStatus.mockResolvedValueOnce(publishedArticle);
+      mockReviewCreate.mockResolvedValueOnce({
+        id: 'review-1',
+        articleId,
+        reviewerId: 'reviewer-1',
+        reviewStatus: 'Approved',
+      });
+
+      const response = await request(app)
+        .patch(approvePath)
+        .set(reviewerHeaders);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Article approved and published');
+      expect(response.body.data.status).toBe('Published');
+      expect(mockUpdateStatus).toHaveBeenCalledWith(articleId, 'Published');
+      expect(mockReviewCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          articleId,
+          reviewerId: 'reviewer-1',
+          status: 'Approved',
+          feedback: null,
+          createdBy: 'reviewer-1',
+        })
+      );
+    });
+  });
+
+  describe('PATCH /api/v1/reviewer/articles/:id/reject', () => {
+    const articleId = 'article-123';
+    const rejectPath = `/api/v1/reviewer/articles/${articleId}/reject`;
+
+    it('should return 401 if unauthenticated', async () => {
+      const response = await request(app).patch(rejectPath);
+
+      expect(response.status).toBe(401);
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should return 403 for a non-Reviewer non-Admin role', async () => {
+      const response = await request(app)
+        .patch(rejectPath)
+        .set(userHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+      expect(mockFindById).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when feedback is missing or under 10 characters', async () => {
+      const response = await request(app)
+        .patch(rejectPath)
+        .set(reviewerHeaders)
+        .send({ feedback: 'short' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Rejection feedback must be at least 10 characters');
+      expect(mockFindById).not.toHaveBeenCalled();
+    });
+
+    it('should return 404 when article does not exist', async () => {
+      mockFindById.mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .patch(rejectPath)
+        .set(reviewerHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Article not found');
+      expect(mockUpdateStatus).not.toHaveBeenCalled();
+      expect(mockReviewCreate).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when article is not Pending', async () => {
+      mockFindById.mockResolvedValueOnce({
+        id: articleId,
+        title: 'Draft Article',
+        status: 'Draft',
+        authorId: 'user-1',
+      });
+
+      const response = await request(app)
+        .patch(rejectPath)
+        .set(reviewerHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Only Pending articles can be rejected');
+      expect(mockUpdateStatus).not.toHaveBeenCalled();
+      expect(mockReviewCreate).not.toHaveBeenCalled();
+    });
+
+    it('should return 200 and reject a Pending article for a Reviewer', async () => {
+      const pendingArticle = {
+        id: articleId,
+        title: 'Pending Article',
+        body: { type: 'doc' },
+        status: 'Pending',
+        authorId: 'user-1',
+        tags: [],
+        createdAt: mockDate,
+        updatedAt: mockDate,
+      };
+      const rejectedArticle = { ...pendingArticle, status: 'Unpublished' };
+
+      mockFindById.mockResolvedValueOnce(pendingArticle);
+      mockUpdateStatus.mockResolvedValueOnce(rejectedArticle);
+      mockReviewCreate.mockResolvedValueOnce({
+        id: 'review-1',
+        articleId,
+        reviewerId: 'reviewer-1',
+        reviewStatus: 'Rejected',
+      });
+
+      const response = await request(app)
+        .patch(rejectPath)
+        .set(reviewerHeaders)
+        .send({ feedback: 'this is a valid reject feedback' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Article rejected');
+      expect(response.body.data.status).toBe('Unpublished');
+      expect(mockUpdateStatus).toHaveBeenCalledWith(articleId, 'Unpublished');
+      expect(mockReviewCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          articleId,
+          reviewerId: 'reviewer-1',
+          status: 'Rejected',
+          feedback: 'this is a valid reject feedback',
+          createdBy: 'reviewer-1',
+        })
+      );
+    });
+  });
 });
+

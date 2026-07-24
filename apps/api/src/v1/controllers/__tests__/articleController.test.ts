@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from 'express';
 import type { ArticleService } from '../../services/articleService.js';
 import { AppError } from '../../../errors/AppError.js';
+import { makeMockReqResNext } from '../../__tests__/helpers/mockExpress.helpers.js';
 
 // articleController.ts imports ArticleService by its named class export (for the
 // constructor's default-parameter `new ArticleService()`); tests always inject a mock
@@ -13,13 +14,13 @@ jest.unstable_mockModule('../../services/articleService.js', () => ({
 const { ArticleController } = await import('../articleController.js');
 
 // Build a typed mock service object — injected directly into the controller.
-const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'listMine' | 'getPublishedById' | 'deleteArticle'>> => ({
+const makeMockService = (): jest.Mocked<Pick<ArticleService, 'createArticle' | 'updateArticle' | 'submitForReview' | 'listPublished' | 'listMine' | 'getArticleById' | 'deleteArticle'>> => ({
   createArticle: jest.fn(),
   updateArticle: jest.fn(),
   submitForReview: jest.fn(),
   listPublished: jest.fn(),
   listMine: jest.fn(),
-  getPublishedById: jest.fn(),
+  getArticleById: jest.fn(),
   deleteArticle: jest.fn(),
 });
 
@@ -31,18 +32,7 @@ describe('ArticleController', () => {
   let controller: InstanceType<typeof ArticleController>;;
 
   beforeEach(() => {
-    req = {
-      body: {},
-      user: { userId: 'user-123' } as any,
-      files: [],
-      params: {},
-      query: {},
-    };
-    res = {
-      status: jest.fn().mockReturnThis() as any,
-      json: jest.fn() as any,
-    };
-    next = jest.fn();
+    ({ req, res, next } = makeMockReqResNext());
     mockService = makeMockService();
     controller = new ArticleController(mockService as unknown as ArticleService);
     jest.clearAllMocks();
@@ -223,7 +213,7 @@ describe('ArticleController', () => {
 
       await controller.listPublished(req as Request, res as Response, next);
 
-      expect(mockService.listPublished).toHaveBeenCalledWith(1, 20);
+      expect(mockService.listPublished).toHaveBeenCalledWith(1, 20, undefined, undefined, undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -239,7 +229,18 @@ describe('ArticleController', () => {
 
       await controller.listPublished(req as Request, res as Response, next);
 
-      expect(mockService.listPublished).toHaveBeenCalledWith(3, 5);
+      expect(mockService.listPublished).toHaveBeenCalledWith(3, 5, undefined, undefined, undefined);
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should forward search, sort, and order query params to the service', async () => {
+      req.query = { page: '1', limit: '10', search: 'react', sort: 'views', order: 'asc' };
+      const mockResult = { articles: [], total: 0, page: 1, limit: 10 };
+      mockService.listPublished.mockResolvedValue(mockResult as never);
+
+      await controller.listPublished(req as Request, res as Response, next);
+
+      expect(mockService.listPublished).toHaveBeenCalledWith(1, 10, 'react', 'views', 'asc');
       expect(res.status).toHaveBeenCalledWith(200);
     });
 
@@ -269,11 +270,11 @@ describe('ArticleController', () => {
 
     it('should return the article', async () => {
       const mockArticle = { id: 'article-123', title: 'Test Article', status: 'Published' };
-      mockService.getPublishedById.mockResolvedValue(mockArticle as never);
+      mockService.getArticleById.mockResolvedValue(mockArticle as never);
 
       await controller.getById(req as Request, res as Response, next);
 
-      expect(mockService.getPublishedById).toHaveBeenCalledWith('article-123');
+      expect(mockService.getArticleById).toHaveBeenCalledWith('article-123', 'user-123');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -284,7 +285,7 @@ describe('ArticleController', () => {
 
     it('should pass service errors to next', async () => {
       const error = new Error('Service error');
-      mockService.getPublishedById.mockRejectedValue(error as never);
+      mockService.getArticleById.mockRejectedValue(error as never);
 
       await controller.getById(req as Request, res as Response, next);
 

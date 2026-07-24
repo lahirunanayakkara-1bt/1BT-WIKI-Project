@@ -17,12 +17,15 @@ export interface JSONContent {
   [key: string]: unknown;
 }
 
+export const ARTICLE_SORT_FIELDS = ['title', 'createdAt', 'views'] as const;
+
 export interface Article {
   id: string;
   title: string;
   body: JSONContent;
   status: ArticleStatus;
   authorId: string;
+  views: number;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -40,6 +43,7 @@ export interface ArticleListItem {
   updatedAt: Date;
   likeCount: number;
   commentCount: number;
+  views: number;
 }
 
 export interface CreateArticleInput {
@@ -105,5 +109,21 @@ export interface ArticleReview {
   comments?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export type ReviewStatus = 'Pending' | 'Approved' | 'Rejected';
+
+export const ReviewStatusValue = {
+  Pending: 'Pending',
+  Approved: 'Approved',
+  Rejected: 'Rejected',
+} as const satisfies Record<ReviewStatus, ReviewStatus>;
+
+export interface CreateArticleReviewInput {
+  articleId: string;
+  reviewerId: string;
+  status: ReviewStatus;
+  feedback: string | null;
+  createdBy: string;
 }
 

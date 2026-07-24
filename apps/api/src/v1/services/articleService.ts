@@ -15,7 +15,8 @@ import type {
   JSONContent,
   ArticleListItem,
 } from '@models/article.types.js';
-import { ArticleStatusValue } from '@models/article.types.js';
+import { ArticleStatusValue, ARTICLE_SORT_FIELDS } from '@models/article.types.js';
+import { assertValidSort } from '../utils/queryHelpers.js';
 
 // Derives update-field shapes from the app-level Article interface — no Prisma types cross into the service layer.
 type ArticleUpdateFields = Partial<Pick<Article, 'title' | 'tags' | 'status'>> & { body?: JSONContent };
@@ -225,13 +226,26 @@ export class ArticleService {
 
   async listPublished(
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    search?: string,
+    sort?: string,
+    order?: string
   ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
+    assertValidSort(ARTICLE_SORT_FIELDS, sort);
+    if (order !== undefined && order !== 'asc' && order !== 'desc') {
+      throw new AppError('Invalid sort order. Allowed: asc, desc', 400);
+    }
+
     const { articles, total } = await this.repository.findByStatus(
       ArticleStatusValue.Published,
       page,
       limit,
-      { includeCounts: true }
+      {
+        includeCounts: true,
+        search,
+        sort,
+        order,
+      }
     );
 
     const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
@@ -240,6 +254,7 @@ export class ArticleService {
       authorId: article.authorId,
       tags: article.tags,
       status: article.status as ArticleStatus,
+      views: article.views,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
       likeCount: article._count?.likes ?? 0,
@@ -280,15 +295,23 @@ export class ArticleService {
     }
   }
 
-  async getPublishedById(id: string): Promise<Article> {
+  async getArticleById(id: string, requesterId: string | null = null): Promise<Article> {
     const article = await this.repository.findById(id);
     if (!article) {
       throw new AppError('Article not found', 404);
     }
-    if (article.status !== ArticleStatusValue.Published) {
-      throw new AppError('Article not available', 403);
+
+    // Published articles are publicly readable (by any authenticated user).
+    if (article.status === ArticleStatusValue.Published) {
+      return article;
     }
-    return article;
+
+    // Non-Published articles are only visible to the author.
+    if (requesterId && requesterId === article.authorId) {
+      return article;
+    }
+
+    throw new AppError('Article not available', 403);
   }
 
   private async findOwned(articleId: string, userId: string): Promise<Article> {
@@ -312,12 +335,13 @@ export class ArticleService {
   ): Promise<{ articles: ArticleListItem[]; total: number; page: number; limit: number }> {
     const { articles, total } = await this.repository.findByAuthor(authorId, page, limit);
 
-    const mappedArticles: ArticleListItem[] = articles.map((article) => ({
+    const mappedArticles: ArticleListItem[] = articles.map((article: PublishedArticleRow) => ({
       id: article.id,
       title: article.title,
       authorId: article.authorId,
       tags: article.tags,
       status: article.status as ArticleStatus,
+      views: article.views,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
       likeCount: article._count?.likes ?? 0,

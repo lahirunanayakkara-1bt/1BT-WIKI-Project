@@ -79,6 +79,51 @@ describe('ArticleRepository.findByStatus', () => {
 
     expect(result).toEqual({ articles: mockArticles, total: 1 });
   });
+
+  it('should query with search parameter correctly', async () => {
+    mockFindMany.mockResolvedValue([]);
+    mockCount.mockResolvedValue(0);
+
+    await ArticleRepository.findByStatus('Published', 1, 10, { search: 'react' });
+
+    expect(mockFindMany).toHaveBeenCalledTimes(1);
+    const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
+    expect(findManyArgs.where).toEqual({
+      status: 'Published',
+      deletedAt: null,
+      title: { contains: 'react', mode: 'insensitive' },
+    });
+
+    expect(mockCount).toHaveBeenCalledTimes(1);
+    const [countArgs] = mockCount.mock.calls[0] as [any];
+    expect(countArgs.where).toEqual({
+      status: 'Published',
+      deletedAt: null,
+      title: { contains: 'react', mode: 'insensitive' },
+    });
+  });
+
+  it('should query with custom sort and order combinations correctly', async () => {
+    mockFindMany.mockResolvedValue([]);
+    mockCount.mockResolvedValue(0);
+
+    await ArticleRepository.findByStatus('Published', 1, 10, { sort: 'views', order: 'asc' });
+
+    expect(mockFindMany).toHaveBeenCalledTimes(1);
+    const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
+    expect(findManyArgs.orderBy).toEqual({ views: 'asc' });
+  });
+
+  it('should fall back to createdAt desc for invalid sort field', async () => {
+    mockFindMany.mockResolvedValue([]);
+    mockCount.mockResolvedValue(0);
+
+    await ArticleRepository.findByStatus('Published', 1, 10, { sort: 'invalidField', order: 'asc' });
+
+    expect(mockFindMany).toHaveBeenCalledTimes(1);
+    const [findManyArgs] = mockFindMany.mock.calls[0] as [any];
+    expect(findManyArgs.orderBy).toEqual({ createdAt: 'asc' });
+  });
 });
 
 describe('ArticleRepository.findByAuthor', () => {
