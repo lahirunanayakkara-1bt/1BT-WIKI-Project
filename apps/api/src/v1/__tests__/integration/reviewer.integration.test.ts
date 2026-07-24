@@ -42,6 +42,10 @@ const MockArticleReviewRepository = {
   create: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
 };
 
+const MockUserRepository = {
+  findById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+};
+
 await jest.unstable_mockModule('@repositories/articleRepository.js', () => ({
   ArticleRepository: jest.fn().mockImplementation(() => MockArticleRepository),
 }));
@@ -56,9 +60,8 @@ await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () =>
   default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
 }));
 
-await jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
-  ArticleReviewRepository: jest.fn().mockImplementation(() => MockArticleReviewRepository),
-  default: jest.fn().mockImplementation(() => MockArticleReviewRepository),
+await jest.unstable_mockModule('@repositories/userRepository.js', () => ({
+  default: MockUserRepository,
 }));
 
 const { default: app, appReady } = await import('../../../app.js');
@@ -68,6 +71,7 @@ const mockFindByStatus = MockArticleRepository.findByStatus as jest.Mock<any>;
 const mockFindById = MockArticleRepository.findById as jest.Mock<any>;
 const mockUpdateStatus = MockArticleRepository.updateStatus as jest.Mock<any>;
 const mockReviewCreate = MockArticleReviewRepository.create as jest.Mock<any>;
+const mockUserFindById = MockUserRepository.findById as jest.Mock<any>;
 const mockDate = new Date().toISOString();
 
 const reviewerHeaders = {
@@ -93,6 +97,11 @@ describe('Reviewer API Integration', () => {
     mockFindById.mockResolvedValue(null);
     mockUpdateStatus.mockResolvedValue({});
     mockReviewCreate.mockResolvedValue({});
+    mockUserFindById.mockResolvedValue({
+      id: 'user-1',
+      name: 'Author Name',
+      email: 'author@example.com',
+    });
   });
 
   describe('GET /api/v1/reviewer/articles/pending', () => {
@@ -138,6 +147,8 @@ describe('Reviewer API Integration', () => {
       expect(response.body.message).toBe('Pending articles retrieved successfully');
       expect(response.body.data.articles).toHaveLength(1);
       expect(response.body.data.articles[0].status).toBe('Pending');
+      expect(response.body.data.articles[0].authorName).toBe('Author Name');
+      expect(response.body.data.articles[0].authorEmail).toBe('author@example.com');
       expect(response.body.data.total).toBe(1);
       expect(response.body.data.page).toBe(1);
       expect(response.body.data.limit).toBe(20);
@@ -424,6 +435,8 @@ describe('Reviewer API Integration', () => {
       expect(response.body.data.body).toEqual(pendingArticle.body);
       expect(response.body.data.tags).toEqual(['tech', 'wiki']);
       expect(response.body.data.status).toBe('Pending');
+      expect(response.body.data.authorName).toBe('Author Name');
+      expect(response.body.data.authorEmail).toBe('author@example.com');
       expect(mockFindById).toHaveBeenCalledWith(articleId);
     });
   });

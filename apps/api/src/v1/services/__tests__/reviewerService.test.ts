@@ -12,6 +12,12 @@ jest.unstable_mockModule('@repositories/articleReviewRepository.js', () => ({
   ArticleReviewRepository: jest.fn(),
 }));
 
+jest.unstable_mockModule('@repositories/userRepository.js', () => ({
+  default: {
+    findById: jest.fn(),
+  },
+}));
+
 const { ReviewerService } = await import('../reviewerService.js');
 
 const makeMockArticleRepo = (): jest.Mocked<
@@ -26,22 +32,29 @@ const makeMockReviewRepo = (): jest.Mocked<Pick<ArticleReviewRepository, 'create
   create: jest.fn(),
 });
 
+const makeMockUserRepo = () => ({
+  findById: jest.fn<() => Promise<{ name?: string; email?: string } | null>>(),
+});
+
 describe('ReviewerService.listPending', () => {
   let mockArticleRepo: ReturnType<typeof makeMockArticleRepo>;
   let mockReviewRepo: ReturnType<typeof makeMockReviewRepo>;
+  let mockUserRepo: ReturnType<typeof makeMockUserRepo>;
   let service: InstanceType<typeof ReviewerService>;
 
   beforeEach(() => {
     mockArticleRepo = makeMockArticleRepo();
     mockReviewRepo = makeMockReviewRepo();
+    mockUserRepo = makeMockUserRepo();
     service = new ReviewerService(
       mockArticleRepo as unknown as ArticleRepository,
-      mockReviewRepo as unknown as ArticleReviewRepository
+      mockReviewRepo as unknown as ArticleReviewRepository,
+      mockUserRepo as never
     );
     jest.clearAllMocks();
   });
 
-  it('should call findByStatus with Pending status and no includeCounts', async () => {
+  it('should call findByStatus with Pending status and enrich articles with authorName and authorEmail', async () => {
     const mockArticles = [
       {
         id: 'article-1',
@@ -56,18 +69,48 @@ describe('ReviewerService.listPending', () => {
     ];
 
     mockArticleRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 1 } as never);
+    mockUserRepo.findById.mockResolvedValue({ name: 'Jane Author', email: 'jane@example.com' });
 
     const result = await service.listPending(2, 10);
 
     expect(mockArticleRepo.findByStatus).toHaveBeenCalledWith('Pending', 2, 10);
     expect(mockArticleRepo.findByStatus).toHaveBeenCalledTimes(1);
+    expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
     expect(result).toEqual({
-      articles: mockArticles,
+      articles: [
+        {
+          ...mockArticles[0],
+          authorName: 'Jane Author',
+          authorEmail: 'jane@example.com',
+        },
+      ],
       total: 1,
       page: 2,
       limit: 10,
     });
     expect(result.articles[0]).not.toHaveProperty('_count');
+  });
+
+  it('should fall back to Unknown and null when user is not found', async () => {
+    const mockArticles = [
+      {
+        id: 'article-1',
+        title: 'Pending Article',
+        status: 'Pending',
+        authorId: 'user-missing',
+      },
+    ];
+
+    mockArticleRepo.findByStatus.mockResolvedValue({ articles: mockArticles, total: 1 } as never);
+    mockUserRepo.findById.mockResolvedValue(null);
+
+    const result = await service.listPending();
+
+    expect(result.articles[0]).toEqual({
+      ...mockArticles[0],
+      authorName: 'Unknown',
+      authorEmail: null,
+    });
   });
 
   it('should default page and limit when not provided', async () => {
@@ -296,19 +339,22 @@ describe('ReviewerService.getArticleForReview', () => {
   const articleId = 'article-123';
   let mockArticleRepo: ReturnType<typeof makeMockArticleRepo>;
   let mockReviewRepo: ReturnType<typeof makeMockReviewRepo>;
+  let mockUserRepo: ReturnType<typeof makeMockUserRepo>;
   let service: InstanceType<typeof ReviewerService>;
 
   beforeEach(() => {
     mockArticleRepo = makeMockArticleRepo();
     mockReviewRepo = makeMockReviewRepo();
+    mockUserRepo = makeMockUserRepo();
     service = new ReviewerService(
       mockArticleRepo as unknown as ArticleRepository,
-      mockReviewRepo as unknown as ArticleReviewRepository
+      mockReviewRepo as unknown as ArticleReviewRepository,
+      mockUserRepo as never
     );
     jest.clearAllMocks();
   });
 
-  it('should return full article when Pending', async () => {
+  it('should return full article enriched with authorName and authorEmail when Pending', async () => {
     const pendingArticle = {
       id: articleId,
       title: 'Pending Article Title',
@@ -321,11 +367,37 @@ describe('ReviewerService.getArticleForReview', () => {
     };
 
     mockArticleRepo.findById.mockResolvedValue(pendingArticle as never);
+    mockUserRepo.findById.mockResolvedValue({ name: 'Author Person', email: 'author@example.com' });
 
     const result = await service.getArticleForReview(articleId);
 
     expect(mockArticleRepo.findById).toHaveBeenCalledWith(articleId);
-    expect(result).toEqual(pendingArticle);
+    expect(mockUserRepo.findById).toHaveBeenCalledWith('user-1');
+    expect(result).toEqual({
+      ...pendingArticle,
+      authorName: 'Author Person',
+      authorEmail: 'author@example.com',
+    });
+  });
+
+  it('should fall back to Unknown and null for author when user is not found', async () => {
+    const pendingArticle = {
+      id: articleId,
+      title: 'Pending Article Title',
+      status: 'Pending',
+      authorId: 'user-missing',
+    };
+
+    mockArticleRepo.findById.mockResolvedValue(pendingArticle as never);
+    mockUserRepo.findById.mockResolvedValue(null);
+
+    const result = await service.getArticleForReview(articleId);
+
+    expect(result).toEqual({
+      ...pendingArticle,
+      authorName: 'Unknown',
+      authorEmail: null,
+    });
   });
 
   it('should throw 404 when article does not exist', async () => {
